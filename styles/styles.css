@@ -1,0 +1,95 @@
+nav > .nav.nav-tabs{
+
+  border: none;
+    color:#000;
+    background:#f2f2f2;
+    border-radius:0;
+
+}
+nav > div a.nav-item.nav-link,
+nav > div a.nav-link.active
+{
+  border: none;
+    padding: 18px 25px;
+    color:#fff;
+    background:#17a2b8;
+    border-radius:0;
+}
+
+a {
+    color: #000000;
+}
+
+
+.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+    color: #fff;
+    background-color: #17a2b8;
+}
+
+nav > div a.nav-item.nav-link.active:after
+ {
+  content: "";
+  position: relative;
+  bottom: -60px;
+  left: -10%;
+  border: 15px solid transparent;
+  border-top-color: #e74c3c ;
+}
+.tab-content{
+  background: #fdfdfd;
+    line-height: 25px;
+    border: 1px solid #17a2b8;
+    border-top:5px solid #17a2b8;
+    border-bottom:5px solid #17a2b8;
+    padding:30px 25px;
+}
+
+nav > div a.nav-item.nav-link:hover,
+nav > div a.nav-item.nav-link:focus
+{
+  border: none;
+    background: #990000;
+    color:#fff;
+    border-radius:0;
+    transition:background 0.20s linear;
+}
+
+.vertical-menu {
+  width: 200px;
+}
+
+.vertical-menu a {
+  background-color: #eee;
+  color: black;
+  display: block;
+  padding: 12px;
+  text-decoration: none;
+}
+
+.vertical-menu a:hover {
+  background-color: #ccc;
+}
+
+.vertical-menu a.active {
+  background-color: #990000;
+  color: white;
+}
+
+.column-small {
+  float: left;
+  width: 20%;
+  padding: 10px;
+  height: 300px; /* Should be removed. Only for demonstration */
+}
+
+.column-big {
+  float: left;
+  width: 80%;
+  padding: 10px;
+  height: 300px; /* Should be removed. Only for demonstration */
+}
+
+canvas,
+.xterm-screen {
+    width: 100% !important;
+}

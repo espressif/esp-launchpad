@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>ESP Tool</title>
+        <link rel="stylesheet" href="node_modules/xterm/css/xterm.css" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="./styles/styles.css" />
+        <link
+            href="https://fonts.googleapis.com/css?family=Orbitron"
+            rel="stylesheet"
+        />
+        <link rel="icon" href="favicon.ico" />
+         <script src="node_modules/xterm/lib/xterm.js"></script>
+         <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.3/pako.js"></script>
+         <script src="node_modules/crypto-js/crypto-js.js"></script>
+         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        
+        <div class="container">
+            <div>
+            <h1 align="center"><p><img src="./assets/esp-logo.png" width="42" height="42" style="vertical-align:middle"></img> ESP LaunchPad</p></h1>
+            <h6 align="center"><span style="color:#736a6a">A Serial Flasher utility for Espressif chips</span></h6>
+            <hr />
+            </div>
+            <div id="safariErr" style="display:none"><p align="center" style="color:red">This tool is not supported on Safari browser!</p>
+            </div>
+            <div id="topConnectBar">
+                <label style="display:none" id="lblConnTo">Connected to device: </label>
+                
+                <input class="btn btn-info btn-sm" type="button" id="connectButton" value="Connect" data-toggle="tooltip" 
+                data-placement="top" title="Connect to your device"/>
+                <input class="btn btn-warning btn-sm" type="button" id="disconnectButton" value="Disconnect" data-toggle="tooltip" 
+                data-placement="top" title="Disconnect from the device"/>
+                <input class="btn btn-danger btn-sm" type="button" id="eraseButton" value="Erase Flash" data-toggle="tooltip" 
+                data-placement="top" title="Erase firmware on your device"/>
+                <hr />
+            </div>
+            <div class="row">
+              <div class="column-small">
+                <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                  <a class="nav-link active" id="v-pills-quickTry-tab" data-toggle="pill" href="#v-pills-quickTry" role="tab" aria-controls="v-pills-quickTry" aria-selected="true">Program - Quick Start</a>
+                  <a class="nav-link" id="v-pills-diy-tab" data-toggle="pill" href="#v-pills-diy" role="tab" aria-controls="v-pills-diy" aria-selected="false">Program - DIY</a>
+                  <a class="nav-link" id="v-pills-console-tab" data-toggle="pill" href="#v-pills-console" role="tab" aria-controls="v-pills-console" aria-selected="false">Console</a>
+                  <a class="nav-link" id="v-pills-settings-tab" data-toggle="pill" href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">Settings</a>
+                </div>
+              </div>
+              <div class="column-big">
+                <div class="tab-content" id="v-pills-tabContent">
+                    <!-- Quick Start Section -->
+                    <div class="tab-pane fade show active" id="v-pills-quickTry" role="tabpanel" aria-labelledby="v-pills-quickTry-tab">
+                          <span style="color:#736a6a"><b>Quick Try:</b> Choose from some of our pre-built, out-of-the-box examples to flash and play</span>
+                          <hr/>
+                          
+                          <div class="form-check-inline">
+                                <label class="form-check-label" for="radio0">
+                                  <input type="radio" class="form-check-input" id="radio0" name="chipType" value="auto" checked>Auto-Detect
+                                </label>
+                          </div>
+                          <div class="form-check-inline">
+                                <label class="form-check-label" for="radio1">
+                                  <input type="radio" class="form-check-input" id="radio1" name="chipType" value="esp32">ESP32
+                                </label>
+                          </div>
+                          <div class="form-check-inline">
+                                <label class="form-check-label" for="radio2">
+                                  <input type="radio" class="form-check-input" id="radio2" name="chipType" value="esp32s2">ESP32-S2
+                                </label>
+                          </div>
+                          <div class="form-check-inline">
+                                <label class="form-check-label" for="radio3">
+                                  <input type="radio" class="form-check-input" id="radio3" name="chipType" value="esp32c3">ESP32-C3
+                                </label>
+                          </div>
+                          <div class="form-check-inline">
+                                <label class="form-check-label" for="radio4">
+                                  <input type="radio" class="form-check-input" id="radio4" name="chipType" value="esp32s3">ESP32-S3
+                                </label>
+                          </div>
+                          <hr/>
+                          <label for="framework" id="lblFrameworks">Select Framework:</label>
+                          <select name="framework" id="framework">
+                              <option value="rainmaker">RainMaker</option>
+                              <option value="matter">Matter</option>
+                          </select>
+                          
+                          <hr/>
+                          
+                          <label for="device" id="lblDeviceType">Select Device Type:</label>
+                          <select name="device" id="device">
+                              <option value="fan">Fan</option>
+                              <option value="homekitSwitch">Homekit Switch</option>
+                              <option value="bulb" selected>Led Light</option>
+                              <option value="fan">Switch</option>
+                              <option value="tempSensor">Temperature Sensor</option>
+                              <option value="app_wifi">Wifi</option>
+                          </select>
+                          <br><br>
+                          <input class="btn btn-info btn-sm" type="button" id="flashButton" value="Flash" disabled data-toggle="tooltip" 
+                          data-placement="right" title="This will download and flash the firmware image on your device"/>
+                          <br><br>
+                          <span id="progressMsgQS" style="display:none"><i>This may take a short while. Check console for the progress</i></span>
+                    </div>
+                  
+                    <!-- DIY Section -->
+                    <div class="tab-pane fade show" id="v-pills-diy" role="tabpanel" aria-labelledby="v-pills-diy-tab">
+                      <h3> Program </h3>
+                      <span style="color:#736a6a"><b>Try your own:</b> Choose your own built firmware binary from the local storage to flash and use.</span>
+                      <div class="alert alert-danger alert-dismissible" id="alertDiv" style="display:none; margin-top:10px">
+                          <a href="#" class="close" aria-label="close" onclick="$('.alert').hide()">&times;</a>
+                          <span id="alertmsg"></span>
+                      </div>
+
+                      <div id="files">
+                          <table class="table table-striped" id="fileTable">
+                              <thead class="thead-light">
+                                  <tr>
+                                      <th>Flash Address</th>
+                                      <th>Selected File</th>
+                                      <th>Remove </th>
+                                  </tr>
+                              </thead>
+                              <tbody id="tableBody">
+                                  <tr id="row0">
+                                      <td><input type="text" id="offset1" name="offset1" value="0x1000"></td>
+                                      <td><input type="file" id="selectFile1" name="selected_file1"></td>
+                                      <td><button class="btn disabled"> Remove </button></td>
+                                  </tr>
+                              </tbody>
+                          </table>
+                          <input class="btn btn-info btn-sm" type="button" id="addFile" value="Add File" />
+                          <input class="btn btn-info btn-sm" type="button" id="programButton" value="Program" disabled/>
+                      </div>
+                      <output id="list"></output>
+                      <hr/>
+                      <span id="progressMsgDIY" style="display:none"><i>This may take a short while. Check console for the progress</i></span>
+                    </div>
+                    
+                    <!-- Console section -->
+                    <div class="tab-pane fade" id="v-pills-console" role="tabpanel" aria-labelledby="v-pills-console-tab">
+                    
+                      <h3>Console </h3>
+                      <label style="display:none" id="lblConsoleFor">Connected to device: </label>
+
+                      <!--<input class="btn btn-info" type="button" id="consoleStartButton" value="Start" />
+                      <input class="btn btn-info" type="button" id="consoleStopButton" value="Stop" />-->
+                      <input class="btn btn-info" type="button" id="resetButton" value="Reset" />
+                      <hr/>
+                      <div id="terminal"></div>
+                    </div>
+                    
+                    <!-- settings section -->
+                    <div class="tab-pane fade" id="v-pills-settings" role="tabpanel" aria-labelledby="v-pills-settings-tab">
+                        <div id="baudSettings">
+                          <label for="baudrates" id="lblBaudrate">Baudrate:</label>
+                          <select name="baudrates" id="baudrates">
+                              <option value="921600">921600</option>
+                              <option value="460800">460800</option>
+                              <option value="230400">230400</option>
+                              <option value="115200">115200</option>
+                          </select>
+                        </div>
+                        <div id="settingsWarning" style="display:none">
+                            <span><i> ** Settings cannot be changed for a connected device. Please disconnect the device and then change the settings.</i></span>
+                        </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+        <script src="./js/index.js" type="module"></script>
+        <script>
+            // Safari 3.0+ "[object HTMLElementConstructor]"
+            var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && window['safari'].pushNotification));
+
+            if(isSafari)
+            {
+               document.getElementById("safariErr").style.display = "inline";
+               document.getElementById("main").style.display = "none";
+            }
+        </script>
+    </body>
+</html>
+
