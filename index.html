@@ -54,15 +54,15 @@
                     <div class="tab-pane fade show active" id="v-pills-quickTry" role="tabpanel" aria-labelledby="v-pills-quickTry-tab">
                           <span style="color:#736a6a"><b>Quick Try:</b> Choose from some of our pre-built, out-of-the-box examples to flash and play</span>
                           <hr/>
-                          
+                          <!--
                           <div class="form-check-inline">
                                 <label class="form-check-label" for="radio0">
                                   <input type="radio" class="form-check-input" id="radio0" name="chipType" value="auto" checked>Auto-Detect
                                 </label>
-                          </div>
+                          </div> -->
                           <div class="form-check-inline">
                                 <label class="form-check-label" for="radio1">
-                                  <input type="radio" class="form-check-input" id="radio1" name="chipType" value="esp32">ESP32
+                                  <input type="radio" class="form-check-input" id="radio1" name="chipType" value="esp32" checked>ESP32
                                 </label>
                           </div>
                           <div class="form-check-inline">
@@ -143,11 +143,11 @@
                     <div class="tab-pane fade" id="v-pills-console" role="tabpanel" aria-labelledby="v-pills-console-tab">
                     
                       <h3>Console </h3>
-                      <label style="display:none" id="lblConsoleFor">Connected to device: </label>
-
-                      <!--<input class="btn btn-info" type="button" id="consoleStartButton" value="Start" />
-                      <input class="btn btn-info" type="button" id="consoleStopButton" value="Stop" />-->
-                      <input class="btn btn-info" type="button" id="resetButton" value="Reset" />
+                      <input class="btn btn-info" type="button" id="consoleStartButton" value="Reset" disabled data-toggle="tooltip" 
+                      data-placement="right" title="Reset your device"/>
+                      <div id="resetMessage" style="display:none">This will reset your device  <input class="btn btn-info" type="button" id="resetButton" value="Continue" data-toggle="tooltip" 
+                        data-placement="right" title="Confirm to Reset your device"/>
+                      </div>
                       <hr/>
                       <div id="terminal"></div>
                     </div>

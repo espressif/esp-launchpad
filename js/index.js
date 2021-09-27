@@ -3,7 +3,7 @@ const connectButton = document.getElementById("connectButton");
 const disconnectButton = document.getElementById("disconnectButton");
 const resetButton = document.getElementById("resetButton");
 const consoleStartButton = document.getElementById("consoleStartButton");
-const consoleStopButton = document.getElementById("consoleStopButton");
+const resetMessage = document.getElementById("resetMessage");
 const eraseButton = document.getElementById("eraseButton");
 const programButton = document.getElementById("programButton");
 const filesDiv = document.getElementById("files");
@@ -107,26 +107,20 @@ connectButton.onclick = async () => {
     $("#baudrates").prop("disabled", true);
     $("#flashButton").prop("disabled", false);
     $("#programButton").prop("disabled", false);
+    $("#consoleStartButton").prop("disabled", false);
     settingsWarning.style.display = "initial";
     connectButton.style.display = "none";
     disconnectButton.style.display = "initial";
     eraseButton.style.display = "initial";
     filesDiv.style.display = "initial";
-
-    while (true) {
-        let val = await transport.rawRead();
-        if (typeof val !== 'undefined') {
-            term.write(val);
-        } else {
-            break;
-        }
-    }
 }
 
 resetButton.onclick = async () => {
+    resetMessage.style.display = "none";
     await transport.setDTR(false);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 100));
     await transport.setDTR(true);
+    consoleStartButton.style.display = "block";
 }
 
 eraseButton.onclick = async () => {
@@ -190,17 +184,16 @@ disconnectButton.onclick = async () => {
     $("#baudrates").prop("disabled", false);
     $("#flashButton").prop("disabled", true);
     $("#programButton").prop("disabled", true);
+    $("#consoleStartButton").prop("disabled", true);
     settingsWarning.style.display = "none";
     connectButton.style.display = "initial";
     disconnectButton.style.display = "none";
     eraseButton.style.display = "none";
     lblConnTo.style.display = "none";
-    //filesDiv.style.display = "none";
     alertDiv.style.display = "none";
     consoleDiv.style.display = "initial";
 };
 
-/*
 consoleStartButton.onclick = async () => {
     if (device === null) {
         device = await navigator.serial.requestPort({
@@ -208,11 +201,10 @@ consoleStartButton.onclick = async () => {
         });
         transport = new Transport(device);
     }
-    lblConsoleFor.style.display = "block";
+    resetMessage.style.display = "block";
     consoleStartButton.style.display = "none";
-    consoleStopButton.style.display = "initial";
-    programDiv.style.display = "none";
 
+    await transport.disconnect();
     await transport.connect();
 
     while (true) {
@@ -226,15 +218,6 @@ consoleStartButton.onclick = async () => {
     console.log("quitting console");
 }
 
-
-consoleStopButton.onclick = async () => {
-    await transport.disconnect();
-    term.clear();
-    consoleStartButton.style.display = "initial";
-    consoleStopButton.style.display = "none";
-    programDiv.style.display = "initial";
-}
-*/
 
 function validate_program_inputs() {
     let offsetArr = []
