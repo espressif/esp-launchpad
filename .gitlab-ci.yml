@@ -2,6 +2,7 @@
 # Full project: https://gitlab.com/pages/plain-html
 pages:
   stage: deploy
+  script:
   artifacts:
     paths:
       - public
