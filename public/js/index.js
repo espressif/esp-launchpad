@@ -8,17 +8,16 @@ const eraseButton = document.getElementById("eraseButton");
 const programButton = document.getElementById("programButton");
 const filesDiv = document.getElementById("files");
 const terminal = document.getElementById("terminal");
-const programDiv = document.getElementById("program");
 const consoleDiv = document.getElementById("console");
-const lblBaudrate = document.getElementById("lblBaudrate");
 const lblConnTo = document.getElementById("lblConnTo");
-const tableBody = document.getElementById("tableBody");
 const table = document.getElementById('fileTable');
 const alertDiv = document.getElementById('alertDiv');
 const settingsWarning = document.getElementById("settingsWarning");
 const progressMsgQS = document.getElementById("progressMsgQS");
 const progressMsgDIY = document.getElementById("progressMsgDIY");
-const FILE_SERVER_URL = "http://127.0.0.1:8887/";
+const deviceTypeSelect = document.getElementById("device");
+const frameworkSelect = document.getElementById("frameworkSel");
+const FILE_SERVER_HOST = "local";
 
 //import { Transport } from './cp210x-webusb.js'
 import { Transport } from './webserial.js'
@@ -34,9 +33,42 @@ let esploader;
 let file1 = null;
 let connected = false;
 let index = 1;
+let rmOptions = ["Fan", "GPIO", "Homekit Switch", "Led Light", " Multi Device", "Switch", "Temperature Sensor"];
+let rmOptValues = ["fan", "gpio", "homekit_switch", "led_light", "multi_device", "switch", "temperature_sensor"];
+let matterOptions = ["All Clusters App"];
+let matterOptValues = ["all-clusters-app_te6"];
 
 disconnectButton.style.display = "none";
 eraseButton.style.display = "none";
+
+
+function populateDeviceTypes(product) {
+deviceTypeSelect.innerHTML = "";
+    if (product === "rainmaker"){
+        for (let i = 0; i < rmOptions.length; i++)
+        {
+            var option = document.createElement("option");
+            option.value = rmOptValues[i];
+            option.text = rmOptions[i];
+            deviceTypeSelect.appendChild(option);
+        }
+    }
+    else if (product == "matter"){
+        for (let i = 0; i < matterOptions.length; i++)
+        {
+            var option = document.createElement("option");
+            option.value = matterOptValues[i];
+            option.text = matterOptions[i];
+            deviceTypeSelect.appendChild(option);
+        }
+    }
+}
+
+populateDeviceTypes("rainmaker");
+
+$('#frameworkSel').on('change', function() {
+    populateDeviceTypes(frameworkSelect.value);
+});
 
 $(function () {
     $('[data-toggle="tooltip"]').tooltip()
@@ -125,9 +157,9 @@ resetButton.onclick = async () => {
 
 eraseButton.onclick = async () => {
     eraseButton.disabled = true;
+    $('#v-pills-console-tab').click();
     await esploader.erase_flash();
     eraseButton.disabled = false;
-    $('#v-pills-console-tab').click();
 }
 
 addFile.onclick = async () => {
@@ -280,14 +312,17 @@ programButton.onclick = async () => {
 
 flashButton.onclick = async () => {
     let chipType = $("input[type='radio'][name='chipType']:checked").val();
-    let framework = document.getElementById("framework").value;
-    let deviceType = document.getElementById("device").value;
-    let flashFile = framework + "_" + deviceType + ".bin";
+    let framework = frameworkSelect.value;
+    let deviceType = deviceTypeSelect.value;
+    let flashFile = chipType + "_" + framework + "_" + deviceType + "_merged.bin";
+    var file_server_url = FILE_SERVER_HOST;
     
     progressMsgQS.style.display = "inline";
-    
+    if (FILE_SERVER_HOST == "local")
+        file_server_url = document.location.href + "/images/";
+
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', FILE_SERVER_URL + chipType + "/" + flashFile, true);
+    xhr.open('GET', file_server_url + flashFile, true);
     xhr.responseType = "blob";
     xhr.send();
     xhr.onload = function () {

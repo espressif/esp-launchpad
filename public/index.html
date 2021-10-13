@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>ESP Tool</title>
+        <title>ESP LaunchPad</title>
         <link rel="stylesheet" href="node_modules/xterm/css/xterm.css" />
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
         <link rel="stylesheet" href="./styles/styles.css" />
@@ -54,6 +54,7 @@
                     <div class="tab-pane fade show active" id="v-pills-quickTry" role="tabpanel" aria-labelledby="v-pills-quickTry-tab">
                           <span style="color:#736a6a"><b>Quick Try:</b> Choose from some of our pre-built, out-of-the-box examples to flash and play</span>
                           <hr/>
+                          <label><b> ESP Chipset Type &emsp; &emsp; &emsp;: &emsp; &emsp;</b></label>
                           <!--
                           <div class="form-check-inline">
                                 <label class="form-check-label" for="radio0">
@@ -75,28 +76,23 @@
                                   <input type="radio" class="form-check-input" id="radio3" name="chipType" value="esp32c3">ESP32-C3
                                 </label>
                           </div>
+                          <!--
                           <div class="form-check-inline">
                                 <label class="form-check-label" for="radio4">
                                   <input type="radio" class="form-check-input" id="radio4" name="chipType" value="esp32s3">ESP32-S3
                                 </label>
-                          </div>
+                          </div>-->
                           <hr/>
-                          <label for="framework" id="lblFrameworks">Select Framework:</label>
-                          <select name="framework" id="framework">
+                          <label for="framework" id="lblFrameworks"><b>Select Framework &emsp;&emsp;&emsp; : &emsp;&emsp;&nbsp;</b></label>
+                          <select name="framework" id="frameworkSel">
                               <option value="rainmaker">RainMaker</option>
                               <option value="matter">Matter</option>
                           </select>
                           
                           <hr/>
                           
-                          <label for="device" id="lblDeviceType">Select Device Type:</label>
+                          <label for="device" id="lblDeviceType"><b>Select Device Type &nbsp; &emsp; &emsp;: &emsp; &emsp;</b></label>
                           <select name="device" id="device">
-                              <option value="fan">Fan</option>
-                              <option value="homekitSwitch">Homekit Switch</option>
-                              <option value="bulb" selected>Led Light</option>
-                              <option value="fan">Switch</option>
-                              <option value="tempSensor">Temperature Sensor</option>
-                              <option value="app_wifi">Wifi</option>
                           </select>
                           <br><br>
                           <input class="btn btn-info btn-sm" type="button" id="flashButton" value="Flash" disabled data-toggle="tooltip" 
@@ -120,7 +116,7 @@
                                   <tr>
                                       <th>Flash Address</th>
                                       <th>Selected File</th>
-                                      <th>Remove </th>
+                                      <th>&nbsp;&nbsp;&nbsp;Remove </th>
                                   </tr>
                               </thead>
                               <tbody id="tableBody">
