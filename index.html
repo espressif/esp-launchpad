@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>ESP Launchpad</title>
+        <link rel="stylesheet" href="node_modules/xterm/css/xterm.css" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="./styles/styles.css" />
+        <link
+            href="https://fonts.googleapis.com/css?family=Orbitron"
+            rel="stylesheet"
+        />
+        <link rel="shortcut icon" type="image/x-icon" href="./favicon.ico">
+         <script src="node_modules/xterm/lib/xterm.js"></script>
+         <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.3/pako.js"></script>
+         <script src="node_modules/crypto-js/crypto-js.js"></script>
+         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+         <script type="text/javascript" src="node_modules/toml-js/src/toml.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <!-- Modal window for custom example review -->
+            <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#reviewModal" id="previewModal" hidden>Open Modal</button>
+
+            <!-- Modal -->
+            <div class="modal fade" id="reviewModal" role="dialog">
+              <div class="modal-dialog modal-lg">
+
+                <!-- Modal content-->
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <img src="./assets/esp-logo.png" width="42" height="42" style="vertical-align:middle"></img>&emsp;
+                    <h4 class="modal-title"><span style="color: #17a2b8;"> ESP Firmware Flash Preview </span></h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  </div>
+                  <div class="modal-body" id="preview_body">
+                    <div><p>Welcome to ESP Launchpad, a serial flashing utility service. This will flash the following firmware binary onto your device.
+                      <br><br>
+                      <b>Note: </b>Ensure you have connected your device to the serial USB port. Once you flash your device,
+                      any earlier firmware would be overwritten.
+                    </p></div>
+                    <hr>
+                    <div class="row">
+                      <div class="col-sm-3"><span style="color:#17a2b8;">ESP Framework : </span></div>
+                      <div class="col-lg"><span id="preview_esp_frm"></span></div>
+                    </div>
+                    <br>
+                    <div class="row">
+                      <div class="col-sm-3"><span style="color:#17a2b8;">ESP Chipset Type : </span></div>
+                      <div class="col-lg"><span id="preview_esp_chip"></span></div>
+                    </div>
+                    <br>
+                    <div class="row">
+                      <div class="col-sm-3"><span style="color:#17a2b8;">ESP Device Type : </span></div>
+                      <div class="col-lg"><span id="preview_esp_device"></span></div>
+                    </div>
+                    <br>
+                    <div class="row">
+                      <div class="col-sm-3"><span style="color:#17a2b8;">Example Name : </span></div>
+                      <div class="col-lg-6"><span id="preview_example_name"></span></div>
+                    </div>
+                    <br>
+                    <div class="row">
+                      <div class="col-sm-3"><span style="color:#17a2b8;">Firmware Image URL : </span></div>
+                      <div class="col-lg-6"><span id="preview_firmware_image"></span></div>
+                    </div>
+                    <br>
+                  </div>
+                  <div class="modal-footer">
+
+                    <input class="btn btn-info btn-sm" type="button" id="connectPreview" value="Connect" data-toggle="tooltip"
+                          data-placement="right" title="Connect to your device"/>
+                    <input class="btn btn-info btn-sm" type="button" id="flashCustom" value="Flash" data-toggle="tooltip" data-dismiss="modal"
+                          data-placement="right" title="This will download and flash the firmware image on your device" disabled/>
+                          <br><br>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Modal for review end-->
+
+            <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal" id="statusModal" hidden>Open Modal</button>
+
+            <!-- Modal -->
+            <div class="modal fade" id="myModal" role="dialog">
+              <div class="modal-dialog modal-lg">
+
+                <!-- Modal content-->
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <img src="./assets/esp_launchpad.svg" width="42" height="42" style="vertical-align:middle"></img>&emsp;
+                    <h4 class="modal-title"><span style="color: #17a2b8;"> ESP Firmware Flashing Status </span></h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  </div>
+                  <div class="modal-body" id="preview_body">
+                    <div><p>Flashing of firmware is completed! Click the 'Reset' button on the Console Tab to reset your device with the new flashed firnware.
+                      <br><br>
+                      <b>Note: </b><span id="appDownloadLink"></span>
+                    </p></div>
+                    <hr>
+                  </div>
+                  <div class="modal-footer">
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+
+            <div>
+            <h1 align="center"><p><img src="./assets/esp_launchpad.svg" width="42" height="42" style="vertical-align:middle"></img> ESP Launchpad</p></h1>
+            <h6 align="center"><span style="color:#736a6a">A Serial Flasher utility for Espressif chips</span></h6>
+            <hr />
+            <div><p class="esp-text">Welcome to ESP Launchpad. This utility will help you flash the selected firmware binary onto your device.
+              Ensure you have connected your device to the serial USB port. Once you flash your device, 
+              any earlier firmware would be overwritten.
+            </p></div>
+            </div>
+            <div id="safariErr" style="display:none"><p align="center" style="color:red">This tool is not supported on Safari browser!</p>
+            </div>
+            <div id="topConnectBar">
+                <label style="display:none" id="lblConnTo"><b>Connected to device: </b></label>
+                
+                <input class="btn btn-info btn-sm" type="button" id="connectButton" value="Connect" data-toggle="tooltip" 
+                data-placement="top" title="Connect to your device"/>
+                <input class="btn btn-warning btn-sm" type="button" id="disconnectButton" value="Disconnect" data-toggle="tooltip" 
+                data-placement="top" title="Disconnect from the device"/>
+                <hr />
+            </div>
+            <div class="row">
+              <div class="column-small">
+                <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                  <a class="nav-link active" id="v-pills-quickTry-tab" data-toggle="pill" href="#v-pills-quickTry" role="tab" aria-controls="v-pills-quickTry" aria-selected="true">Program - Quick Start</a>
+                  <a class="nav-link" id="v-pills-diy-tab" data-toggle="pill" href="#v-pills-diy" role="tab" aria-controls="v-pills-diy" aria-selected="false">Program - DIY</a>
+                  <a class="nav-link" id="v-pills-console-tab" data-toggle="pill" href="#v-pills-console" role="tab" aria-controls="v-pills-console" aria-selected="false">Console</a>
+                  <a class="nav-link" id="v-pills-settings-tab" data-toggle="pill" href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">Settings</a>
+                </div>
+              </div>
+              <div class="column-big">
+                <div class="tab-content" id="v-pills-tabContent">
+                    <!-- Quick Start Section -->
+                    <div class="tab-pane fade show active" id="v-pills-quickTry" role="tabpanel" aria-labelledby="v-pills-quickTry-tab">
+                          <span style="color:#736a6a"><b>Quick Try:</b> <span id="qtLabel">Choose from some of ESP's pre-built, out-of-the-box examples to flash and play</span></span>
+                          <hr/>
+                          <!--
+                          <label for="framework" id="lblFrameworks"><b>Select Framework &emsp;&emsp;&emsp; : &emsp;&emsp;&nbsp;</b></label>
+                          <select name="framework" id="frameworkSel">
+                              <option value="rainmaker">RainMaker</option>
+                              <option value="matter">Matter</option>
+                          </select>
+
+                          <hr/>-->
+                          
+                          <label for="device" id="lblDeviceType"><b>Select Application &nbsp; &nbsp; &emsp; &emsp;: &emsp; &emsp;</b></label>
+                          <select name="device" id="device">
+                          </select>
+                          <hr/>
+                          <div style="display: flex;">
+                            <div><label><b> ESP Chipset Type &emsp; &emsp; &emsp;: &emsp; &emsp;</b></label></div>
+                            <div id="chipsets"></div>
+                          </div>
+                          <hr/>
+                          <br><br>
+                          <input class="btn btn-info btn-sm" type="button" id="flashButton" value="Flash" disabled data-toggle="tooltip" 
+                          data-placement="right" title="This will download and flash the firmware image on your device"/>
+
+                          <br><br>
+                          <span id="progressMsgQS" style="display:none"><i>This may take a short while. Check console for the progress</i></span>
+                    </div>
+                  
+                    <!-- DIY Section -->
+                    <div class="tab-pane fade show" id="v-pills-diy" role="tabpanel" aria-labelledby="v-pills-diy-tab">
+                      <h3> Program </h3>
+                      <span style="color:#736a6a"><b>Try your own:</b> Choose your own built firmware binary from the local storage to flash and use.</span>
+                      <br>
+                      <input class="btn btn-danger btn-sm" type="button" id="eraseButton" value="Erase Flash" data-toggle="tooltip" 
+                data-placement="top" title="Erase firmware on your device"/>
+                      <br><br>
+                      <div class="alert alert-danger alert-dismissible" id="alertDiv" style="display:none; margin-top:10px">
+                          <a href="#" class="close" aria-label="close" onclick="$('.alert').hide()">&times;</a>
+                          <span id="alertmsg"></span>
+                      </div>
+
+                      <div id="files">
+                          <table class="table table-striped" id="fileTable">
+                              <thead class="thead-light">
+                                  <tr>
+                                      <th>Flash Address</th>
+                                      <th>Selected File</th>
+                                      <th>&nbsp;&nbsp;&nbsp;Remove </th>
+                                  </tr>
+                              </thead>
+                              <tbody id="tableBody">
+                                  <tr id="row0">
+                                      <td><input type="text" id="offset1" name="offset1" value="0x1000"></td>
+                                      <td><input type="file" id="selectFile1" name="selected_file1"></td>
+                                      <td><button class="btn disabled"> Remove </button></td>
+                                  </tr>
+                              </tbody>
+                          </table>
+                          <input class="btn btn-info btn-sm" type="button" id="addFile" value="Add File" />
+                          <input class="btn btn-info btn-sm" type="button" id="programButton" value="Program" disabled/>
+                      </div>
+                      <output id="list"></output>
+                      <hr/>
+                      <span id="progressMsgDIY" style="display:none"><i>This may take a short while. Check console for the progress</i></span>
+                    </div>
+                    
+                    <!-- Console section -->
+                    <div class="tab-pane fade" id="v-pills-console" role="tabpanel" aria-labelledby="v-pills-console-tab">
+                    
+                      <!--<h3>Console </h3> -->
+                      <input class="btn btn-info" type="button" id="consoleStartButton" value="Reset" disabled data-toggle="tooltip" 
+                      data-placement="right" title="Reset your device"/>
+                      <div id="resetMessage" style="display:none">This will reset your device  <input class="btn btn-info" type="button" id="resetButton" value="Continue" data-toggle="tooltip" 
+                        data-placement="right" title="Confirm to Reset your device"/>
+                      </div>
+                      <hr/>
+                      <div id="terminal"></div>
+                    </div>
+                    
+                    <!-- settings section -->
+                    <div class="tab-pane fade" id="v-pills-settings" role="tabpanel" aria-labelledby="v-pills-settings-tab">
+                        <div id="baudSettings">
+                          <label for="baudrates" id="lblBaudrate">Baudrate:</label>
+                          <select name="baudrates" id="baudrates">
+                              <option value="921600">921600</option>
+                              <option value="460800">460800</option>
+                              <option value="230400">230400</option>
+                              <option value="115200">115200</option>
+                          </select>
+                        </div>
+                        <div id="settingsWarning" style="display:none">
+                            <span><i> ** Settings cannot be changed for a connected device. Please disconnect the device and then change the settings.</i></span>
+                        </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+        <script src="./js/index.js" type="module"></script>
+        <script>
+            // Safari 3.0+ "[object HTMLElementConstructor]"
+            var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && window['safari'].pushNotification));
+
+            if(isSafari)
+            {
+               document.getElementById("safariErr").style.display = "inline";
+               document.getElementById("main").style.display = "none";
+            }
+        </script>
+    </body>
+</html>
+

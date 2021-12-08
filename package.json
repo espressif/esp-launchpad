@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "crypto-js": "^4.0.0",
+    "toml-js": "^0.0.8",
     "xterm": "^4.13.0"
   }
 }
