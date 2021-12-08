@@ -4,6 +4,12 @@ pages:
   stage: deploy
   script:
     - echo "Deploying ESP Launchpad pages ..."
+    - cp -r assets public/assets
+    - cp -r styles public/styles
+    - cp -r node_modules public/node_modules
+    - cp -r js public/js
+    - cp -r config public/config
+    - cp index.html public/
   artifacts:
     paths:
       - public
