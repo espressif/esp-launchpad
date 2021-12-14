@@ -1,0 +1,16 @@
+# config file
+# framework = Rainmaker | Matter
+esp_framework = "Rainmaker"
+
+# chipset type = esp32 | esp32_s2 | esp32 _c3
+esp_chipset_type = "esp32"
+
+# device type = Fan | Light | Temperature Sensor
+esp_device_type = "Light"
+
+example_name = "Led Light Bulb"
+
+# firmware image URL = publicly accessible URL for the firmare image
+firmware_image_url = "https://adwait-esp.github.io/flasher/images/esp32_rainmaker_led_light_combo.bin"
+
+supported_apps =  ["Fan", "matter:Matter"]

@@ -93,3 +93,9 @@ canvas,
 .xterm-screen {
     width: 100% !important;
 }
+
+.esp-text {
+  color: #54595F;
+  font-family: "Roboto", Sans-serif;
+  line-height: 1cm;
+}

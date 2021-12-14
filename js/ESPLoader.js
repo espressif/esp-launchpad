@@ -627,6 +627,7 @@ class ESPLoader {
         this.terminal = terminal;
         this.IS_STUB = false;
         this.chip = null;
+        this.status = "started";
 
         if (terminal) {
             this.terminal.clear();
@@ -1423,6 +1424,7 @@ class ESPLoader {
             }
         }
         this.log("Leaving...");
+        this.status = "complete";
 
         if (this.IS_STUB) {
             await this.flash_begin(0, 0);
