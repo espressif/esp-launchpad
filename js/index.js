@@ -28,7 +28,7 @@ term.open(terminal);
 let device = null;
 let transport;
 let chip = "default";
-let chipDesc = "default desc"
+let chipDesc = "default"
 let esploader;
 let file1 = null;
 let connected = false;
@@ -178,6 +178,7 @@ $('#frameworkSel').on('change', function() {
 
 $('#device').on('change', function() {
     populateSupportedChipsets(config[deviceTypeSelect.value]);
+    setAppURLs(config[deviceTypeSelect.value])
 });
 
 $(function () {
@@ -248,7 +249,10 @@ async function connectToDevice() {
 }
 
 function postConnectControls() {
-    lblConnTo.innerHTML = "<b><span style='color:#17a2b8'>Connected to device: </span>" + chipDesc + "</b>";
+    if(chipDesc !== "default")
+        lblConnTo.innerHTML = "<b><span style='color:#17a2b8'>Connected to device: </span>" + chipDesc + "</b>";
+    else
+        lblConnTo.innerHTML = "<b><span style='color:red'>Unable to detect device. Please ensure the device is not connected in another application</span></b>";
     lblConnTo.style.display = "block";
     $("#baudrates").prop("disabled", true);
     $("#flashButton").prop("disabled", false);
@@ -492,6 +496,7 @@ flashButton.onclick = async () => {
         console.log("waiting for flash write to complete ...");
     }
     $("#statusModal").click();
+    esploader.status = "started";
 }
 
 connectPreview.onclick = async () => {
