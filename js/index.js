@@ -28,6 +28,7 @@ term.open(terminal);
 let device = null;
 let transport;
 let chip = "default";
+let chipDesc = "default"
 let esploader;
 let file1 = null;
 let connected = false;
@@ -142,16 +143,16 @@ function populateSupportedChipsets(deviceConfig) {
 
         var lblElement = document.createElement("label");
         lblElement.setAttribute("class", "form-check-label");
-        lblElement.setAttribute("for", "radio" + i);
+        lblElement.setAttribute("for", "radio-" + chipset);
         lblElement.innerHTML = chipset + "&nbsp;";
 
         var inputElement = document.createElement("input");
         inputElement.setAttribute("type", "radio");
         inputElement.setAttribute("class", "form-check-input");
         inputElement.name = "chipType";
-        inputElement.id = "radio" + i;
+        inputElement.id = "radio-" + chipset;
         inputElement.value = deviceConfig["image." + chipset.toLowerCase()]
-        if (i==1)
+        if (chipset.toLowerCase() === chip.toLowerCase())
             inputElement.checked = true;
 
         lblElement.appendChild(inputElement);
@@ -177,6 +178,7 @@ $('#frameworkSel').on('change', function() {
 
 $('#device').on('change', function() {
     populateSupportedChipsets(config[deviceTypeSelect.value]);
+    setAppURLs(config[deviceTypeSelect.value])
 });
 
 $(function () {
@@ -222,6 +224,7 @@ function _sleep(ms) {
 
 
 async function connectToDevice() {
+    let chipDetails = null;
     if (device === null) {
         device = await navigator.serial.requestPort({
             filters: [{ usbVendorId: 0x10c4 }]
@@ -233,7 +236,11 @@ async function connectToDevice() {
         esploader = new ESPLoader(transport, baudrates.value, term);
         connected = true;
 
-        chip = await esploader.main_fn();
+        chipDetails = await esploader.main_fn();
+        if (chipDetails) {
+            chip = chipDetails[1];
+            chipDesc = chipDetails[0];
+        }
 
         await esploader.flash_id();
     } catch(e) {
@@ -242,7 +249,10 @@ async function connectToDevice() {
 }
 
 function postConnectControls() {
-    lblConnTo.innerHTML = "<b><span style='color:#17a2b8'>Connected to device: </span>" + chip + "</b>";
+    if(chipDesc !== "default")
+        lblConnTo.innerHTML = "<b><span style='color:#17a2b8'>Connected to device: </span>" + chipDesc + "</b>";
+    else
+        lblConnTo.innerHTML = "<b><span style='color:red'>Unable to detect device. Please ensure the device is not connected in another application</span></b>";
     lblConnTo.style.display = "block";
     $("#baudrates").prop("disabled", true);
     $("#flashButton").prop("disabled", false);
@@ -253,6 +263,7 @@ function postConnectControls() {
     disconnectButton.style.display = "initial";
     eraseButton.style.display = "initial";
     filesDiv.style.display = "initial";
+    $('input:radio[id="radio-' + chip + '"]').attr('checked', true);
 }
 
 connectButton.onclick = async () => {
@@ -326,8 +337,17 @@ function removeRow(btnName) {
     }
 }
 
+// to be called on disconnect - remove any stale references of older connections if any
+function cleanUp() {
+    device = null;
+    transport = null;
+    this.chip = null;
+}
+
 disconnectButton.onclick = async () => {
-    await transport.disconnect();
+    if(transport)
+        await transport.disconnect();
+
     term.clear();
     connected = false;
     $("#baudrates").prop("disabled", false);
@@ -340,6 +360,7 @@ disconnectButton.onclick = async () => {
     eraseButton.style.display = "none";
     lblConnTo.style.display = "none";
     alertDiv.style.display = "none";
+    cleanUp();
 };
 
 consoleStartButton.onclick = async () => {
@@ -451,10 +472,10 @@ async function downloadAndFlash(fileURL) {
 function buildAppLinks(){
     let appURLsHTML = "You can download phone app from the app store and interact with your device. <br>";
     if(android_app_url !== "")
-        appURLsHTML += "<a href='" + android_app_url + "' target='_blank'><img src='../assets/gplay_download.png' height='60' width='150'></a>"
+        appURLsHTML += "<a href='" + android_app_url + "' target='_blank'><img src='./assets/gplay_download.png' height='60' width='150'></a>"
     
     if(ios_app_url)
-        appURLsHTML += "<a href='" + ios_app_url + "' target='_blank'><img src='../assets/appstore_download.png' height='60' width='150'></a>"
+        appURLsHTML += "<a href='" + ios_app_url + "' target='_blank'><img src='./assets/appstore_download.png' height='60' width='150'></a>"
     
     return appURLsHTML;
 }
@@ -475,6 +496,7 @@ flashButton.onclick = async () => {
         console.log("waiting for flash write to complete ...");
     }
     $("#statusModal").click();
+    esploader.status = "started";
 }
 
 connectPreview.onclick = async () => {
