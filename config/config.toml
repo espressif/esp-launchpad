@@ -1,16 +1,21 @@
-# config file
-# framework = Rainmaker | Matter
-esp_framework = "Rainmaker"
+esp_toml_version = 1.0
 
-# chipset type = esp32 | esp32_s2 | esp32 _c3
-esp_chipset_type = "esp32"
+# This should be a publicly accessible URL of the file server where your firmware binaries are available for download
+firmware_images_url = "<URL to your firmware images directory>"
 
-# device type = Fan | Light | Temperature Sensor
-esp_device_type = "Light"
+# Apps that you support and for which the binaries are available to publish. You can have multiple apps as a comma separated list
+# The launch pad UI will automatically show these Apps in the available apps dropdown
+# There should be a config section per listed App
+supported_apps = ["YOUR_FIRMWARE_APP_NAME"]
 
-example_name = "Led Light Bulb"
 
-# firmware image URL = publicly accessible URL for the firmare image
-firmware_image_url = "https://adwait-esp.github.io/flasher/images/esp32_rainmaker_led_light_combo.bin"
-
-supported_apps =  ["Fan", "matter:Matter"]
+[YOUR_FIRMWARE_APP_NAME]
+# ESP32 Chipsets for which you have a supported Firmware App. Define a property for each supported chipset in the given format.
+chipsets = ["ESP32", "ESP32-S2", "ESP32-C3"]
+# Configure the name of the binary file
+image.esp32 = "SINGLE_BIN_FOR_ESP32.bin"
+image.esp32-s2 = "SINGLE_BIN_FOR_ESP32-S2.bin"
+image.esp32-c3 = "SINGLE_BIN_FOR_ESP32-C3.bin"
+# Optional: Phone APP URLs if any for Playstores
+android_app_url = ""
+ios_app_url = ""
