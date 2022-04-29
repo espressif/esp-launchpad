@@ -13,7 +13,7 @@ The firmware will be flashed on to your connected device. You can watch the prog
 
 This easy, 4 step process will flash the firmware on to the connected device and bring it into play as you want it to be.
 
-[Try Now](url)
+[Try Now](https://espressif.github.io/esp-launchpad/)
 
 **DIY:**
 
@@ -24,7 +24,7 @@ Click Flash!
 
 The firmware will be flashed on to your connected device. You can watch the progress of the firmware flashing in the console window.
 
-[Try Now !](url)
+[Try Now !](https://espressif.github.io/esp-launchpad/)
 
 
 
@@ -36,4 +36,8 @@ The ESP Launchpad Quick Start page would be rendered by referring to a TOML conf
 
 Rest of the flashing procedure is same easy 4 step process as the Quick Start one above.
 
-Once ready, you can use the following image and URL for supporting launchdpad with your configuration.
+Once ready, you can use the following image and URL for supporting ESP Launchpad with your configuration.
+`<a href="https://espressif.github.io/esp-launchpad/">
+         <img alt="Try it with ESP Launchpad" src="https://espressif.github.io/esp-launchpad/assets/try_with_launchpad.png"
+         width="250" height="70">
+</a>`

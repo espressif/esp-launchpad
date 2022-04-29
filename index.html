@@ -64,6 +64,7 @@
                         <button class="app-button btn btn-outline-dark" type="button" id="resetButton" data-toggle="tooltip"
                         data-placement="right" title="Confirm to Reset your device">Confirm</button>
                         <div><br></div>
+                    </div>
                   </div>
                   <div class="modal-footer">
 
@@ -72,7 +73,8 @@
               </div>
             </div>
         </div>
-        <div id="main">
+
+    <div id="main">
         <!-- Responsive navbar-->
         <nav class="navbar navbar-expand-lg">
             <div class="container">
@@ -345,17 +347,24 @@
 
                     <p>The ESP Launchpad Quick Start page would be rendered by referring to a TOML configuration file, where you can configure where to pick
                     all the component images of your firmware, and the supported hardware. You could also link to any support phone apps to work along with
-                    this firmware. A sample TOML config file can be viewed <a href="https://adwait-esp.github.io/flasher/config/config.toml"> here </a> </p>
+                    this firmware. A sample TOML config file can be viewed <a href="https://espressif.github.io/esp-launchpad/config/config.toml"> here </a> </p>
 
                     <p>Rest of the flashing procedure is same easy 4 step process as the Quick Start one above.</p>
+                        
+                    <p>Once ready, you can use the following image and add following html code on your website for supporting ESPaunchpad with your configuration.</p>
+                    <img alt="Try it with ESP Launchpad" src="./assets/try_with_launchpad.png"
+                    width="250" height="70">
+                    <p>
+                        <code>
 
-                    <p>Once ready, you can use the following image and URL for supporting launchdpad with your configuration.</p>
-
+                        </code>
+                    </p>
                 </div>
             </div>
         </div>
         <!-- About us tab content - end -->
     </div>
+    
     <!-- Safari not supported error message-->
     <div id="safariErr" style="display:none"><p align="center" style="color:red">
             This tool is not supported on Safari browser! Please try using another browser like Google Chrome.
