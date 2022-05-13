@@ -482,16 +482,70 @@ async function downloadAndFlash(fileURL) {
 
 // Based on the configured App store links, show the respective download links.
 function buildAppLinks(){
-    let appURLsHTML = "You can download phone app from the app store and interact with your device. <br>";
-    if(android_app_url !== "")
-        appURLsHTML += "<a href='" + android_app_url + "' target='_blank'><img src='./assets/gplay_download.png' height='60' width='150'></a>"
-    
-    if(ios_app_url)
-        appURLsHTML += "<a href='" + ios_app_url + "' target='_blank'><img src='./assets/appstore_download.png' height='60' width='150'></a>"
-    
-    return appURLsHTML;
+    let appURLsHTML = "You can download phone app from the app store and interact with your device. Scan the QRCode to access the respective apps.<br>";
+
+    if(android_app_url !== ""){
+        new QRCode(document.getElementById("qrcodeAndroidApp"), {
+            text: android_app_url,
+            width: 128,
+            height: 128,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+	        correctLevel : QRCode.CorrectLevel.H
+            });
+
+        $("#androidAppLogo").html("<a href='" + android_app_url + "' target='_blank'><img src='./assets/gplay_download.png' height='50' width='130'></a>");
+
+        new QRCode(document.getElementById("qrcodeAndroidAppQS"), {
+            text: android_app_url,
+            width: 128,
+            height: 128,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+	        correctLevel : QRCode.CorrectLevel.H
+            });
+
+        $("#androidAppLogoQS").html("<a href='" + android_app_url + "' target='_blank'><img src='./assets/gplay_download.png' height='50' width='130'></a>");
+    }
+
+    if(ios_app_url){
+        new QRCode(document.getElementById("qrcodeIOSApp"), {
+            text: ios_app_url,
+            width: 128,
+            height: 128,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+	        correctLevel : QRCode.CorrectLevel.H
+            });
+
+        $("#iosAppLogo").html("<a href='" + ios_app_url + "' target='_blank'><img src='./assets/appstore_download.png' height='50' width='130'></a>");
+
+        new QRCode(document.getElementById("qrcodeIOSAppQS"), {
+            text: ios_app_url,
+            width: 128,
+            height: 128,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+	        correctLevel : QRCode.CorrectLevel.H
+            });
+
+        $("#iosAppLogoQS").html("<a href='" + ios_app_url + "' target='_blank'><img src='./assets/appstore_download.png' height='50' width='130'></a>");
+    }
+    $("#progressMsgQS").html("Firmware Image flashing is complete. " + appURLsHTML);
+    $("#appDownloadLink").html(appURLsHTML);
 }
 
+function cleanUpOldFlashHistory() {
+    $("#androidAppLogo").html("");
+    $("#androidAppLogoQS").html("");
+    $("#iosAppLogo").html("");
+    $("#iosAppLogoQS").html("");
+    $("#progressMsgQS").html("<i>This may take a short while. Check console for the progress</i>");
+    /*$("#qrcodeAndroidApp").html("");
+    $("#qrcodeAndroidAppQS").html("");
+    $("#qrcodeIOSApp").html("");
+    $("#qrcodeIOSAppQS").html("");*/
+}
 
 flashButton.onclick = async () => {
     let flashFile = $("input[type='radio'][name='chipType']:checked").val();
@@ -499,14 +553,18 @@ flashButton.onclick = async () => {
 
     progressMsgQS.style.display = "inline";
 
+    cleanUpOldFlashHistory();
+
     downloadAndFlash(file_server_url + flashFile);
 
-    $("#progressMsgQS").html(buildAppLinks());
-    $("#appDownloadLink").html(buildAppLinks());
+    //$("#progressMsgQS").html(buildAppLinks());
+    //$("#appDownloadLink").html(buildAppLinks());
+    
     while (esploader.status === "started") {
         await _sleep(3000);
         console.log("waiting for flash write to complete ...");
     }
+    buildAppLinks();
     $("#statusModal").click();
     esploader.status = "started";
 }
