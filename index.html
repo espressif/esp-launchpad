@@ -32,8 +32,19 @@
                     <div><p>Flashing of firmware is completed! Click the 'Reset' button on the Console Tab to reset your device with the new flashed firnware.
                       <br><br>
                       <b>Note: </b><span id="appDownloadLink"></span>
-                    </p></div>
+                    </p>
+                    </div>
                     <hr>
+                    <div id='qrcodeContainer' style='display:flex'>
+                        <div id="qrAndroidRow">
+                            <div id="androidAppLogo" style="padding-bottom: 5px;"></div>
+                            <div id='qrcodeAndroidApp' style="padding-right: 40px;"></div>
+                        </div>
+                        <div id="qrIOSRow">
+                            <div id="iosAppLogo" style="padding-bottom: 5px;"></div>
+                            <div id='qrcodeIOSApp'></div>
+                        </div>
+                    </div>
                   </div>
                   <div class="modal-footer">
 
@@ -200,6 +211,20 @@
                 <div class="field-container">
                     <span id="progressMsgQS" style="display:none"><i>This may take a short while. Check console for the progress</i></span>
                 </div>
+                <br><br>
+                <div>
+                    <div id='qrcodeContainerQS' style='display:flex'>
+                        <div id="qrAndroidRowQS">
+                            <div id="androidAppLogoQS" style="padding-bottom: 5px;"></div>
+                            <div id='qrcodeAndroidAppQS' style="padding-right: 40px;"></div>
+                        </div>
+                        <div id="qrIOSRowQS">
+                            <div id="iosAppLogoQS" style="padding-bottom: 5px;"></div>
+                            <div id='qrcodeIOSAppQS' style="padding-bottom: 40px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <br> <br>
             </div>
         </div>
         <!-- Quick start tab content - end -->
@@ -351,14 +376,21 @@
 
                     <p>Rest of the flashing procedure is same easy 4 step process as the Quick Start one above.</p>
                         
-                    <p>Once ready, you can use the following image and add following html code on your website for supporting ESPaunchpad with your configuration.</p>
-                    <img alt="Try it with ESP Launchpad" src="./assets/try_with_launchpad.png"
-                    width="250" height="70">
-                    <p>
-                        <code>
-
-                        </code>
+                    <p>Once ready, you can use the following image and add following html code on your website for supporting ESPaunchpad with your configuration.
+                        Edit the query parameter in the href, replacing URL_TO_YOUR_CONFIG_TOML value where your TOML config file is hosted.
                     </p>
+                    <div style="padding-bottom: 40px;">
+                        <div style="padding-bottom: 10px;">
+                            <img alt="Try it with ESP Launchpad" src="./assets/try_with_launchpad.png"
+                            width="250" height="70">
+                        </div>
+                        <div>
+                            <textarea readonly cols="160" rows="3"><a href="https://espressif.github.io/esp-launchpad/?flashConfigURL=URL_TO_YOUR_CONFIG_TOML">
+    <img alt="Try it with ESP Launchpad" src="https://espressif.github.io/esp-launchpad/assets/try_with_launchpad.png" width="250" height="70">
+</a>
+                            </textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -393,6 +425,7 @@
         <!-- Bootstrap core JS-->
         <script src="js/jquery.min.js"></script>
         <script src="js/bootstrap.bundle.min.js"></script>
+        <script src="js/qrcode.min.js"></script>
         <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>-->
         <!-- Core theme JS-->
         <script src="js/scripts.js"></script>

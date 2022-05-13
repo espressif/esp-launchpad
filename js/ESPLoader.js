@@ -882,6 +882,10 @@ class ESPLoader {
                     this.chip = cls;
                 }
             }, this);
+
+            if (!this.chip){
+                alert("Unsupported chip set:" + chip_magic_value);
+            }
         }
      }
 
