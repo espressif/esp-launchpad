@@ -1414,7 +1414,7 @@ class ESPLoader {
                 seq++;
             }
             if (this.IS_STUB) {
-                await this.read_reg({addr:this.CHIP_DETECT_MAGIC_REG_ADDR, timeout:timeout});
+                //await this.read_reg({addr:this.CHIP_DETECT_MAGIC_REG_ADDR, timeout:timeout});
             }
             d = new Date();
             let t = d.getTime() - t1;

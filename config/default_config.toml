@@ -2,7 +2,7 @@ esp_toml_version = 1.0
 
 firmware_images_url = "https://adwait-esp.github.io/flasher/images/"
 
-supported_apps = ["Matter-All_Clusters_App-TE9", "Matter-Lighting_App-TE9", "RainMaker-Fan", "RainMaker-GPIO", "RainMaker-Homekit Switch", "RainMaker-Led Light", "RainMaker-Multi Device", "RainMaker-Switch", "RainMaker-Temperature Sensor"]
+supported_apps = ["Matter-AllClustersApp-TE9", "Matter-AllClustersApp-M5Stack-TE9", "Matter-LightingApp-TE9", "RainMaker-Fan", "RainMaker-GPIO", "RainMaker-Homekit Switch", "RainMaker-Led Light", "RainMaker-Multi Device", "RainMaker-Switch", "RainMaker-Temperature Sensor"]
 
 
 [RainMaker-Fan]
@@ -61,16 +61,22 @@ image.esp32-c3 = "esp32c3_rainmaker_temperature_sensor_merged.bin"
 android_app_url = "https://play.google.com/store/apps/details?id=com.espressif.rainmaker"
 ios_app_url = "https://apps.apple.com/app/esp-rainmaker/id1497491540"
 
-[Matter-All_Clusters_App-TE9]
+[Matter-AllClustersApp-TE9]
 chipsets = ["ESP32", "ESP32-C3"]
 image.esp32 = "esp32_matter_all-clusters-app.bin"
 image.esp32-c3 = "esp32c3_matter_all-clusters-app.bin"
-ios_app_url = ""
+ios_app_url = "https://apps.apple.com/app/espressif-matter/id1604739172?platform=iphone"
 android_app_url = ""
 
-[Matter-Lighting_App-TE9]
+[Matter-AllClustersApp-M5Stack-TE9]
+chipsets = ["ESP32"]
+image.esp32 = "m5stack_matter_all-clusters-app.bin"
+ios_app_url = "https://apps.apple.com/app/espressif-matter/id1604739172?platform=iphone"
+android_app_url = ""
+
+[Matter-LightingApp-TE9]
 chipsets = ["ESP32", "ESP32-C3"]
 image.esp32 = "esp32_matter_lighting-app.bin"
 image.esp32-c3 = "esp32c3_matter_lighting-app.bin"
-ios_app_url = ""
+ios_app_url = "https://apps.apple.com/app/espressif-matter/id1604739172?platform=iphone"
 android_app_url = ""

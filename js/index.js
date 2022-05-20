@@ -541,10 +541,10 @@ function cleanUpOldFlashHistory() {
     $("#iosAppLogo").html("");
     $("#iosAppLogoQS").html("");
     $("#progressMsgQS").html("<i>This may take a short while. Check console for the progress</i>");
-    /*$("#qrcodeAndroidApp").html("");
+    $("#qrcodeAndroidApp").html("");
     $("#qrcodeAndroidAppQS").html("");
     $("#qrcodeIOSApp").html("");
-    $("#qrcodeIOSAppQS").html("");*/
+    $("#qrcodeIOSAppQS").html("");
 }
 
 flashButton.onclick = async () => {
