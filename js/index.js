@@ -351,7 +351,7 @@ function removeRow(btnName) {
 function cleanUp() {
     device = null;
     transport = null;
-    this.chip = null;
+    chip = null;
 }
 
 disconnectButton.onclick = async () => {

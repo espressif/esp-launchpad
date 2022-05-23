@@ -26,10 +26,10 @@
                   <div class="modal-header">
                     <img src="./assets/esp-logo.png" width="42" height="42" style="vertical-align:middle"></img>&emsp;
                     <h4 class="modal-title"><span style="color: #17a2b8;"> ESP Firmware Flashing Status </span></h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeFlashComplete"></button>
                   </div>
                   <div class="modal-body" id="preview_body">
-                    <div><p>Flashing of firmware is completed! Click the 'Reset' button on the Console Tab to reset your device with the new flashed firnware.
+                    <div><p>Flashing of firmware is completed! Click the <b>'Reset Device'</b> button on the Console Tab to reset your device with the new flashed firnware.
                       <br><br>
                       <b>Note: </b><span id="appDownloadLink"></span>
                     </p>
@@ -47,7 +47,7 @@
                     </div>
                   </div>
                   <div class="modal-footer">
-
+                    <button class="app-button btn btn-outline-dark" type="button" id="done" data-bs-dismiss="modal">Done</button>
                   </div>
                 </div>
               </div>
@@ -151,7 +151,8 @@
                 <div class="alert alert-warning alert-dismissible fade show" role="alert">
                     <label style="display:none" id="lblConnTo"><b>Connected to device: </b></label>
                     <p><span>ESP Launchpad helps you to flash the selected firmware image onto your device.</span>
-                    <br /><span id="ensureConnect"> Ensure you have connected your device to the serial USB port. Once you flash your device, any earlier firmware would be overwritten.</span>
+                    <br /><span id="ensureConnect"> Ensure you have connected your device to the serial USB port. Click on the 'Connect' button in the top menu option, to connect to your attached device.
+                        Note : Once you flash your device, any earlier firmware would be overwritten.</span>
                     </p>
 
                 </div>
@@ -202,7 +203,7 @@
                 
                 <div class="field-container">
                     
-                    <div class="field">
+                    <div class="tooltip-wrapper" data-title="Click on connect" style="display:inline-block">
                         <button type="button" class="app-button submit-form-button btn btn-outline-dark" id="flashButton" disabled
                         data-toggle="tooltip" data-placement="right"
                         title="This will download and flash the firmware image on your device">Flash</button>
