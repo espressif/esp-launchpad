@@ -263,6 +263,7 @@ function postConnectControls() {
     lblConnTo.style.display = "block";
     $("#baudrates").prop("disabled", true);
     $("#flashButton").prop("disabled", false);
+    $("#flashWrapper").tooltip().attr('data-bs-original-title', "This will download and flash the firmware image on your device");
     $("#programButton").prop("disabled", false);
     $("#consoleStartButton").prop("disabled", false);
     ensureConnect.style.display = "none"
@@ -362,6 +363,7 @@ disconnectButton.onclick = async () => {
     connected = false;
     $("#baudrates").prop("disabled", false);
     $("#flashButton").prop("disabled", true);
+    $("#flashWrapper").tooltip().attr('data-bs-original-title', "Click on 'Connect' button in top Menu");
     $("#programButton").prop("disabled", true);
     $("#consoleStartButton").prop("disabled", true);
     settingsWarning.style.display = "none";

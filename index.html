@@ -203,10 +203,8 @@
                 
                 <div class="field-container">
                     
-                    <div class="tooltip-wrapper" data-title="Click on connect" style="display:inline-block">
-                        <button type="button" class="app-button submit-form-button btn btn-outline-dark" id="flashButton" disabled
-                        data-toggle="tooltip" data-placement="right"
-                        title="This will download and flash the firmware image on your device">Flash</button>
+                    <div class="field-container" title="Click on 'Connect' button in top Menu" style="display:inline-block" data-toggle="tooltip" id="flashWrapper">
+                        <button class="app-button submit-form-button btn btn-outline-dark" id="flashButton" disabled>Flash</button>
                     </div>
                 </div>
                 <div class="field-container">
@@ -398,13 +396,13 @@
         <!-- About us tab content - end -->
     </div>
     
-    <!-- Safari not supported error message-->
-    <div id="safariErr" style="display:none"><p align="center" style="color:red">
-            This tool is not supported on Safari browser! Please try using another browser like Google Chrome.
+    <!-- Safari & FireFox not supported error message-->
+    <div id="unsupportedBrowserErr" style="display:none"><p align="center" style="color:red">
+        This tool is not supported on Safari & Firefox browsers yet! Please try using another browser like Google Chrome.
             <br> <br>
-            ESP Launchpad makes use of WebUSB to communicate with the device. Currently Safari browser doesn't support it yet.
+            ESP Launchpad makes use of WebUSB to communicate with the device. Currently Safari & Firefox browsers don't support it yet.
 
-            We will add support for this browser as soon as Safari starts supporting WebUSB.
+            We will add support for this browser as soon as Safari & Firefox starts supporting WebUSB.
 
     </p>
     </div>
@@ -435,10 +433,12 @@
             // Safari 3.0+ "[object HTMLElementConstructor]"
             var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && window['safari'].pushNotification));
 
-            if(isSafari)
+            var isFirefox = typeof InstallTrigger !== 'undefined';
+
+            if(isSafari || isFirefox)
             {
-               document.getElementById("safariErr").style.display = "inline";
-               document.getElementById("main").style.display = "none";
+                document.getElementById("unsupportedBrowserErr").style.display = "inline";
+                document.getElementById("main").style.display = "none";
             }
         </script>
     </body>
