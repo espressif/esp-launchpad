@@ -25,6 +25,15 @@ import * as esptooljs from "../node_modules/esptool-js/bundle.js";
 const ESPLoader = esptooljs.ESPLoader;
 const Transport = esptooljs.Transport;
 
+const usbPortFilters = [
+    { usbVendorId: 0x10c4, usbProductId: 0xea60 }, /* CP2102/CP2102N */
+    { usbVendorId: 0x0403, usbProductId: 0x6010 }, /* FT2232H */
+    { usbVendorId: 0x303a, usbProductId: 0x1001 }, /* Espressif USB_SERIAL_JTAG */
+    { usbVendorId: 0x303a, usbProductId: 0x1002 }, /* Espressif esp-usb-bridge firmware */
+    { usbVendorId: 0x303a, usbProductId: 0x0002 }, /* ESP32-S2 USB_CDC */
+    { usbVendorId: 0x303a, usbProductId: 0x0009 }, /* ESP32-S3 USB_CDC */
+];
+
 const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
 
 let term = new Terminal({cols:getTerminalColumns(), rows:23, fontSize: 14});
@@ -245,7 +254,7 @@ let espLoaderTerminal = {
 async function connectToDevice() {
     if (device === null) {
         device = await navigator.serial.requestPort({
-            filters: [{ usbVendorId: 0x10c4 }]
+            filters: usbPortFilters
         });
         transport = new Transport(device);
     }
@@ -388,7 +397,7 @@ disconnectButton.onclick = async () => {
 consoleStartButton.onclick = async () => {
     if (device === null) {
         device = await navigator.serial.requestPort({
-            filters: [{ usbVendorId: 0x10c4 }]
+            filters: usbPortFilters
         });
         transport = new Transport(device);
     }
