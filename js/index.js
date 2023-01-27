@@ -503,7 +503,8 @@ async function downloadAndFlash(fileURL) {
 
 // Based on the configured App store links, show the respective download links.
 function buildAppLinks(){
-    let appURLsHTML = "You can download phone app from the app store and interact with your device. Scan the QRCode to access the respective apps.<br>";
+    let defaultAppURLsHTML = "You can download phone app from the app store and interact with your device. Scan the QRCode to access the respective apps.<br>";
+    let appURLsHTML = "";
 
     if(android_app_url !== ""){
         new QRCode(document.getElementById("qrcodeAndroidApp"), {
@@ -527,6 +528,7 @@ function buildAppLinks(){
             });
 
         $("#androidAppLogoQS").html("<a href='" + android_app_url + "' target='_blank'><img src='./assets/gplay_download.png' height='50' width='130'></a>");
+        appURLsHTML = defaultAppURLsHTML;
     }
 
     if(ios_app_url){
@@ -551,6 +553,7 @@ function buildAppLinks(){
             });
 
         $("#iosAppLogoQS").html("<a href='" + ios_app_url + "' target='_blank'><img src='./assets/appstore_download.png' height='50' width='130'></a>");
+        appURLsHTML = defaultAppURLsHTML;
     }
     $("#progressMsgQS").html("Firmware Image flashing is complete. " + appURLsHTML);
     $("#appDownloadLink").html(appURLsHTML);
