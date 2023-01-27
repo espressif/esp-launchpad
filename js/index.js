@@ -21,8 +21,9 @@ const chipSetsRadioGroup = document.getElementById("chipsets");
 const mainContainer = document.getElementById("mainContainer");
 let resizeTimeout = false;
 
-import { Transport } from './webserial.js'
-import { ESPLoader } from './ESPLoader.js'
+import * as esptooljs from "../node_modules/esptool-js/bundle.js";
+const ESPLoader = esptooljs.ESPLoader;
+const Transport = esptooljs.Transport;
 
 const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
 
@@ -229,9 +230,19 @@ function _sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+let espLoaderTerminal = {
+    clean() {
+      term.clear();
+    },
+    writeLine(data) {
+      term.writeln(data);
+    },
+    write(data) {
+      term.write(data)
+    }
+}
 
 async function connectToDevice() {
-    let chipDetails = null;
     if (device === null) {
         device = await navigator.serial.requestPort({
             filters: [{ usbVendorId: 0x10c4 }]
@@ -240,14 +251,11 @@ async function connectToDevice() {
     }
 
     try {
-        esploader = new ESPLoader(transport, baudrates.value, term);
+        esploader = new ESPLoader(transport, baudrates.value, espLoaderTerminal);
         connected = true;
 
-        chipDetails = await esploader.main_fn();
-        if (chipDetails) {
-            chip = chipDetails[1];
-            chipDesc = chipDetails[0];
-        }
+        chipDesc = await esploader.main_fn();
+        chip = esploader.chip.CHIP_NAME;
 
         await esploader.flash_id();
     } catch(e) {
@@ -360,6 +368,7 @@ disconnectButton.onclick = async () => {
         await transport.disconnect();
 
     term.clear();
+    transport = null;
     connected = false;
     $("#baudrates").prop("disabled", false);
     $("#flashButton").prop("disabled", true);
@@ -457,27 +466,37 @@ programButton.onclick = async () => {
        
         fileArr.push({data:fileObj.data, address:offset});
     }
-    esploader.write_flash({fileArray: fileArr, flash_size: 'keep'});
+    await esploader.write_flash(fileArr, 'keep');
     $('#v-pills-console-tab').click();
 }
 
 async function downloadAndFlash(fileURL) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', fileURL, true);
-    xhr.responseType = "blob";
-    xhr.send();
-    xhr.onload = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            var blob = new Blob([xhr.response], {type: "application/octet-stream"});
-            var reader = new FileReader();
-            reader.onload = (function(theFile) {
-                return function(e) {
-                    $('#v-pills-console-tab').click();
-                    esploader.write_flash({fileArray: [{data:e.target.result, address:0x0000}], flash_size: 'keep'});
-                };
-            })(blob);
-            reader.readAsBinaryString(blob);
+    let data = await new Promise(resolve => {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', fileURL, true);
+        xhr.responseType = "blob";
+        xhr.send();
+        xhr.onload = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var blob = new Blob([xhr.response], {type: "application/octet-stream"});
+                var reader = new FileReader();
+                reader.onload = (function(theFile) {
+                    return function(e) {
+                        resolve(e.target.result);
+                    };
+                })(blob);
+                reader.readAsBinaryString(blob);
+            } else {
+                resolve(undefined);
+            }
+        };
+        xhr.onerror = function() {
+            resolve(undefined);
         }
+    });
+    if (data !== undefined) {
+        $('#v-pills-console-tab').click();
+        await esploader.write_flash([{data:data, address:0x0000}], 'keep');
     }
 }
 
@@ -557,15 +576,8 @@ flashButton.onclick = async () => {
 
     cleanUpOldFlashHistory();
 
-    downloadAndFlash(file_server_url + flashFile);
+    await downloadAndFlash(file_server_url + flashFile);
 
-    //$("#progressMsgQS").html(buildAppLinks());
-    //$("#appDownloadLink").html(buildAppLinks());
-    
-    while (esploader.status === "started") {
-        await _sleep(3000);
-        console.log("waiting for flash write to complete ...");
-    }
     buildAppLinks();
     $("#statusModal").click();
     esploader.status = "started";
