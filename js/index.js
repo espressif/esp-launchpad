@@ -21,8 +21,18 @@ const chipSetsRadioGroup = document.getElementById("chipsets");
 const mainContainer = document.getElementById("mainContainer");
 let resizeTimeout = false;
 
-import { Transport } from './webserial.js'
-import { ESPLoader } from './ESPLoader.js'
+import * as esptooljs from "../node_modules/esptool-js/bundle.js";
+const ESPLoader = esptooljs.ESPLoader;
+const Transport = esptooljs.Transport;
+
+const usbPortFilters = [
+    { usbVendorId: 0x10c4, usbProductId: 0xea60 }, /* CP2102/CP2102N */
+    { usbVendorId: 0x0403, usbProductId: 0x6010 }, /* FT2232H */
+    { usbVendorId: 0x303a, usbProductId: 0x1001 }, /* Espressif USB_SERIAL_JTAG */
+    { usbVendorId: 0x303a, usbProductId: 0x1002 }, /* Espressif esp-usb-bridge firmware */
+    { usbVendorId: 0x303a, usbProductId: 0x0002 }, /* ESP32-S2 USB_CDC */
+    { usbVendorId: 0x303a, usbProductId: 0x0009 }, /* ESP32-S3 USB_CDC */
+];
 
 const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
 
@@ -229,25 +239,32 @@ function _sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+let espLoaderTerminal = {
+    clean() {
+      term.clear();
+    },
+    writeLine(data) {
+      term.writeln(data);
+    },
+    write(data) {
+      term.write(data)
+    }
+}
 
 async function connectToDevice() {
-    let chipDetails = null;
     if (device === null) {
         device = await navigator.serial.requestPort({
-            filters: [{ usbVendorId: 0x10c4 }]
+            filters: usbPortFilters
         });
         transport = new Transport(device);
     }
 
     try {
-        esploader = new ESPLoader(transport, baudrates.value, term);
+        esploader = new ESPLoader(transport, baudrates.value, espLoaderTerminal);
         connected = true;
 
-        chipDetails = await esploader.main_fn();
-        if (chipDetails) {
-            chip = chipDetails[1];
-            chipDesc = chipDetails[0];
-        }
+        chipDesc = await esploader.main_fn();
+        chip = esploader.chip.CHIP_NAME;
 
         await esploader.flash_id();
     } catch(e) {
@@ -360,6 +377,7 @@ disconnectButton.onclick = async () => {
         await transport.disconnect();
 
     term.clear();
+    transport = null;
     connected = false;
     $("#baudrates").prop("disabled", false);
     $("#flashButton").prop("disabled", true);
@@ -379,7 +397,7 @@ disconnectButton.onclick = async () => {
 consoleStartButton.onclick = async () => {
     if (device === null) {
         device = await navigator.serial.requestPort({
-            filters: [{ usbVendorId: 0x10c4 }]
+            filters: usbPortFilters
         });
         transport = new Transport(device);
     }
@@ -457,34 +475,45 @@ programButton.onclick = async () => {
        
         fileArr.push({data:fileObj.data, address:offset});
     }
-    esploader.write_flash({fileArray: fileArr, flash_size: 'keep'});
+    await esploader.write_flash(fileArr, 'keep');
     $('#v-pills-console-tab').click();
 }
 
 async function downloadAndFlash(fileURL) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', fileURL, true);
-    xhr.responseType = "blob";
-    xhr.send();
-    xhr.onload = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            var blob = new Blob([xhr.response], {type: "application/octet-stream"});
-            var reader = new FileReader();
-            reader.onload = (function(theFile) {
-                return function(e) {
-                    $('#v-pills-console-tab').click();
-                    esploader.write_flash({fileArray: [{data:e.target.result, address:0x0000}], flash_size: 'keep'});
-                };
-            })(blob);
-            reader.readAsBinaryString(blob);
+    let data = await new Promise(resolve => {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', fileURL, true);
+        xhr.responseType = "blob";
+        xhr.send();
+        xhr.onload = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var blob = new Blob([xhr.response], {type: "application/octet-stream"});
+                var reader = new FileReader();
+                reader.onload = (function(theFile) {
+                    return function(e) {
+                        resolve(e.target.result);
+                    };
+                })(blob);
+                reader.readAsBinaryString(blob);
+            } else {
+                resolve(undefined);
+            }
+        };
+        xhr.onerror = function() {
+            resolve(undefined);
         }
+    });
+    if (data !== undefined) {
+        $('#v-pills-console-tab').click();
+        await esploader.write_flash([{data:data, address:0x0000}], 'keep');
     }
 }
 
 
 // Based on the configured App store links, show the respective download links.
 function buildAppLinks(){
-    let appURLsHTML = "You can download phone app from the app store and interact with your device. Scan the QRCode to access the respective apps.<br>";
+    let defaultAppURLsHTML = "You can download phone app from the app store and interact with your device. Scan the QRCode to access the respective apps.<br>";
+    let appURLsHTML = "";
 
     if(android_app_url !== ""){
         new QRCode(document.getElementById("qrcodeAndroidApp"), {
@@ -508,6 +537,7 @@ function buildAppLinks(){
             });
 
         $("#androidAppLogoQS").html("<a href='" + android_app_url + "' target='_blank'><img src='./assets/gplay_download.png' height='50' width='130'></a>");
+        appURLsHTML = defaultAppURLsHTML;
     }
 
     if(ios_app_url){
@@ -532,6 +562,7 @@ function buildAppLinks(){
             });
 
         $("#iosAppLogoQS").html("<a href='" + ios_app_url + "' target='_blank'><img src='./assets/appstore_download.png' height='50' width='130'></a>");
+        appURLsHTML = defaultAppURLsHTML;
     }
     $("#progressMsgQS").html("Firmware Image flashing is complete. " + appURLsHTML);
     $("#appDownloadLink").html(appURLsHTML);
@@ -557,15 +588,8 @@ flashButton.onclick = async () => {
 
     cleanUpOldFlashHistory();
 
-    downloadAndFlash(file_server_url + flashFile);
+    await downloadAndFlash(file_server_url + flashFile);
 
-    //$("#progressMsgQS").html(buildAppLinks());
-    //$("#appDownloadLink").html(buildAppLinks());
-    
-    while (esploader.status === "started") {
-        await _sleep(3000);
-        console.log("waiting for flash write to complete ...");
-    }
     buildAppLinks();
     $("#statusModal").click();
     esploader.status = "started";
