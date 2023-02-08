@@ -60,12 +60,23 @@ var isDefault = true;
 // Build the Quick Try UI using the config toml file. If external path is not specified, pick up the default config
 async function buildQuickTryUI() {
     const urlParams = new URLSearchParams(window.location.search);
-    var tomlFileURL = urlParams.get('flashConfigURL');
-    if(!tomlFileURL)
-        tomlFileURL = document.location.href + "/config/default_config.toml";
-    else
-        isDefault = false;
-
+    var tomlFileURL = "/config/rainmaker_config.toml"; // defaulting to rainmaker for now.
+    var solution = urlParams.get("solution");
+    if (solution){
+        if (solution.toLowerCase() == "matter")
+            // use the one published by the ci/cd job of matter on the github
+            tomlFileURL = "https://espressif.github.io/esp-matter/launchpad.toml"
+        else if(solution.toLowerCase() == "rainmaker")
+            // use the one bundled in the config
+            tomlFileURL = "/config/rainmaker_config.toml";
+    }
+    else {
+        var externalURL = urlParams.get('flashConfigURL');
+        if(externalURL){
+            tomlFileURL = externalURL;
+            isDefault = false;
+        }
+    }
     var xhr = new XMLHttpRequest();
     xhr.open('GET', tomlFileURL, true);
     xhr.send();
@@ -87,25 +98,6 @@ async function buildQuickTryUI() {
             catch (err){
                 alert ("Unsupported config version used -" + err.message)
             }
-
-            /*
-            const frameworks = config["esp_frameworks"];
-            if (frameworks) {
-                frameworkSelect.innerHTML = "";
-                frameworks.forEach(framework => {
-                    //var frameworkOption = framework.split(':');
-                    var option = document.createElement("option");
-                    option.value = framework.toLowerCase();
-                    option.text = framework;
-                    frameworkSelect.appendChild(option);
-                });
-            }*/
-
-            //if(frameworkSelect)
-            //{
-                //populateDeviceTypes(config[frameworkSelect.value]);
-                //populateSupportedChipsets(config[frameworkSelect.value]);
-            //}
 
             return config;
         }
