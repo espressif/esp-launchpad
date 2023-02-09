@@ -60,7 +60,7 @@ var isDefault = true;
 // Build the Quick Try UI using the config toml file. If external path is not specified, pick up the default config
 async function buildQuickTryUI() {
     const urlParams = new URLSearchParams(window.location.search);
-    var tomlFileURL = "/config/rainmaker_config.toml"; // defaulting to rainmaker for now.
+    var tomlFileURL = window.location.origin + window.location.pathname + "config/rainmaker_config.toml"; // defaulting to rainmaker for now.
     var solution = urlParams.get("solution");
     if (solution){
         if (solution.toLowerCase() == "matter")
@@ -68,7 +68,7 @@ async function buildQuickTryUI() {
             tomlFileURL = "https://espressif.github.io/esp-matter/launchpad.toml"
         else if(solution.toLowerCase() == "rainmaker")
             // use the one bundled in the config
-            tomlFileURL = "/config/rainmaker_config.toml";
+            tomlFileURL = window.location.origin + window.location.pathname + "config/rainmaker_config.toml";
     }
     else {
         var externalURL = urlParams.get('flashConfigURL');
