@@ -1,13 +1,26 @@
-const baudrates = document.getElementById("baudrates");
-const connectButton = document.getElementById("connectButton");
-const disconnectButton = document.getElementById("disconnectButton");
-const resetButton = document.getElementById("resetButton");
-const consoleStartButton = document.getElementById("consoleStartButton");
-const resetMessage = document.getElementById("resetMessage");
+const baudrates1 = document.getElementById("baudrates1");
+const baudrates2 = document.getElementById("baudrates2");
+
+// UART-1 & UART-2 connect buttons
+const connectButton1 = document.getElementById("connectButton1");
+const connectButton2 = document.getElementById("connectButton2");
+
+// UART-1 & UART-2 disconnect buttons
+const disconnectButton1 = document.getElementById("disconnectButton1");
+const disconnectButton2 = document.getElementById("disconnectButton2");
+
+// UART-1 & UART-2 terminals
+const terminal1 = document.getElementById("terminal1");
+const terminal2 = document.getElementById("terminal2");
+
+// device reset and confirm buttons
+const resetDeviceButton = document.getElementById("resetDeviceButton");
+const confirmResetButton = document.getElementById("confirmResetButton");
+const consoleButton = document.getElementById("console");
+
 const eraseButton = document.getElementById("eraseButton");
 const programButton = document.getElementById("programButton");
 const filesDiv = document.getElementById("files");
-const terminal = document.getElementById("terminal");
 const ensureConnect = document.getElementById("ensureConnect");
 const lblConnTo = document.getElementById("lblConnTo");
 const table = document.getElementById('fileTable');
@@ -20,6 +33,37 @@ const frameworkSelect = document.getElementById("frameworkSel");
 const chipSetsRadioGroup = document.getElementById("chipsets");
 const mainContainer = document.getElementById("mainContainer");
 let resizeTimeout = false;
+
+// Implementaion of serialBasic terminal1 start
+
+const commandform = document.getElementById("commandform");
+const addLine = document.getElementById("addLine");
+const carriageReturn = document.getElementById("carriageReturn");
+const echoOn = document.getElementById("echoOn");
+const command = document.getElementById("command");
+const sendButton1 = document.getElementById("sendButton1");
+const clearButton1 = document.getElementById("clearButton1");
+
+const addLinedefault = document.getElementById("addLinedefault");
+const carriageReturndefault = document.getElementById("carriageReturndefault");
+const echoOndefault = document.getElementById("echoOndefault");
+
+let writer2,
+  reader2,
+  writer1,
+  reader1,
+  historyIndex = -1;
+const commandHistory = [];
+
+// Implementaion of serialBasic terminal1 end
+
+// Implementation of console per UART
+const entrybuttons = document.getElementById("entrybuttons");
+const flashfirmwarebutton = document.getElementById("flashfirmwarebutton");
+const consoleworkbutton = document.getElementById("consoleworkbutton");
+
+let isFlash = undefined;
+let isConsoleWork = undefined;
 
 import * as esptooljs from "../node_modules/esptool-js/bundle.js";
 const ESPLoader = esptooljs.ESPLoader;
@@ -36,47 +80,148 @@ const usbPortFilters = [
 
 const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
 
-let term = new Terminal({cols:getTerminalColumns(), rows:23, fontSize: 14});
-let fitAddon = new FitAddon.FitAddon();
-term.loadAddon(fitAddon);
-term.open(terminal);
-fitAddon.fit();
+// Terminal for UART-1 start
+let term1 = new Terminal({ cols: getTerminalColumns(), rows: 23, fontSize: 14 });
+let fitAddon1 = new FitAddon.FitAddon();
+term1.loadAddon(fitAddon1);
+term1.open(terminal1);
+fitAddon1.fit();
+// Terminal for UART-1 end
 
-let device = null;
-let transport;
+// Terminal for UART-2 start
+let term2 = new Terminal({
+  cols: getTerminalColumns(),
+  rows: 23,
+  fontSize: 14,
+});
+let fitAddon2 = new FitAddon.FitAddon();
+term2.loadAddon(fitAddon2);
+term2.open(terminal2);
+fitAddon2.fit();
+// Terminal for UART-2 end
+
+terminal1.style.display = "none";
+terminal2.style.display = "none";
+commandform.style.display = "none";
+
+let device1 = null;
+let device2 = null;
+let transport1;
+let transport2;
+let connected1 = false;
+let connected2 = false;
+
+//chip detail required for flashing of chips with esploader
 let chip = "default";
 let chipDesc = "default"
 let esploader;
 let file1 = null;
-let connected = false;
 let ios_app_url = "";
 let android_app_url = "";
 
-disconnectButton.style.display = "none";
+disconnectButton1.style.display = "none";
+disconnectButton2.style.display = "none";
 eraseButton.style.display = "none";
 var config = [];
 var isDefault = true;
 
+// changes as consolePerUART start
+entrybuttons.style.display = "none";
+let consoleworkerbaudrate = 115200;
+
+const entrybuttonslabel = document.getElementById("entrybuttonslabel");
+const commandformdefault = document.getElementById("commandformdefault");
+const commanddefault = document.getElementById("commanddefault");
+
+entrybuttonslabel.style.display = "none";
+commandformdefault.style.display = "none";
+programButton.disabled = true;
+
+const sendButton2 = document.getElementById("sendButton2");
+const clearButton2 = document.getElementById("clearButton2");
+
+let deviceHistoryIndex = -1;
+const deviceCommandHistory = [];
+
+let portIsAlredyOpenError =
+  "Failed to execute 'open' on 'SerialPort': The port is already open.";
+let errorfromtransport2 = undefined;
+// changes as consolePerUART end
+let espLoaderTerminal = {
+    clean() {
+      term1.clear();
+    },
+    writeLine(data) {
+      term1.writeln(data);
+    },
+    write(data) {
+      term1.write(data)
+    }
+  }
+flashfirmwarebutton.addEventListener("click", async function () {
+  isFlash = true;
+  isConsoleWork = false;
+  entrybuttons.style.display = "none";
+  entrybuttonslabel.style.display = "none";
+  if (isFlash && !isConsoleWork) {
+    try {
+      esploader = new ESPLoader(transport1, baudrates1.value, espLoaderTerminal);
+      connected1 = true;
+      chipDesc = await esploader.main_fn();
+      chip = esploader.chip.CHIP_NAME;
+      await esploader.flash_id();
+    } catch (e) {
+    }
+  }
+  postDevice1ConnectControls();
+});
+
+async function consoleWorker() {
+  while (device1.readable) {
+    if (!device1.readable.locked) reader1 = device1.readable.getReader();
+
+    try {
+      while (true) {
+        const { value, done } = await reader1.read();
+        if (done) {
+          reader1.releaseLock();
+          break;
+        }
+        if (value) {
+          term1.write(value);
+        }
+      }
+    } catch (error) {
+    }
+  }
+}
+consoleworkbutton.addEventListener("click", async function () {
+  isConsoleWork = true;
+  isFlash = false;
+
+  entrybuttons.style.display = "none";
+  entrybuttonslabel.style.display = "none";
+  flashButton.disabled = true;
+
+  try {
+    consoleworkerbaudrate = baudrates2.value ? baudrates2.value : 115200;
+    await transport1.connect( consoleworkerbaudrate );
+    postDevice1ConnectControls();
+    entrybuttonslabel.style.display = "none";
+    consoleButton.click();
+    await consoleWorker();
+  } catch (error) {
+    isConsoleWork = false;
+  }
+});
+
 // Build the Quick Try UI using the config toml file. If external path is not specified, pick up the default config
 async function buildQuickTryUI() {
-    const urlParams = new URLSearchParams(window.location.search);
-    var tomlFileURL = window.location.origin + window.location.pathname + "config/rainmaker_config.toml"; // defaulting to rainmaker for now.
-    var solution = urlParams.get("solution");
-    if (solution){
-        if (solution.toLowerCase() == "matter")
-            // use the one published by the ci/cd job of matter on the github
-            tomlFileURL = "https://espressif.github.io/esp-matter/launchpad.toml"
-        else if(solution.toLowerCase() == "rainmaker")
-            // use the one bundled in the config
-            tomlFileURL = window.location.origin + window.location.pathname + "config/rainmaker_config.toml";
-    }
-    else {
-        var externalURL = urlParams.get('flashConfigURL');
-        if(externalURL){
-            tomlFileURL = externalURL;
-            isDefault = false;
-        }
-    }
+  const urlParams = new URLSearchParams(window.location.search);
+  var tomlFileURL = urlParams.get("flashConfigURL");
+  if (!tomlFileURL)
+    tomlFileURL = document.location.href + "/config/default_config.toml";
+  else isDefault = false;
     var xhr = new XMLHttpRequest();
     xhr.open('GET', tomlFileURL, true);
     xhr.send();
@@ -91,7 +236,6 @@ async function buildQuickTryUI() {
             try {
                 if (parseFloat(config["esp_toml_version"]) === 1.0)
                     buildQuickTryUI_v1_0();
-
                 else
                     alert("Unsupported config version used!!")
             }
@@ -99,9 +243,28 @@ async function buildQuickTryUI() {
                 alert ("Unsupported config version used -" + err.message)
             }
 
-            return config;
-        }
+      /*
+            const frameworks = config["esp_frameworks"];
+            if (frameworks) {
+                frameworkSelect.innerHTML = "";
+                frameworks.forEach(framework => {
+                    //var frameworkOption = framework.split(':');
+                    var option = document.createElement("option");
+                    option.value = framework.toLowerCase();
+                    option.text = framework;
+                    frameworkSelect.appendChild(option);
+                });
+            }*/
+
+      //if(frameworkSelect)
+      //{
+      //populateDeviceTypes(config[frameworkSelect.value]);
+      //populateSupportedChipsets(config[frameworkSelect.value]);
+      //}
+
+      return config;
     }
+}
 }
 
 
@@ -189,7 +352,6 @@ $('#device').on('change', function() {
     populateSupportedChipsets(config[deviceTypeSelect.value]);
     setAppURLs(config[deviceTypeSelect.value])
 });
-
 $(function () {
     $('[data-toggle="tooltip"]').tooltip()
 })
@@ -224,89 +386,418 @@ function handleFileSelect(evt) {
     reader.readAsBinaryString(file);
 }
 
-
 document.getElementById('selectFile1').addEventListener('change', handleFileSelect, false);
 
 function _sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-let espLoaderTerminal = {
-    clean() {
-      term.clear();
-    },
-    writeLine(data) {
-      term.writeln(data);
-    },
-    write(data) {
-      term.write(data)
+async function connectToDevice1() {
+  if (device1 === null) {
+    device1 = await navigator.serial.requestPort({
+      filters: usbPortFilters
+    });
+    transport1 = new Transport(device1);
+  }
+}
+
+function postDevice1ConnectControls() {
+  if (chip === "default" && isFlash) {
+    lblConnTo.innerHTML =
+      "<b><span style='color:red'>Unable to detect device,see if secure boot mode is off otherwise please refersh page manually or click navbar refresh button and try again...</span></b>";
+    disconnectButton1.children[1].textContent = "Refresh";
+    disconnectButton1.children[0].attributes.src.value =
+      "assets/icons/refresh.png";
+    terminal1.style.display = "none";
+    commandformdefault.style.display = "none";
+  } else if (chip !== "default" && isFlash && !isConsoleWork) {
+    lblConnTo.innerHTML =
+      "<b><span style='color:#17a2b8'>Connected to device: </span>" +
+      chipDesc +
+      "</b>";
+    programButton.disabled = false;
+    eraseButton.style.display = "initial"
+    eraseButton.disabled = false;
+
+  } else if (chip === "default" && !isFlash && isConsoleWork) {
+    lblConnTo.innerHTML =
+      "<b><span style='color:red'>Connected to device. You are in console mode. </span>";
+    ("</b>");
+    eraseButton.style.display = "initial"
+    eraseButton.disabled = true
+  }
+  lblConnTo.style.display = "block";
+  $("#baudrates1").prop("disabled", true);
+  if (isFlash && !isConsoleWork) $("#flashButton").prop("disabled", false);
+  else $("#flashButton").prop("disabled", true);
+
+  $("#flashWrapper")
+    .tooltip()
+    .attr(
+      "data-bs-original-title",
+      "This will download and flash the firmware image on your device"
+    );
+
+  terminal1.style.display = "block";
+  commandformdefault.style.display = "block";
+  resetDeviceButton.disabled = false;
+  ensureConnect.style.display = "none";
+
+  settingsWarning.style.display = "flex";
+  settingsWarning.style.justifyContent = "center";
+  settingsWarning.style.flexWrap = "wrap";
+
+  connectButton1.style.display = "none";
+  disconnectButton1.style.display = "flex";
+  filesDiv.style.display = "initial";
+  $('input:radio[id="radio-' + chip + '"]').attr("checked", true);
+}
+
+connectButton1.onclick = async () => {
+  if (!connected1) await connectToDevice1();
+
+  connectButton1.style.display = "none";
+  disconnectButton1.removeAttribute("style");
+  entrybuttons.removeAttribute("style");
+  entrybuttons.classList.add("entrybuttons");
+
+  entrybuttonslabel.removeAttribute("style");
+  entrybuttonslabel.classList.add("entrybuttonslabel");
+};
+
+async function connectToDevice2() {
+  if (device2 === null) {
+    device2 = await navigator.serial.requestPort({
+      filters: usbPortFilters
+    });
+    transport2 = new Transport(device2);
+  }
+}
+
+function postDevice2ConnectControls(errorfromtransport2) {
+  if (errorfromtransport2 === portIsAlredyOpenError) {
+    let initiallblConnToIextContent = lblConnTo.innerHTML
+    lblConnTo.innerHTML = `<b><span style='color:red'>The port is already open. Please select other port. </span></b>`;
+    setTimeout(() => {
+      lblConnTo.innerHTML =initiallblConnToIextContent
+    }, 2000);
+    commandform.style.display = "none";
+    terminal2.style.display = "none";
+    window.scrollTo(0, 0);
+  }
+  lblConnTo.style.display = "block";
+  $("#baudrates2").prop("disabled", true);
+  $("#flashButton").prop("disabled", true);
+  $("#flashWrapper")
+    .tooltip()
+    .attr(
+      "data-bs-original-title",
+      "This will download and flash the firmware image on your device"
+    );
+  $("#programButton").prop("disabled", true);
+  $("#consoleStartButton").prop("disabled", false);
+  ensureConnect.style.display = "none";
+
+  settingsWarning.style.display = "flex";
+  settingsWarning.style.justifyContent = "center";
+  settingsWarning.style.flexWrap = "wrap";
+  if (errorfromtransport2 !== portIsAlredyOpenError) {
+    lblConnTo.innerHTML =
+      "<b><span style='color:red'>Connected to device. You are in console mode. </span>";
+    ("</b>");
+    connectButton2.style.display = "none";
+    disconnectButton2.style.display = "initial";
+    commandform.style.display = "block";
+    terminal2.style.display = "block";
+  }
+}
+
+connectButton2.onclick = async () => {
+  errorfromtransport2 = undefined;
+  if (!connected2) await connectToDevice2();
+
+  try {
+    await transport2.connect( baudrates2.value );
+    connected2 = true;
+  } catch (error) {
+    connected2 = false;
+    errorfromtransport2 = error.message;
+    cleanUpDevice2();
+  }
+  
+  postDevice2ConnectControls(errorfromtransport2);
+  if(device2)
+  {
+
+    if (!device2.readable.locked) reader2 = device2.readable.getReader();
+  }
+};
+
+// basicserialterminal functions start
+
+// Merging two function of same functionality -> sendCommand() listenPort() apeendToTerminal()
+
+async function sendCommand(device,writer,reader,term) {
+  let commandToSend;
+  let textEncoder = new TextEncoder();
+  if (!device.writable.locked) writer = device.writable.getWriter();
+
+  if(device === device1){
+    commandToSend = commanddefault.value;
+    deviceCommandHistory.unshift(commandToSend);
+    deviceHistoryIndex = -1; // No history entry selected
+    if (carriageReturndefault.checked == true) commandToSend = commandToSend + "\r";
+    if (addLinedefault.checked == true) commandToSend = commandToSend + "\n";
+    if (echoOndefault.checked == true) await appendToTerminal(term,"> " + commandToSend);
+   commanddefault.value = "";
+  } else{
+  commandToSend = command.value;
+  commandHistory.unshift(commandToSend);
+  historyIndex = -1; // No history entry selected
+  if (carriageReturn.checked == true) commandToSend = commandToSend + "\r";
+  if (addLine.checked == true) commandToSend = commandToSend + "\n";
+  if (echoOn.checked == true) await appendToTerminal(term,"> " + commandToSend);
+  command.value = "";
+}
+  await writer.write(textEncoder.encode(commandToSend));
+  if (commandToSend.trim().startsWith("\x03")) echo(false);
+  writer.releaseLock();
+  await listenPort(device,reader,term);
+}
+
+async function listenPort(device,reader,term) {
+  try {
+    while (device.readable) {
+      if (!device.readable.locked) reader = device.readable.getReader();
+  
+      try {
+          const { value, done } = await reader.read();
+          if (done) {
+            // Allow the serial port to be closed later.
+            reader.releaseLock();
+          }
+          if (value) {
+            await appendToTerminal(term,value);
+        }
+      } catch (error) {break}
+    }
+  } catch (error) {
+  }
+
+}
+
+function getHistory(direction) {
+  // Clamp the value between -1 and history length
+  deviceHistoryIndex = Math.max(
+    Math.min(deviceHistoryIndex + direction, deviceCommandHistory.length - 1),
+    -1
+  );
+  if (deviceHistoryIndex >= 0) {
+    commanddefault.value = deviceCommandHistory[deviceHistoryIndex];
+  } else {
+    commanddefault.value = "";
+  }
+  historyIndex = Math.max(
+    Math.min(historyIndex + direction, commandHistory.length - 1),
+    -1
+  );
+  if (historyIndex >= 0) {
+    document.getElementById("command").value = commandHistory[historyIndex];
+  } else {
+    document.getElementById("command").value = "";
+  }
+}
+
+async function appendToTerminal(term,newStuff) {
+  term.write(newStuff);
+}
+
+command.addEventListener("keyup", async function (event) {
+  if (event.code === "Enter") {
+    await sendCommand(device2,writer2,reader2,term2)
+  } else if (event.code === "ArrowUp") {
+    // Key up
+    getHistory(1);
+  } else if (event.code === "ArrowDown") {
+    // Key down
+    getHistory(-1);
+  }
+});
+
+command.addEventListener("keydown", (event) => {
+  if (event.code === "Tab") {
+    event.preventDefault();
+  }
+});
+commanddefault.addEventListener("keyup", async function (event) {
+  if (event.code === "Enter") {
+    await sendCommand(device1,writer1,reader1,term1);
+  } else if (event.code === "ArrowUp") {
+    // Key up
+    getHistory(1);
+  } else if (event.code === "ArrowDown") {
+    // Key down
+    getHistory(-1);
+  }
+});
+
+sendButton1.addEventListener("click", async function () {
+  await sendCommand(device1,writer1,reader1,term1);
+});
+clearButton1.addEventListener("click", async function () {
+  await TerminalClear(term1);
+});
+sendButton2.addEventListener("click", async function () {
+  await sendCommand(device2,writer2,reader2,term2);
+});
+clearButton2.addEventListener("click", async function () {
+  await TerminalClear(term2);
+});
+
+async function TerminalClear(term) {
+  term.clear();
+}
+// basicserialterminal functions end
+
+// disconnect buttons for UART-1 & UART-2
+disconnectButton1.onclick = async () => {
+  if (transport1) {
+    if (reader1 !== undefined) {
+      reader1.releaseLock();
+    }
+
+    if (device1) {
+      await device1.close();
+    }
+  }
+
+  terminal1.style.display = "none";
+  commandformdefault.style.display = "none";
+
+  commandform.style.display = "none";
+  terminal2.style.display = "none";
+
+  resetDeviceButton.disabled = true;
+  term1.clear();
+  connected1 = false;
+  $("#baudrates1").prop("disabled", false);
+  $("#baudrates2").prop("disabled", false);
+  $("#flashButton").prop("disabled", true);
+  $("#flashWrapper")
+    .tooltip()
+    .attr("data-bs-original-title", "Click on 'Connect' button in top Menu");
+  $("#programButton").prop("disabled", true);
+  $("#consoleStartButton").prop("disabled", true);
+  settingsWarning.style.display = "none";
+  connectButton1.style.display = "initial";
+  disconnectButton1.style.display = "none";
+
+  eraseButton.style.display = "none";
+  lblConnTo.style.display = "none";
+  alertDiv.style.display = "none";
+  ensureConnect.style.display = "initial";
+  cleanUpDevice1();
+  if (connected2) disconnectButton2.click();
+  if (isFlash) {
+    isFlash = undefined;
+  }
+};
+
+disconnectButton2.onclick = async () => {
+  if (transport2) {
+    if (reader2 !== undefined) {
+      reader2.releaseLock();
+
+    }
+
+    if (device2) {
+      await device2.close();
+    }
+  }
+  commandform.style.display = "none";
+  terminal2.style.display = "none";
+
+  term2.clear();
+
+  connected2 = false;
+  $("#baudrates1").prop("disabled", false);
+  $("#flashButton").prop("disabled", true);
+  $("#flashWrapper")
+    .tooltip()
+    .attr("data-bs-original-title", "Click on 'Connect' button in top Menu");
+  $("#programButton").prop("disabled", true);
+  $("#consoleStartButton").prop("disabled", true);
+  settingsWarning.style.display = "none";
+
+  connectButton2.style.display = "initial";
+  disconnectButton2.style.display = "none";
+
+  eraseButton.style.display = "none";
+  alertDiv.style.display = "none";
+  cleanUpDevice2();
+};
+// disconnect buttons for UART-1 & UART-2
+
+// reset and confirm reset functionallity start
+resetDeviceButton.onclick = async () => {
+  if (device1 === null) {
+    device1 = await navigator.serial.requestPort({
+      filters: usbPortFilters
+    });
+    transport1 = new Transport(device1);
+  }
+
+  $("#resetConfirmation").click();
+
+  if (transport1) {
+    if (reader1 !== undefined) {
+      reader1.releaseLock();
+      if (writer1 != undefined) writer1.releaseLock();
+    }
+    if (device1) {
+      await device1.close();
     }
 }
 
-async function connectToDevice() {
-    if (device === null) {
-        device = await navigator.serial.requestPort({
-            filters: usbPortFilters
-        });
-        transport = new Transport(device);
-    }
+  await transport1.connect(consoleworkerbaudrate );
+
+  while (device1.readable) {
+    if (!device1.readable.locked) reader1 = device1.readable.getReader();
 
     try {
-        esploader = new ESPLoader(transport, baudrates.value, espLoaderTerminal);
-        connected = true;
-
-        chipDesc = await esploader.main_fn();
-        chip = esploader.chip.CHIP_NAME;
-
-        await esploader.flash_id();
-    } catch(e) {
-    }
-
+      while (true) {
+        const { value, done } = await reader1.read();
+        if (done) {
+          // Allow the serial port to be closed later.
+          reader1.releaseLock();
+          break;
+        }
+        if (value) {
+          term1.write(value);
+        }
+      }
+    } catch (error) {}
+  }
 }
 
-function postConnectControls() {
-    if(chipDesc !== "default")
-        lblConnTo.innerHTML = "<b><span style='color:#17a2b8'>Connected to device: </span>" + chipDesc + "</b>";
-    else
-        lblConnTo.innerHTML = "<b><span style='color:red'>Unable to detect device. Please ensure the device is not connected in another application</span></b>";
-    lblConnTo.style.display = "block";
-    $("#baudrates").prop("disabled", true);
-    $("#flashButton").prop("disabled", false);
-    $("#flashWrapper").tooltip().attr('data-bs-original-title', "This will download and flash the firmware image on your device");
-    $("#programButton").prop("disabled", false);
-    $("#consoleStartButton").prop("disabled", false);
-    ensureConnect.style.display = "none"
-    settingsWarning.style.display = "initial";
-    connectButton.style.display = "none";
-    disconnectButton.style.display = "initial";
-    eraseButton.style.display = "initial";
-    filesDiv.style.display = "initial";
-    $('input:radio[id="radio-' + chip + '"]').attr('checked', true);
-}
-
-connectButton.onclick = async () => {
-    if(!connected)
-        await connectToDevice();
-
-    console.log("Settings done for :" + chip);
-    postConnectControls();
-
-}
-
-
-resetButton.onclick = async () => {
-    //resetMessage.style.display = "none";
-    $('#closeResetModal').click();
-    await transport.setDTR(false);
-    await new Promise(resolve => setTimeout(resolve, 100));
-    await transport.setDTR(true);
-    //consoleStartButton.style.display = "block";
-}
+confirmResetButton.onclick = async () => {
+  $("#closeResetModal").click();
+  await device1.setSignals({ requestToSend: false });
+  await device1.setSignals({ dataTerminalReady: false });
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  await device1.setSignals({ requestToSend: true });
+  await device1.setSignals({ dataTerminalReady: true });
+};
+// reset and confirm reset functionallity end
 
 eraseButton.onclick = async () => {
+    postFlashClick()
+    postProgramFlashClick()
     eraseButton.disabled = true;
-    $('#v-pills-console-tab').click();
+    $('#console').click();
     await esploader.erase_flash();
+  postFlashDone()
+  postProgramFlashDone()
     eraseButton.disabled = false;
 }
 
@@ -358,59 +849,16 @@ function removeRow(btnName) {
 }
 
 // to be called on disconnect - remove any stale references of older connections if any
-function cleanUp() {
-    device = null;
-    transport = null;
-    chip = null;
+function cleanUpDevice1() {
+  device1 = null;
+  transport1 = null;
+  chip = null;
 }
-
-disconnectButton.onclick = async () => {
-    if(transport)
-        await transport.disconnect();
-
-    term.clear();
-    transport = null;
-    connected = false;
-    $("#baudrates").prop("disabled", false);
-    $("#flashButton").prop("disabled", true);
-    $("#flashWrapper").tooltip().attr('data-bs-original-title', "Click on 'Connect' button in top Menu");
-    $("#programButton").prop("disabled", true);
-    $("#consoleStartButton").prop("disabled", true);
-    settingsWarning.style.display = "none";
-    connectButton.style.display = "initial";
-    disconnectButton.style.display = "none";
-    eraseButton.style.display = "none";
-    lblConnTo.style.display = "none";
-    alertDiv.style.display = "none";
-    ensureConnect.style.display = "initial";
-    cleanUp();
-};
-
-consoleStartButton.onclick = async () => {
-    if (device === null) {
-        device = await navigator.serial.requestPort({
-            filters: usbPortFilters
-        });
-        transport = new Transport(device);
-    }
-    //resetMessage.style.display = "block";
-    //consoleStartButton.style.display = "none";
-    $('#resetConfirmation').click();
-
-    await transport.disconnect();
-    await transport.connect();
-
-    while (true) {
-        let val = await transport.rawRead();
-        if (typeof val !== 'undefined') {
-            term.write(val);
-        } else {
-            break;
-        }
-    }
-    console.log("quitting console");
+function cleanUpDevice2() {
+  device2 = null;
+  transport2 = null;
+  chip = null;
 }
-
 
 function validate_program_inputs() {
     let offsetArr = []
@@ -440,18 +888,23 @@ function validate_program_inputs() {
         fileData = fileObj.data;
         if (fileData == null)
             return "No file selected for row: " + index + "!";
-
-    }
+  }
     return "success"
 }
 
 programButton.onclick = async () => {
+  esploader.status = "started"
     var err = validate_program_inputs();
     if (err != "success") {
         const alertMsg = document.getElementById("alertmsg");
         alertMsg.innerHTML = "<strong>" + err + "</strong>";
         alertDiv.style.display = "block";
         return;
+    }
+    if(err === "success")
+    {
+        postProgramFlashClick();
+        IntervalForFlashThroughProgramButton();
     }
     progressMsgDIY.style.display = "inline";
     let fileArr = [];
@@ -467,9 +920,22 @@ programButton.onclick = async () => {
        
         fileArr.push({data:fileObj.data, address:offset});
     }
+    $("#console").click();
     await esploader.write_flash(fileArr, 'keep');
-    $('#v-pills-console-tab').click();
-}
+   	esploader.status = "complete"
+};
+
+let IntervalForFlashThroughProgramButton = () => {
+  let interval = setInterval(() => {
+    if (esploader !== undefined)
+      if (esploader.status === "complete") {
+        postProgramFlashDone();
+        clearInterval(interval);
+      } else {
+        postProgramFlashClick();
+      }
+  }, 3000);
+};
 
 async function downloadAndFlash(fileURL) {
     let data = await new Promise(resolve => {
@@ -496,17 +962,19 @@ async function downloadAndFlash(fileURL) {
         }
     });
     if (data !== undefined) {
-        $('#v-pills-console-tab').click();
-        await esploader.write_flash([{data:data, address:0x0000}], 'keep');
+        $('#console').click();
+        try {
+            
+           await esploader.write_flash([{data:data, address:0x0000}], 'keep');
+        } catch (error) {
     }
 }
 
-
+}
 // Based on the configured App store links, show the respective download links.
 function buildAppLinks(){
     let defaultAppURLsHTML = "You can download phone app from the app store and interact with your device. Scan the QRCode to access the respective apps.<br>";
     let appURLsHTML = "";
-
     if(android_app_url !== ""){
         new QRCode(document.getElementById("qrcodeAndroidApp"), {
             text: android_app_url,
@@ -572,6 +1040,49 @@ function cleanUpOldFlashHistory() {
     $("#qrcodeIOSAppQS").html("");
 }
 
+// Helper function for flashButton click event,helps to disable some functinallity during flashing to avoid erros
+let postFlashClick = () => {
+  flashButton.disabled = true;
+  commanddefault.disabled = true;
+  sendButton1.disabled = true;
+  resetDeviceButton.disabled = true;
+  disconnectButton1.disabled = true;
+  programButton.disabled = true;
+  eraseButton.disabled = true;
+};
+
+// Helper function for flashButton click event,helps to enables some functinallity after flashing is completed
+let postFlashDone = () => {
+  flashButton.disabled = false;
+  commanddefault.disabled = false;
+  sendButton1.disabled = false;
+  resetDeviceButton.disabled = false;
+  disconnectButton1.disabled = false;
+  programButton.disabled = false;
+  eraseButton.disabled = false;
+};
+// Helper function for programButton click event,helps to disable some functinallity during flashing to avoid erros
+let postProgramFlashClick = () => {
+  flashButton.disabled = true;
+  programButton.disabled = true;
+  commanddefault.disabled = true;
+  sendButton1.disabled = true;
+  resetDeviceButton.disabled = true;
+  disconnectButton1.disabled = true;
+  eraseButton.disabled = true;
+};
+
+// Helper function for programButton click event,helps to enables some functinallity after flashing is completed
+let postProgramFlashDone = () => {
+  programButton.disabled = false;
+  flashButton.disabled = false;
+  commanddefault.disabled = false;
+  sendButton1.disabled = false;
+  resetDeviceButton.disabled = false;
+  disconnectButton1.disabled = false;
+  eraseButton.disabled = false;
+};
+
 flashButton.onclick = async () => {
     let flashFile = $("input[type='radio'][name='chipType']:checked").val();
     var file_server_url = config.firmware_images_url;
@@ -579,38 +1090,14 @@ flashButton.onclick = async () => {
     progressMsgQS.style.display = "inline";
 
     cleanUpOldFlashHistory();
-
+    postFlashClick();
     await downloadAndFlash(file_server_url + flashFile);
 
     buildAppLinks();
     $("#statusModal").click();
     esploader.status = "started";
-}
-
-/*
-connectPreview.onclick = async () => {
-    await connectToDevice();
-    if (connected) {
-        $('#connectPreview').prop("disabled", true)
-        $('#flashCustom').prop("value", "Flash Device: " + chip);
-        $('#flashCustom').prop("disabled", false);
-    }
-}
-
-flashCustom.onclick = async () => {
-    if(connected) {
-        if (chip != 'default'){
-            if (config.esp_chipset_type.toLowerCase() === chip.split('-')[0].toLowerCase()) {
-                await downloadAndFlash(config.firmware_images_url)
-            }
-            else
-                alert('Incompatible chipset for the firmare!');
-        }
-        else
-            alert('Chipset type not recognizable!');
-    }
-    postConnectControls();
-}*/
+    postFlashDone();
+};
 
 function getTerminalColumns() {
     const mainContainerWidth = mainContainer?.offsetWidth || 1320;
@@ -618,10 +1105,33 @@ function getTerminalColumns() {
 }
 
 function resizeTerminal() {
-    fitAddon && fitAddon.fit();
+  fitAddon1 && fitAddon1.fit();
 }
 
 $( window ).resize(function() {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(resizeTerminal, 300);
+});
+
+//Code to avoid #id appending at end of URL
+
+//Get all the hyperlink elements
+let links = document.getElementsByTagName("a");
+
+//Browse the previously created array
+Array.prototype.forEach.call(links, function (elem, index) {
+  //Get the hyperlink target and if it refers to an id go inside condition
+  let elemAttr = elem.getAttribute("href");
+  if (elemAttr && elemAttr.includes("#")) {
+    //Replace the regular action with a scrolling to target on click
+    elem.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      //Scroll to the target element using replace() and regex to find the href's target id
+      document.getElementById(elemAttr.replace(/#/g, "")).scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+        inline: "nearest",
+      });
+    });
+  }
 });

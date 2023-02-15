@@ -5514,8 +5514,10 @@ textarea.form-control-lg {
   transform: translate(0, -50px);
 }
 .footer{
-  position: fixed;
-  bottom: 0;
+  margin-top: 10px;
+
+  /* position: fixed; */
+  /* bottom: 0; */
 }
 @media (prefers-reduced-motion: reduce) {
   .modal.fade .modal-dialog {

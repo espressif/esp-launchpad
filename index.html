@@ -72,7 +72,7 @@
                   <div class="modal-body" id="preview_body">
                     <div id="resetMessage">
                         <p>This will reset your device. Click on 'Confirm' to continue.</p>
-                        <button class="app-button btn btn-outline-dark" type="button" id="resetButton" data-toggle="tooltip"
+                        <button class="app-button btn btn-outline-dark" type="button" id="confirmResetButton" data-toggle="tooltip"
                         data-placement="right" title="Confirm to Reset your device">Confirm</button>
                         <div><br></div>
                     </div>
@@ -111,27 +111,20 @@
                         </li>
                         
                         <li class="nav-item">
-                            <button class="nav-link icon-button" id="connectButton">
+                            <button class="nav-link icon-button" id="connectButton1">
                                 <img src="assets/icons/connect.png" class="icon" />
                                 <span>Connect</span>
                             </button>
-                            <button class="nav-link icon-button" id="disconnectButton">
+                            <button class="nav-link icon-button" id="disconnectButton1">
                                 <img src="assets/icons/disconnect.png" class="icon" />
                                 <span>Disconnect</span>
                             </button>
                         </li>
                         
                         <li class="nav-item" data-role="nav-menu-tab" data-target-tab-panel-id="console">
-                            <button class="nav-link icon-button" id="v-pills-console-tab">
+                            <button class="nav-link icon-button" id="console">
                                 <img src="assets/icons/console.png" class="icon" />
                                 <span>Console</span>
-                            </button>
-                        </li>
-
-                        <li class="nav-item" data-role="nav-menu-tab" data-target-tab-panel-id="settings">
-                            <button class="nav-link icon-button">
-                                <img src="assets/icons/settings.png" class="icon" />
-                                <span>Settings</span>
                             </button>
                         </li>
 
@@ -161,7 +154,50 @@
 
         <!-- Quick start tab content - start -->
         <div class="container tabs-section main-page-tab-panel" data-tab-panel-id="quickstart">
-            <h5 class="pt-4 pb-2 lh-lg"><span id="qtLabel">Choose from some of ESP's pre-built, out-of-the-box examples to flash and play</span></h5>
+            <h5 class="pt-4 pb-2 lh-lg" id="entrybuttonslabel"><span >Choose what you want to do </span><i style="color: #e63f36;">Make sure you have selected proper baudrate</i></h5>
+            <div id="entrybuttons">
+                <div id="flashmode">
+                    <button type="button" class="btn btn-outline-success" id="flashfirmwarebutton">Set Baudrate For Flashing</button>
+                  
+                        <div>
+    
+                            <select name="baudrates1" id="baudrates1">
+                                <option value="921600" selected>921600</option>
+                                <option value="460800">460800</option>
+                                <option value="230400">230400</option>
+                                <option value="115200">115200</option>
+                            </select>
+                    </div>
+                </div>
+                <div id="consoleworkmode">
+                    <button type="button" class="btn btn-outline-dark" id="consoleworkbutton">Console Mode</button>
+                  
+                        <div>
+    
+                            <select name="baudrates2" id="baudrates2">
+                                <option value="110">110</option>
+                                <option value="300">300</option>
+                                <option value="600">600</option>
+                                <option value="1200">1200</option>
+                                <option value="2400">2400</option>
+                                <option value="4800">4800</option>
+                                <option value="9600">9600</option>
+                                <option value="14400">14400</option>
+                                <option value="19200">19200</option>
+                                <option value="38400">38400</option>
+                                <option value="57600">57600</option>
+                                <option value="115200" selected>115200</option>
+                                <option value="128000">128000</option>
+                                <option value="230400">230400</option>
+                                <option value="256000">256000</option>
+                                <option value="460800">460800</option>
+                                <option value="921600">921600</option>
+                            </select>
+                    </div>
+                </div>
+            </div>
+            <h5 class="pt-4 pb-2 lh-lg"><span id="qtLabel">Choose from some of ESP's pre-built, out-of-the-box examples
+                    to flash and play</span></h5>
             <div class="form">
                 <div class="field-container">
                     <label>
@@ -274,47 +310,108 @@
             <div class="row">
                 <div class="col-xs-12 ">
                     <div class="button-container text-end mb-sm-3">
-                        <button type="button" class="app-button btn btn-outline-dark" id="consoleStartButton" data-toggle="tooltip"
+                        <button type="button" class="app-button btn btn-outline-dark" id="resetDeviceButton" data-toggle="tooltip"
                         data-placement="right" title="Reset your device" disabled
                         >Reset Device</button>
                     </div>
-                    <div id="terminal"></div>
+                    <div id="terminal1"></div>
+                    <div id="commandformdefault">
+
+                        <!-- <form > -->
+                        <div class="form-group">
+                            <input type="text" autocomplete="off" class="form-control" id="commanddefault" placeholder="Enter Your Commands Here">
+                        </div>
+
+                        <div class="form-check form-check-inline">
+
+
+                            <label class="form-check-label" for="carriageReturndefault">Send with \r</label>
+                            <input class="form-check-input" type="checkbox" id="carriageReturndefault"
+                                onclick="localStorage.carriageReturndefault = this.checked;" checked>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="addLinedefault"
+                                onclick="localStorage.addLinedefault = this.checked;" checked>
+                            <label class="form-check-label" for="addLinedefault">Send with \n</label>
+                        </div>
+                        <!-- <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="serialOnlyStatedefault"
+                                onclick="localStorage.serialOnlyStatedefault = this.checked;" unchecked>
+                            <label class="form-check-label" for="serialOnlyStatedefault">Sends commands only to serial</label>
+                        </div> -->
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="echoOndefault"
+                                onclick="localStorage.echoOndefault = this.checked;" checked>
+                            <label class="form-check-label" for="echoOndefault">Echo</label>
+
+                        </div>
+
+                        <button type="button" class="btn btn-success" id="sendButton1" data-toggle="tooltip" data-placement="top" title="Send commands to device">Send</button>
+
+                        <button type="button" class="btn btn-danger" id="clearButton1" data-toggle="tooltip" data-placement="top" title="Clear console window">Clear</button>
+                        
+                        <button  data-toggle="tooltip" data-placement="top" title="Connect New UART"type="button" class="btn btn-dark " id="connectButton2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                          </svg></button>
+
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Console tab content - end -->
-        
-        <!-- Settings tab content - start -->
-        <div class="container main-page-tab-panel" data-tab-panel-id="settings">
+
+        <br>
+
+        <div class="container main-page-tab-panel" data-tab-panel-id="console">
             <div class="row">
-                <div class="col-xs-12 ">
-                    <div class="form">
-                        <div id="baudRateSetting" class="lh-lg">
-                            <span><b>Change the Baudrate to set the serial communication speed:</b></span>
-                        </div>
-                        <hr/>
-                        <div class="field-container">
-                            <label>
-                                Baudrate
-                            </label>
-                            <div class="field" id="baudSettings">
-                                <select name="baudrates" id="baudrates">
-                                    <option value="921600">921600</option>
-                                    <option value="460800">460800</option>
-                                    <option value="230400">230400</option>
-                                    <option value="115200">115200</option>
-                                </select>
+                <div class="col-xs-12 mb-4">
+                    <div id="terminal2">
+                    </div >
+                    <div id="commandform">
+
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="command"  autocomplete="off"
+                                placeholder="Enter Your Commands Here" >
                             </div>
-                        </div>
-                        <div id="settingsWarning" style="display:none">
-                            <span><i> ** Settings cannot be changed for a connected device. Please disconnect the device and then change the settings.</i></span>
-                        </div>
+                                
+                            <div class="form-check form-check-inline">
+                            
+                                
+                                <label class="form-check-label" for="carriageReturn">Send with \r</label>
+                                <input class="form-check-input" type="checkbox"  id="carriageReturn" onclick="localStorage.carriageReturn = this.checked;" checked>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="addLine" onclick="localStorage.addLine = this.checked;" checked >
+                                <label class="form-check-label" for="addLine">Send with \n</label>
+                            </div>
+                            <!-- <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="serialOnlyState" onclick="localStorage.serialOnlyState = this.checked;" unchecked >
+                                <label class="form-check-label" for="serialOnlyState">Sends commands only to serial</label>
+                            </div> -->
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="echoOn" onclick="localStorage.echoOn = this.checked;" checked >
+                                <label class="form-check-label" for="echoOn">Echo</label>
+                        
+                            </div>
+
+                            <button  type="button" class="btn btn-success" id="sendButton2" data-toggle="tooltip" data-placement="top" title="Send commands to device">Send</button>
+
+                            <button type="button" class="btn btn-danger" id="clearButton2"  data-toggle="tooltip" data-placement="top" title="Clear console window">Clear</button> 
+
+                            <button  data-toggle="tooltip" data-placement="top" title="Disconnect Connected UART"type="button" class="btn btn-dark " id="disconnectButton2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                              </svg></button>
+                               
+                              </div>
+                            
                     </div>     
                 </div>
             </div>
-        </div>
-        <!-- Settings tab content - end -->
+                    <div id="settingsWarning" style="display:none">
+                        <span><i>Baudrate cannot be changed for a connected device. Please disconnect the device
+                                and then change the baudrate.</i></span>
+                    </div>
+                    
+        <!-- Console tab content - end -->
 
         <!-- About us tab content - start -->
         <div class="container main-page-tab-panel mt-5 about-container" data-tab-panel-id="about">
@@ -409,7 +506,7 @@
 
         <footer class="container footer mt-auto py-3 bg-light">
             <div class="container text-center">
-                <span class="text-muted">Copyright © 2022 Espressif Systems</span>
+                <span class="text-muted">Copyright © 2023 Espressif Systems</span>
             </div>
         </footer>
         <!-- Third party libraries-->
