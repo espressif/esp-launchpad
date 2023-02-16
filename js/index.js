@@ -195,6 +195,23 @@ async function consoleWorker() {
     }
   }
 }
+const consoleModeclick=function(){
+  deviceTypeSelect.disabled = true
+  document.getElementById("radio-ESP32").disabled = true
+  document.getElementById("radio-ESP32-C3").disabled = true
+  document.getElementById("selectFile1").disabled = true
+  document.getElementById("offset1").disabled = true
+  document.getElementById("addFile").disabled = true
+}
+const consoleModeDone=function(){
+  deviceTypeSelect.disabled = false
+  document.getElementById("radio-ESP32").disabled = false
+  document.getElementById("radio-ESP32-C3").disabled = false
+  document.getElementById("selectFile1").disabled = false
+  document.getElementById("offset1").disabled = false
+  document.getElementById("addFile").disabled = false
+}
+
 consoleworkbutton.addEventListener("click", async function () {
   isConsoleWork = true;
   isFlash = false;
@@ -202,7 +219,7 @@ consoleworkbutton.addEventListener("click", async function () {
   entrybuttons.style.display = "none";
   entrybuttonslabel.style.display = "none";
   flashButton.disabled = true;
-
+  consoleModeclick();
   try {
     consoleworkerbaudrate = baudrates2.value ? baudrates2.value : 115200;
     await transport1.connect( consoleworkerbaudrate );
@@ -324,8 +341,9 @@ function populateSupportedChipsets(deviceConfig) {
         inputElement.name = "chipType";
         inputElement.id = "radio-" + chipset;
         inputElement.value = deviceConfig["image." + chipset.toLowerCase()]
-        if (chipset.toLowerCase() === chip.toLowerCase())
-            inputElement.checked = true;
+        if(chip)
+          if (chipset.toLowerCase() === chip.toLowerCase())
+              inputElement.checked = true;
 
         lblElement.appendChild(inputElement);
 
@@ -701,6 +719,7 @@ disconnectButton1.onclick = async () => {
   if (isFlash) {
     isFlash = undefined;
   }
+  if(isConsoleWork) consoleModeDone()
 };
 
 disconnectButton2.onclick = async () => {
@@ -775,7 +794,7 @@ resetDeviceButton.onclick = async () => {
         if (value) {
           term1.write(value);
         }
-      }
+  }
     } catch (error) {}
   }
 }
