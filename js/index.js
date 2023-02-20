@@ -48,10 +48,10 @@ const addLinedefault = document.getElementById("addLinedefault");
 const carriageReturndefault = document.getElementById("carriageReturndefault");
 const echoOndefault = document.getElementById("echoOndefault");
 
-let writer2,
-  reader2,
-  writer1,
-  reader1,
+let writer2 = undefined,
+  reader2 = undefined,
+  writer1 = undefined,
+  reader1 = undefined,
   historyIndex = -1;
 const commandHistory = [];
 
@@ -106,8 +106,8 @@ commandform.style.display = "none";
 
 let device1 = null;
 let device2 = null;
-let transport1;
-let transport2;
+let transport1 = undefined;
+let transport2 = undefined;
 let connected1 = false;
 let connected2 = false;
 
@@ -174,6 +174,8 @@ flashfirmwarebutton.addEventListener("click", async function () {
     }
   }
   postDevice1ConnectControls();
+  commanddefault.disabled = true;
+  sendButton1.disabled = true
 });
 
 async function consoleWorker() {
@@ -185,6 +187,7 @@ async function consoleWorker() {
         const { value, done } = await reader1.read();
         if (done) {
           reader1.releaseLock();
+          reader1 = undefined
           break;
         }
         if (value) {
@@ -225,13 +228,21 @@ consoleworkbutton.addEventListener("click", async function () {
     await transport1.connect( consoleworkerbaudrate );
     postDevice1ConnectControls();
     entrybuttonslabel.style.display = "none";
+    commanddefault.disabled = true;
+    sendButton1.disabled = true
     consoleButton.click();
     await consoleWorker();
   } catch (error) {
     isConsoleWork = false;
   }
 });
-
+consoleButton.addEventListener("click",function(){
+  let initiallblConnToIextContent = lblConnTo.innerHTML
+  lblConnTo.innerHTML = `<b><span style='color:red'>Click on Reset Device button after enabled.</span></b>`;
+  setTimeout(() => {
+    lblConnTo.innerHTML =initiallblConnToIextContent
+  }, 2000);
+})
 // Build the Quick Try UI using the config toml file. If external path is not specified, pick up the default config
 async function buildQuickTryUI() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -682,6 +693,7 @@ disconnectButton1.onclick = async () => {
   if (transport1) {
     if (reader1 !== undefined) {
       reader1.releaseLock();
+      reader1 = undefined
     }
 
     if (device1) {
@@ -716,10 +728,9 @@ disconnectButton1.onclick = async () => {
   ensureConnect.style.display = "initial";
   cleanUpDevice1();
   if (connected2) disconnectButton2.click();
-  if (isFlash) {
-    isFlash = undefined;
-  }
   if(isConsoleWork) consoleModeDone()
+  isFlash = undefined
+  isConsoleWork = undefined
 };
 
 disconnectButton2.onclick = async () => {
@@ -759,53 +770,78 @@ disconnectButton2.onclick = async () => {
 
 // reset and confirm reset functionallity start
 resetDeviceButton.onclick = async () => {
-  if (device1 === null) {
-    device1 = await navigator.serial.requestPort({
-      filters: usbPortFilters
-    });
-    transport1 = new Transport(device1);
-  }
+  commanddefault.disabled = false;
+  sendButton1.disabled = false
+  programButton.disabled = true
+  eraseButton.disabled = true
+  flashButton.disabled = true
+  if(isConsoleWork && !isFlash)
+  {
+   $("#resetConfirmation").click();
+   while (device1.readable) {
+     if (!device1.readable.locked){
+       console.log("inside device1 readable")
+       reader1 = device1.readable.getReader()};
 
-  $("#resetConfirmation").click();
-
-  if (transport1) {
-    if (reader1 !== undefined) {
-      reader1.releaseLock();
-      if (writer1 != undefined) writer1.releaseLock();
-    }
-    if (device1) {
-      await device1.close();
-    }
-}
-
-  await transport1.connect(consoleworkerbaudrate );
-
-  while (device1.readable) {
-    if (!device1.readable.locked) reader1 = device1.readable.getReader();
-
-    try {
-      while (true) {
-        const { value, done } = await reader1.read();
-        if (done) {
-          // Allow the serial port to be closed later.
-          reader1.releaseLock();
-          break;
-        }
-        if (value) {
-          term1.write(value);
-        }
+     try {
+       while (true) {
+         const { value, done } = await reader1.read();
+         if (done) {
+           // Allow the serial port to be closed later.
+           reader1.releaseLock();
+           reader1 = undefined
+           break;
+         }
+         if (value) {
+           term1.write(value);
+         }
   }
     } catch (error) {}
   }
-}
+  }
 
+  if(isFlash && !isConsoleWork)
+  {
+    $("#resetConfirmation").click();
+
+    if (transport1) {
+      if (reader1 !== undefined) {
+        reader1.releaseLock();
+        if (writer1 != undefined) writer1.releaseLock();
+      }
+      if (device1) {
+        await device1.close();
+      }
+    }
+
+    await transport1.connect(consoleworkerbaudrate );
+
+    while (device1.readable) {
+        if (!device1.readable.locked) reader1 = device1.readable.getReader();
+
+      try {
+          while (true) {
+          const { value, done } = await reader1.read();
+          if (done) {
+            // Allow the serial port to be closed later.
+            reader1.releaseLock();
+            break;
+          }
+          if (value) {
+            term1.write(value);
+          }
+    }
+        } catch (error) {}
+  }
+}
+}
 confirmResetButton.onclick = async () => {
   $("#closeResetModal").click();
-  await device1.setSignals({ requestToSend: false });
-  await device1.setSignals({ dataTerminalReady: false });
+  await transport1.setRTS(false);
+  await transport1.setDTR(false);
   await new Promise((resolve) => setTimeout(resolve, 100));
-  await device1.setSignals({ requestToSend: true });
-  await device1.setSignals({ dataTerminalReady: true });
+  await transport1.setRTS(true);
+  await transport1.setDTR(true)
 };
 // reset and confirm reset functionallity end
 
@@ -870,13 +906,13 @@ function removeRow(btnName) {
 // to be called on disconnect - remove any stale references of older connections if any
 function cleanUpDevice1() {
   device1 = null;
-  transport1 = null;
-  chip = null;
+  transport1 = undefined;
+  chip = "default";
 }
 function cleanUpDevice2() {
   device2 = null;
-  transport2 = null;
-  chip = null;
+  transport2 = undefined;
+  chip = "default";
 }
 
 function validate_program_inputs() {
@@ -1062,8 +1098,6 @@ function cleanUpOldFlashHistory() {
 // Helper function for flashButton click event,helps to disable some functinallity during flashing to avoid erros
 let postFlashClick = () => {
   flashButton.disabled = true;
-  commanddefault.disabled = true;
-  sendButton1.disabled = true;
   resetDeviceButton.disabled = true;
   disconnectButton1.disabled = true;
   programButton.disabled = true;
@@ -1073,8 +1107,6 @@ let postFlashClick = () => {
 // Helper function for flashButton click event,helps to enables some functinallity after flashing is completed
 let postFlashDone = () => {
   flashButton.disabled = false;
-  commanddefault.disabled = false;
-  sendButton1.disabled = false;
   resetDeviceButton.disabled = false;
   disconnectButton1.disabled = false;
   programButton.disabled = false;
@@ -1084,8 +1116,6 @@ let postFlashDone = () => {
 let postProgramFlashClick = () => {
   flashButton.disabled = true;
   programButton.disabled = true;
-  commanddefault.disabled = true;
-  sendButton1.disabled = true;
   resetDeviceButton.disabled = true;
   disconnectButton1.disabled = true;
   eraseButton.disabled = true;
@@ -1095,8 +1125,6 @@ let postProgramFlashClick = () => {
 let postProgramFlashDone = () => {
   programButton.disabled = false;
   flashButton.disabled = false;
-  commanddefault.disabled = false;
-  sendButton1.disabled = false;
   resetDeviceButton.disabled = false;
   disconnectButton1.disabled = false;
   eraseButton.disabled = false;
