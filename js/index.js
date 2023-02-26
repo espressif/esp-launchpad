@@ -158,6 +158,71 @@ let espLoaderTerminal = {
       term1.write(data)
     }
   }
+//   $('#chipsets').on('change', function() {
+//     console.log(chipSetsRadioGroup.getElementsByTagName('input'))
+// });
+let partsArray = undefined
+let addressesArray = undefined
+function build_DIY_UI(application){
+  let chipTypeElement = chipSetsRadioGroup.querySelector("input[type='radio'][name='chipType']:checked")
+  let chipType = undefined
+  if(chipTypeElement){
+
+    if(chipTypeElement.value)
+       chipType = chipTypeElement.parentNode.innerText.trim()
+  }
+  console.log(chipType)
+  if(document.getElementById("row0") !== null && config["multipart"])
+    document.getElementById("row0").remove()
+  console.log(chip + "chip")
+  console.log(chipType + "chipType")
+ if(chip !== "default" && chip === chipType){
+
+   console.warn("Hey....")
+   let imageString = "image." + chip.toLowerCase() + ".parts"
+   let addressString = "image." + chip.toLowerCase() + ".addresses"
+   console.log( imageString + ".parts")
+   partsArray = config[application][imageString]
+   addressesArray = config[application][addressString]
+   console.log(partsArray,addressesArray)
+  //  let rowCount = 0
+   partsArray.forEach(function(curr,index){
+
+     var rowCount = table.rows.length;
+     console.log(rowCount)
+     var row = table.insertRow(rowCount);
+     console.log(row)
+     //Column 1 - Offset
+     var cell1 = row.insertCell(0);
+     var element1 = document.createElement("input");
+     element1.type = "text";
+     element1.id = "offset" + rowCount;
+     element1.setAttribute('value',addressesArray[index] );
+     cell1.appendChild(element1);
+     
+     // Column 2 - File selector
+     var cell2 = row.insertCell(1);
+     var element2 = document.createElement("p");
+     element2.innerText = partsArray[index]
+     cell2.appendChild(element2);
+     
+     // Column 3  - Remove File
+     var cell3 = row.insertCell(2);
+     var element3 = document.createElement("input");
+     element3.type = "image";
+     element3.src = "assets/icons/remove.png";
+     var btnName = "rem-" + rowCount;
+     element3.name = btnName;
+     element3.onclick = function() {
+             removeRow(btnName);
+             return false;
+     }
+     cell3.appendChild(element3);
+   })
+ }
+  
+
+}
 flashfirmwarebutton.addEventListener("click", async function () {
   isFlash = true;
   isConsoleWork = false;
@@ -176,6 +241,10 @@ flashfirmwarebutton.addEventListener("click", async function () {
   postDevice1ConnectControls();
   commanddefault.disabled = true;
   sendButton1.disabled = true
+  console.log(config["multipart"])
+  if(config["multipart"]){
+    build_DIY_UI(deviceTypeSelect.value);
+  }
 });
 
 async function consoleWorker() {
@@ -248,7 +317,7 @@ async function buildQuickTryUI() {
   const urlParams = new URLSearchParams(window.location.search);
   var tomlFileURL = urlParams.get("flashConfigURL");
   if (!tomlFileURL)
-    tomlFileURL = document.location.href + "/config/default_config.toml";
+    tomlFileURL = document.location.href + "config/default_config.toml";
   else isDefault = false;
     var xhr = new XMLHttpRequest();
     xhr.open('GET', tomlFileURL, true);
@@ -256,7 +325,7 @@ async function buildQuickTryUI() {
     xhr.onload = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
             config = toml.parse(xhr.responseText);
-
+            console.log(config)
             if(!isDefault) {
                 $("#qtLabel").html("Choose from the firmware images listed below. <Br> You have chosen to try the firmware images from an <b><u>external source</u> - "
                                             + tomlFileURL + "</b>");
@@ -351,7 +420,20 @@ function populateSupportedChipsets(deviceConfig) {
         inputElement.setAttribute("class", "form-check-input");
         inputElement.name = "chipType";
         inputElement.id = "radio-" + chipset;
-        inputElement.value = deviceConfig["image." + chipset.toLowerCase()]
+        console.log(config["multipart"] )
+        console.log(config)
+        if(config["multipart"] === true)
+        {
+          console.warn("Hey....")
+          let imageString = "image." + chipset.toLowerCase()
+          console.log( imageString + ".parts")
+          let partsArray = deviceConfig[imageString + ".parts"]
+          console.log(partsArray)
+          inputElement.value = partsArray[0]
+          // build_DIY_UI()
+        }else{
+          inputElement.value = deviceConfig["image." + chipset.toLowerCase()]
+        }
         if(chip)
           if (chipset.toLowerCase() === chip.toLowerCase())
               inputElement.checked = true;
@@ -377,9 +459,27 @@ $('#frameworkSel').on('change', function() {
     setAppURLs(frameworkSelect.value)
 });
 
+function ClearPreviousRowsOfDIY()
+{
+  console.log("inside Clear Previous rows od DIY")
+  let rowCount = table.rows.length;
+  console.log(rowCount)
+  while(rowCount>1){
+
+    table.deleteRow(rowCount-1);
+    rowCount--;
+  }
+  }
+
+
 $('#device').on('change', function() {
     populateSupportedChipsets(config[deviceTypeSelect.value]);
     setAppURLs(config[deviceTypeSelect.value])
+    if(config["multipart"]){
+
+      ClearPreviousRowsOfDIY()
+      build_DIY_UI(deviceTypeSelect.value)
+    }
 });
 $(function () {
     $('[data-toggle="tooltip"]').tooltip()
@@ -492,6 +592,15 @@ connectButton1.onclick = async () => {
 
   entrybuttonslabel.removeAttribute("style");
   entrybuttonslabel.classList.add("entrybuttonslabel");
+  $("#flashWrapper")
+  .tooltip()
+  .attr(
+    "data-bs-original-title",
+    "Click on 'Set Baudrate For Flashing' Button"
+  );
+  if(config["multipart"]){
+    build_DIY_UI()
+  }
 };
 
 async function connectToDevice2() {
@@ -946,11 +1055,39 @@ function validate_program_inputs() {
   }
     return "success"
 }
+function validate_program_inputs_for_multiparts() {
+    let offsetArr = []
+    var rowCount = table.rows.length;
+    var row;
+    let offset = 0;
+ 
+    // check for mandatory fields
+    for (let index = 1; index < rowCount; index ++) {
+        row = table.rows[index];
+
+        //offset fields checks
+        var offSetObj = row.cells[0].childNodes[0];
+        offset = parseInt(offSetObj.value);
+
+        // Non-numeric or blank offset
+        if (Number.isNaN(offset))
+            return "Offset field in row " + index + " is not a valid address!"
+        // Repeated offset used
+        else if (offsetArr.includes(offset))
+            return "Offset field in row " + index + " is already in use!";
+        else
+            offsetArr.push(offset);
+  }
+    return "success"
+}
 
 programButton.onclick = async () => {
-  esploader.status = "started"
-    var err = validate_program_inputs();
-    if (err != "success") {
+  if(config["multipart"] === true){
+    //  let file_server_url = config.firmware_images_url;
+     let err =  validate_program_inputs_for_multiparts()
+     console.log(err)
+     console.log("inside program multipart button")
+      if (err !== "success") {
         const alertMsg = document.getElementById("alertmsg");
         alertMsg.innerHTML = "<strong>" + err + "</strong>";
         alertDiv.style.display = "block";
@@ -958,26 +1095,69 @@ programButton.onclick = async () => {
     }
     if(err === "success")
     {
-        postProgramFlashClick();
-        IntervalForFlashThroughProgramButton();
+      console.log(err)
+      postProgramFlashClickFormultiparts();    
+        // IntervalForFlashThroughProgramButton();
     }
     progressMsgDIY.style.display = "inline";
-    let fileArr = [];
-    let offset = 0x1000;
-    var rowCount = table.rows.length;
-    var row;
-    for (let index = 1; index < rowCount; index ++) {
-        row = table.rows[index];
-        var offSetObj = row.cells[0].childNodes[0];
-        offset = parseInt(offSetObj.value);
-
-        var fileObj = row.cells[1].childNodes[0];
-       
-        fileArr.push({data:fileObj.data, address:offset});
+    console.log(partsArray,addressesArray)
+    try {
+        await downloadAndFlashForMultiparts()
+    } catch (error) {
+      console.log(error)
     }
-    $("#console").click();
-    await esploader.write_flash(fileArr, 'keep');
-   	esploader.status = "complete"
+    // partsArray
+    // let fileArr = [];
+    // let offset = 0x1000;
+    // var rowCount = table.rows.length;
+    // var row;
+    // for (let index = 1; index < rowCount; index ++) {
+      //     row = table.rows[index];
+      //     var offSetObj = row.cells[0].childNodes[0];
+      //     offset = parseInt(offSetObj.value);
+      
+      //     var fileObj = row.cells[1].childNodes[0].innerText;
+      
+      //     fileArr.push({data:fileObj.data, address:offset});
+      // }
+      
+      // $("#console").click();
+      postProgramFlashDoneForMultiparts()
+  }else{
+      esploader.status = "started"
+      var err = validate_program_inputs();
+      if (err != "success") {
+          const alertMsg = document.getElementById("alertmsg");
+          alertMsg.innerHTML = "<strong>" + err + "</strong>";
+          alertDiv.style.display = "block";
+          return;
+      }
+      if(err === "success")
+      {
+          postProgramFlashClick();
+          IntervalForFlashThroughProgramButton();
+      }
+      progressMsgDIY.style.display = "inline";
+      let fileArr = [];
+      let offset = 0x1000;
+      var rowCount = table.rows.length;
+      var row;
+      for (let index = 1; index < rowCount; index ++) {
+        console.log(row)
+          row = table.rows[index];
+          var offSetObj = row.cells[0].childNodes[0];
+          console.log(offSetObj.value)
+          offset = parseInt(offSetObj.value);
+          console.log(offset)
+          var fileObj = row.cells[1].childNodes[0];
+         console.log(fileObj.data)
+          fileArr.push({data:fileObj.data, address:offset});
+      }
+      $("#console").click();
+      console.log(fileArr)
+      await esploader.write_flash(fileArr, 'keep');
+       esploader.status = "complete"
+  }
 };
 
 let IntervalForFlashThroughProgramButton = () => {
@@ -992,7 +1172,63 @@ let IntervalForFlashThroughProgramButton = () => {
   }, 3000);
 };
 
-async function downloadAndFlash(fileURL) {
+async function downloadAndFlashForMultiparts() {
+  var file_server_url = config.firmware_images_url;
+  let fileArr = []
+  var rowCount = table.rows.length;
+  var row;
+  for (let index = 1; index < rowCount; index ++) {
+    console.log(row)
+      row = table.rows[index];
+      var offSetObj = row.cells[0].childNodes[0];
+      console.log(offSetObj.value)
+      var offset = parseInt(offSetObj.value);
+      console.log(offset)
+      var fileObj = row.cells[1].childNodes[0];
+      console.log(file_server_url + fileObj.innerText)
+      let data = await new Promise(resolve => {
+          var xhr = new XMLHttpRequest();
+          xhr.open('GET', file_server_url + fileObj.innerText, true);
+          xhr.responseType = "blob";
+          xhr.send();
+          xhr.onload = function () {
+              if (xhr.readyState === 4 && xhr.status === 200) {
+                  var blob = new Blob([xhr.response], {type: "application/octet-stream"});
+                  var reader = new FileReader();
+                  reader.onload = (function(theFile) {
+                      return function(e) {
+                          resolve(e.target.result);
+                      };
+                  })(blob);
+                  reader.readAsBinaryString(blob);
+              } else {
+                  resolve(undefined);
+              }
+          };
+          xhr.onerror = function() {
+              resolve(undefined);
+          }
+      });
+      fileArr.push({data:data, address:offset});
+  }
+    // if(data !== undefined){
+  //   // console.log(data)
+  //   let obj = {data:data, address:parseInt(addressesArray[index])}
+  //   fileArr.push(obj);
+  // }
+  // if (fileArr !== undefined) {
+    // console.log(fileArr)
+      $('#console').click();
+      try {
+         console.log(fileArr)
+         await esploader.write_flash(fileArr,'keep');
+      } catch (error) {
+        console.log(error)
+  // }
+}
+}
+async function downloadAndFlash(fileURL,address=0x0) {
+  console.log(fileURL)
     let data = await new Promise(resolve => {
         var xhr = new XMLHttpRequest();
         xhr.open('GET', fileURL, true);
@@ -1017,10 +1253,11 @@ async function downloadAndFlash(fileURL) {
         }
     });
     if (data !== undefined) {
+      console.log(data)
         $('#console').click();
         try {
             
-           await esploader.write_flash([{data:data, address:0x0000}], 'keep');
+           await esploader.write_flash([{data:data, address:address}], 'keep');
         } catch (error) {
     }
 }
@@ -1129,9 +1366,31 @@ let postProgramFlashDone = () => {
   disconnectButton1.disabled = false;
   eraseButton.disabled = false;
 };
+// Helper function for programButton click event,helps to disable some functinallity during flashing to avoid erros
+let postProgramFlashClickFormultiparts = () => {
+  flashButton.disabled = true;
+  programButton.disabled = true;
+  resetDeviceButton.disabled = true;
+  disconnectButton1.disabled = true;
+  eraseButton.disabled = true;
+  deviceTypeSelect.disabled = true
+};
+
+// Helper function for programButton click event,helps to enables some functinallity after flashing is completed
+let postProgramFlashDoneForMultiparts = () => {
+  programButton.disabled = false;
+  flashButton.disabled = false;
+  resetDeviceButton.disabled = false;
+  disconnectButton1.disabled = false;
+  eraseButton.disabled = false;
+  deviceTypeSelect.disabled = false
+};
 
 flashButton.onclick = async () => {
     let flashFile = $("input[type='radio'][name='chipType']:checked").val();
+
+    let tem = chipSetsRadioGroup.querySelector("input[type='radio'][name='chipType']:checked").parentNode.innerText
+    console.log(tem)
     var file_server_url = config.firmware_images_url;
 
     progressMsgQS.style.display = "inline";

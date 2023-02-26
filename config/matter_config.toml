@@ -1,5 +1,7 @@
 esp_toml_version = 1.0
 
+multipart = true
+
 # Base URL of the file server where the images are available
 firmware_images_url = "https://adwait-esp.github.io/flasher/images/"
 
@@ -7,20 +9,25 @@ supported_apps = ["Matter-AllClustersApp-TE9", "Matter-AllClustersApp-M5Stack-TE
 
 [Matter-AllClustersApp-TE9]
 chipsets = ["ESP32", "ESP32-C3"]
-image.esp32 = "esp32_matter_all-clusters-app.bin"
-image.esp32-c3 = "esp32c3_matter_all-clusters-app.bin"
+image.esp32.parts = ["esp32_matter_all-clusters-app.bin"]
+image.esp32.addresses = ["0x0"]
+image.esp32-c3.parts = ["bootloader.bin","hello_world.bin","partition-table.bin"]
+image.esp32-c3.addresses = ["0x0","0x10000","0x8000"]
 ios_app_url = "https://apps.apple.com/app/espressif-matter/id1604739172?platform=iphone"
 android_app_url = ""
 
 [Matter-AllClustersApp-M5Stack-TE9]
 chipsets = ["ESP32"]
-image.esp32 = "m5stack_matter_all-clusters-app.bin"
+image.esp32.parts = ["m5stack_matter_all-clusters-app.bin"]
+image.esp32.addresses = ["0x0"]
 ios_app_url = "https://apps.apple.com/app/espressif-matter/id1604739172?platform=iphone"
 android_app_url = ""
 
 [Matter-LightingApp-TE9]
 chipsets = ["ESP32", "ESP32-C3"]
-image.esp32 = "esp32_matter_lighting-app.bin"
-image.esp32-c3 = "esp32c3_matter_lighting-app.bin"
+image.esp32.parts = ["esp32_matter_lighting-app.bin"]
+image.esp32.addresses = ["0x0"]
+image.esp32-c3.parts = ["esp32c3_matter_lighting-app.bin"]
+image.esp32-c3.addresses = ["0x0"]
 ios_app_url = "https://apps.apple.com/app/espressif-matter/id1604739172?platform=iphone"
 android_app_url = ""
