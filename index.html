@@ -104,7 +104,7 @@
                         </li>
 
                         <li class="nav-item" data-role="nav-menu-tab" data-target-tab-panel-id="diy">
-                            <button class="nav-link icon-button">
+                            <button class="nav-link icon-button" id="diy">
                                 <img src="assets/icons/diy.png" class="icon" />
                                 <span>DIY</span>
                             </button>
@@ -295,13 +295,17 @@
                     <div class="button-container text-end mb-sm-3">
                         <button type="button" class="app-button submit-form-button btn btn-outline-dark" id="addFile"
                         data-toggle="tooltip" data-placement="right" title="Add another file to flash set" style="margin-right:10px;">Add File</button>
-                        <button type="button" class="app-button submit-form-button btn btn-outline-dark" id="programButton"
-                        data-toggle="tooltip" data-placement="right" title="This will flash the firmware image on your device">Program</button>
+                        <div class="field-container" data-toggle="tooltip" data-placement="right" title="Click on 'Connect' button" id="programwrapper" style="display:inline-block">
+                            <button type="button" class="app-button submit-form-button btn btn-outline-dark" id="programButton">Program</button>
+                        </div>
                     </div>
                 </div>
                 <output id="list"></output>
                 <hr/>
-                <span id="progressMsgDIY" style="display:none"><i>This may take a short while. Check console for the progress</i></span>
+                <div class="field-container" style="text-align: center;">
+
+                    <span id="progressMsgDIY" style="display:none"><i>This may take a short while. Check console for the progress</i></span>
+                </div>
         </div>
         <!-- DIY tab content - end -->
 
@@ -406,11 +410,6 @@
                     </div>     
                 </div>
             </div>
-                    <div id="settingsWarning" style="display:none">
-                        <span><i>Baudrate cannot be changed for a connected device. Please disconnect the device
-                                and then change the baudrate.</i></span>
-                    </div>
-                    
         <!-- Console tab content - end -->
 
         <!-- About us tab content - start -->
@@ -489,6 +488,10 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div id="settingsWarning" style="display:none">
+            <span><i>Baudrate cannot be changed for a connected device. Please disconnect the device
+                    and then change the baudrate.</i></span>
         </div>
         <!-- About us tab content - end -->
     </div>

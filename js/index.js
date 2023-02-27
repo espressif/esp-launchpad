@@ -32,6 +32,8 @@ const deviceTypeSelect = document.getElementById("device");
 const frameworkSelect = document.getElementById("frameworkSel");
 const chipSetsRadioGroup = document.getElementById("chipsets");
 const mainContainer = document.getElementById("mainContainer");
+
+const diyButton = document.getElementById("diy")
 let resizeTimeout = false;
 
 // Implementaion of serialBasic terminal1 start
@@ -164,8 +166,14 @@ let espLoaderTerminal = {
 let partsArray = undefined
 let addressesArray = undefined
 function build_DIY_UI(application){
-  let chipTypeElement = chipSetsRadioGroup.querySelector("input[type='radio'][name='chipType']:checked")
   let chipType = undefined
+  let chipInConfToml = undefined
+  let imageString = undefined;
+  let addressString = undefined
+  if(chip === "default" && config["multipart"]){
+    chipInConfToml = config["chip"]
+  }
+  let chipTypeElement = chipSetsRadioGroup.querySelector("input[type='radio'][name='chipType']:checked")
   if(chipTypeElement){
 
     if(chipTypeElement.value)
@@ -174,53 +182,63 @@ function build_DIY_UI(application){
   console.log(chipType)
   if(document.getElementById("row0") !== null && config["multipart"])
     document.getElementById("row0").remove()
-  console.log(chip + "chip")
+  console.log(chipInConfToml + "chip")
   console.log(chipType + "chipType")
- if(chip !== "default" && chip === chipType){
+//  if(chip !== "default" && chip === chipType){
 
    console.warn("Hey....")
-   let imageString = "image." + chip.toLowerCase() + ".parts"
-   let addressString = "image." + chip.toLowerCase() + ".addresses"
+   if(chip==="default" && chipInConfToml !== undefined){
+     imageString = "image." + chipInConfToml.toLowerCase() + ".parts"
+     addressString = "image." + chipInConfToml.toLowerCase() + ".addresses"
+    }else{
+      imageString = "image." + chip.toLowerCase() + ".parts"
+      addressString = "image." + chip.toLowerCase() + ".addresses"  
+   }
    console.log( imageString + ".parts")
    partsArray = config[application][imageString]
    addressesArray = config[application][addressString]
    console.log(partsArray,addressesArray)
   //  let rowCount = 0
-   partsArray.forEach(function(curr,index){
+  if(partsArray){
 
-     var rowCount = table.rows.length;
-     console.log(rowCount)
-     var row = table.insertRow(rowCount);
-     console.log(row)
-     //Column 1 - Offset
-     var cell1 = row.insertCell(0);
-     var element1 = document.createElement("input");
-     element1.type = "text";
-     element1.id = "offset" + rowCount;
-     element1.setAttribute('value',addressesArray[index] );
-     cell1.appendChild(element1);
-     
-     // Column 2 - File selector
-     var cell2 = row.insertCell(1);
-     var element2 = document.createElement("p");
-     element2.innerText = partsArray[index]
-     cell2.appendChild(element2);
-     
-     // Column 3  - Remove File
-     var cell3 = row.insertCell(2);
-     var element3 = document.createElement("input");
-     element3.type = "image";
-     element3.src = "assets/icons/remove.png";
-     var btnName = "rem-" + rowCount;
-     element3.name = btnName;
-     element3.onclick = function() {
-             removeRow(btnName);
-             return false;
-     }
-     cell3.appendChild(element3);
-   })
- }
-  
+    partsArray.forEach(function(curr,index){
+ 
+      var rowCount = table.rows.length;
+      console.log(rowCount)
+      var row = table.insertRow(rowCount);
+      console.log(row)
+      //Column 1 - Offset
+      var cell1 = row.insertCell(0);
+      var element1 = document.createElement("input");
+      element1.type = "text";
+      element1.id = "offset" + rowCount;
+      element1.setAttribute('value',addressesArray[index] );
+      cell1.appendChild(element1);
+      
+      // Column 2 - File selector
+      var cell2 = row.insertCell(1);
+      var element2 = document.createElement("p");
+      element2.innerText = partsArray[index]
+      cell2.appendChild(element2);
+      
+      // Column 3  - Remove File
+      var cell3 = row.insertCell(2);
+      var element3 = document.createElement("input");
+      element3.type = "image";
+      element3.src = "assets/icons/remove.png";
+      var btnName = "rem-" + rowCount;
+      element3.name = btnName;
+      element3.onclick = function() {
+              removeRow(btnName);
+              return false;
+      }
+      cell3.appendChild(element3);
+    })
+  }
+//  }
+//  if(chip !== chipType){
+//   diyButton.click()
+//  }
 
 }
 flashfirmwarebutton.addEventListener("click", async function () {
@@ -243,7 +261,15 @@ flashfirmwarebutton.addEventListener("click", async function () {
   sendButton1.disabled = true
   console.log(config["multipart"])
   if(config["multipart"]){
-    build_DIY_UI(deviceTypeSelect.value);
+    // build_DIY_UI(deviceTypeSelect.value);
+    diyButton.click()
+    $("#programwrapper")
+    .tooltip()
+    .attr(
+      "data-bs-original-title",
+      "This will flash the firmware image on your device"
+    );
+    
   }
 });
 
@@ -271,8 +297,9 @@ const consoleModeclick=function(){
   deviceTypeSelect.disabled = true
   document.getElementById("radio-ESP32").disabled = true
   document.getElementById("radio-ESP32-C3").disabled = true
-  document.getElementById("selectFile1").disabled = true
-  document.getElementById("offset1").disabled = true
+  if( document.getElementById("selectFile1"))
+    document.getElementById("selectFile1").disabled = true
+  // document.getElementById("offset1").disabled = true
   document.getElementById("addFile").disabled = true
 }
 const consoleModeDone=function(){
@@ -287,7 +314,15 @@ const consoleModeDone=function(){
 consoleworkbutton.addEventListener("click", async function () {
   isConsoleWork = true;
   isFlash = false;
-
+  if(config["multipart"]){
+    $("#programwrapper")
+    .tooltip()
+    .attr(
+      "data-bs-original-title",
+      "This will flash the firmware image on your device"
+    );
+    
+  }
   entrybuttons.style.display = "none";
   entrybuttonslabel.style.display = "none";
   flashButton.disabled = true;
@@ -371,6 +406,10 @@ function buildQuickTryUI_v1_0() {
     if(supported_apps) {
         addDeviceTypeOption(supported_apps);
         populateSupportedChipsets(config[supported_apps[0]]);
+    }
+    if(config["multipart"]){
+      build_DIY_UI(deviceTypeSelect.value)
+      diyButton.click()
     }
     setAppURLs(config[supported_apps[0]]);
 }
@@ -598,8 +637,15 @@ connectButton1.onclick = async () => {
     "data-bs-original-title",
     "Click on 'Set Baudrate For Flashing' Button"
   );
-  if(config["multipart"]){
-    build_DIY_UI()
+  if (config["multipart"]) {
+    
+    $("#programwrapper")
+    .tooltip()
+    .attr(
+      "data-bs-original-title",
+      "Click on 'Set Baudrate For Flashing' Button in Quickstart"
+    );
+    // diyButton.click()
   }
 };
 
@@ -804,9 +850,15 @@ disconnectButton1.onclick = async () => {
       reader1.releaseLock();
       reader1 = undefined
     }
-
-    if (device1) {
-      await device1.close();
+    try {
+      
+      if (device1) {
+        await device1.close();
+      }
+    } catch (error) {
+      console.log("hey")
+      entrybuttons.style.display = "none";
+      entrybuttonslabel.style.display = "none";
     }
   }
 
@@ -825,6 +877,9 @@ disconnectButton1.onclick = async () => {
   $("#flashWrapper")
     .tooltip()
     .attr("data-bs-original-title", "Click on 'Connect' button in top Menu");
+  $("#programwrapper")
+   .tooltip()
+    .attr("data-bs-original-title","Click on 'Connect' button in top Menu");
   $("#programButton").prop("disabled", true);
   $("#consoleStartButton").prop("disabled", true);
   settingsWarning.style.display = "none";
