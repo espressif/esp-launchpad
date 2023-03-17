@@ -293,10 +293,14 @@ async function consoleWorker() {
     }
   }
 }
+let radioButtonsArray = undefined;
 const consoleModeclick=function(){
   deviceTypeSelect.disabled = true
-  document.getElementById("radio-ESP32").disabled = true
-  document.getElementById("radio-ESP32-C3").disabled = true
+  // console.log( Array.from(document.querySelectorAll('input[type="radio"]')))
+  radioButtonsArray =  Array.from(document.querySelectorAll('input[type="radio"]'))
+  radioButtonsArray.forEach((curr)=>{
+    curr.disabled = true
+  })
   if( document.getElementById("selectFile1"))
     document.getElementById("selectFile1").disabled = true
   // document.getElementById("offset1").disabled = true
@@ -304,8 +308,10 @@ const consoleModeclick=function(){
 }
 const consoleModeDone=function(){
   deviceTypeSelect.disabled = false
-  document.getElementById("radio-ESP32").disabled = false
-  document.getElementById("radio-ESP32-C3").disabled = false
+  radioButtonsArray.forEach((curr)=>{
+    curr.disabled = false
+  })
+  radioButtonsArray = undefined;
   document.getElementById("selectFile1").disabled = false
   document.getElementById("offset1").disabled = false
   document.getElementById("addFile").disabled = false
@@ -522,6 +528,21 @@ $('#device').on('change', function() {
 });
 $(function () {
     $('[data-toggle="tooltip"]').tooltip()
+    $('[data-toggle="tooltip"]').tooltip({
+      trigger: "manual"
+  });
+  
+  $('[data-toggle="tooltip"]').on('mouseleave', function () {
+      $(this).tooltip('hide');
+  });
+  
+  $('[data-toggle="tooltip"]').on('mouseenter', function () {
+      $(this).tooltip('show');
+  });
+  
+  $('[data-toggle="tooltip"]').on('click', function () {
+      $(this).tooltip('hide');
+  });
 })
 
 function convertUint8ArrayToBinaryString(u8Array) {
@@ -1320,9 +1341,12 @@ async function downloadAndFlash(fileURL,address=0x0) {
 }
 // Based on the configured App store links, show the respective download links.
 function buildAppLinks(){
-    let defaultAppURLsHTML = "You can download phone app from the app store and interact with your device. Scan the QRCode to access the respective apps.<br>";
+    let hrElement = document.getElementById("preview_body").querySelector('hr')
+    console.log(hrElement)
+    hrElement.style.display = "block"
+    let defaultAppURLsHTML = "Note: You can download phone app from the app store and interact with your device. Scan the QRCode to access the respective apps.<br>";
     let appURLsHTML = "";
-    if(android_app_url !== ""){
+    if(android_app_url !== "" && android_app_url !== undefined){
         new QRCode(document.getElementById("qrcodeAndroidApp"), {
             text: android_app_url,
             width: 128,
@@ -1371,8 +1395,16 @@ function buildAppLinks(){
         $("#iosAppLogoQS").html("<a href='" + ios_app_url + "' target='_blank'><img src='./assets/appstore_download.png' height='50' width='130'></a>");
         appURLsHTML = defaultAppURLsHTML;
     }
-    $("#progressMsgQS").html("Firmware Image flashing is complete. " + appURLsHTML);
-    $("#appDownloadLink").html(appURLsHTML);
+    if(appURLsHTML === defaultAppURLsHTML){
+      console.log("bye 1")
+      $("#progressMsgQS").html("Firmware Image flashing is complete. " + appURLsHTML);
+      $("#appDownloadLink").html(appURLsHTML);
+      hrElement.style.display = "block"
+    }else{
+      console.log("bye 2")
+      $("#progressMsgQS").html("Firmware Image flashing is complete.");
+      hrElement.style.display = "none"
+    }
 }
 
 function cleanUpOldFlashHistory() {
