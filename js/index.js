@@ -34,7 +34,7 @@ const usbPortFilters = [
     { usbVendorId: 0x303a, usbProductId: 0x0009 }, /* ESP32-S3 USB_CDC */
 ];
 
-const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
 
 let term = new Terminal({cols:getTerminalColumns(), rows:23, fontSize: 14});
 let fitAddon = new FitAddon.FitAddon();
@@ -42,18 +42,18 @@ term.loadAddon(fitAddon);
 term.open(terminal);
 fitAddon.fit();
 
-let reader = undefined
+let reader = undefined;
 let device = null;
 let transport = undefined;
 let chip = "default";
-let chipDesc = "default"
+let chipDesc = "default";
 let esploader;
 let file1 = null;
 let connected = false;
 let ios_app_url = "";
 let android_app_url = "";
 
-terminal.style.display = "none"
+terminal.style.display = "none";
 
 disconnectButton.style.display = "none";
 eraseButton.style.display = "none";
@@ -68,7 +68,7 @@ async function buildQuickTryUI() {
     if (solution){
         if (solution.toLowerCase() == "matter")
             // use the one published by the ci/cd job of matter on the github
-            tomlFileURL = "https://espressif.github.io/esp-matter/launchpad.toml"
+            tomlFileURL = "https://espressif.github.io/esp-matter/launchpad.toml";
         else if(solution.toLowerCase() == "rainmaker")
             // use the one bundled in the config
             tomlFileURL = window.location.origin + window.location.pathname + "config/rainmaker_config.toml";
@@ -96,10 +96,10 @@ async function buildQuickTryUI() {
                     buildQuickTryUI_v1_0();
 
                 else
-                    alert("Unsupported config version used!!")
+                    alert("Unsupported config version used!!");
             }
             catch (err){
-                alert ("Unsupported config version used -" + err.message)
+                alert ("Unsupported config version used -" + err.message);
             }
 
             return config;
@@ -110,7 +110,7 @@ async function buildQuickTryUI() {
 
 //Parsing of toml based on v1.0 and builing UI accordingly.
 function buildQuickTryUI_v1_0() {
-    const supported_apps = config["supported_apps"]
+    const supported_apps = config["supported_apps"];
     if(supported_apps) {
         addDeviceTypeOption(supported_apps);
         populateSupportedChipsets(config[supported_apps[0]]);
@@ -121,7 +121,7 @@ function buildQuickTryUI_v1_0() {
 function addDeviceTypeOption(apps) {
     deviceTypeSelect.innerHTML = "";
     apps.forEach(app => {
-        var app_config = config[app];
+            var app_config = config[app];
             var option = document.createElement("option");
             option.value = app;
             option.text = app;
@@ -163,7 +163,7 @@ function populateSupportedChipsets(deviceConfig) {
         inputElement.setAttribute("class", "form-check-input");
         inputElement.name = "chipType";
         inputElement.id = "radio-" + chipset;
-        inputElement.value = deviceConfig["image." + chipset.toLowerCase()]
+        inputElement.value = deviceConfig["image." + chipset.toLowerCase()];
         if (chipset.toLowerCase() === chip.toLowerCase())
             inputElement.checked = true;
 
@@ -185,16 +185,16 @@ function setAppURLs(appConfig) {
 $('#frameworkSel').on('change', function() {
     //populateDeviceTypes(config[frameworkSelect.value]);
     addDeviceTypeOption(config["supported_apps"], frameworkSelect.value);
-    setAppURLs(frameworkSelect.value)
+    setAppURLs(frameworkSelect.value);
 });
 
 $('#device').on('change', function() {
     populateSupportedChipsets(config[deviceTypeSelect.value]);
-    setAppURLs(config[deviceTypeSelect.value])
+    setAppURLs(config[deviceTypeSelect.value]);
 });
 
 $(function () {
-    $('[data-toggle="tooltip"]').tooltip()
+    $('[data-toggle="tooltip"]').tooltip();
     $('[data-toggle="tooltip"]').tooltip({
         trigger: "manual"
     });
@@ -257,7 +257,7 @@ let espLoaderTerminal = {
       term.writeln(data);
     },
     write(data) {
-      term.write(data)
+      term.write(data);
     }
 }
 
@@ -293,7 +293,7 @@ function postConnectControls() {
         $("#consoleStartButton").prop("disabled", false);
         $("#eraseButton").prop("disabled", false);
 
-        ensureConnect.style.display = "none"
+        ensureConnect.style.display = "none";
         settingsWarning.style.display = "initial";
         connectButton.style.display = "none";
         disconnectButton.style.display = "initial";
@@ -319,22 +319,20 @@ connectButton.onclick = async () => {
 
 
 resetButton.onclick = async () => {
-    //resetMessage.style.display = "none";
-    postFlashClick()
-    consoleStartButton.disabled = false
+    postFlashClick();
+    consoleStartButton.disabled = false;
     $('#closeResetModal').click();
     await transport.setDTR(false);
     await new Promise(resolve => setTimeout(resolve, 100));
     await transport.setDTR(true);
-    //consoleStartButton.style.display = "block";
 }
 
 eraseButton.onclick = async () => {
-    postFlashClick()
+    postFlashClick();
     eraseButton.disabled = true;
     $('#v-pills-console-tab').click();
     await esploader.erase_flash();
-    postFlashDone()
+    postFlashDone();
     eraseButton.disabled = false;
 }
 
@@ -390,21 +388,19 @@ function cleanUp() {
     device = null;
     transport = undefined;
     chip = "default";
-    reader = undefined
+    reader = undefined;
 }
 
 disconnectButton.onclick = async () => {
-    // if(transport)
-    //     await transport.disconnect();
     if(transport){
         if(reader !== undefined){
             reader.releaseLock();
         }
         if(device){
-            await device.close()
+            await device.close();
         }
     }
-    terminal.style.display = "none"
+    terminal.style.display = "none";
     term.clear();
     connected = false;
     $("#baudrates").prop("disabled", false);
@@ -430,8 +426,6 @@ consoleStartButton.onclick = async () => {
         });
         transport = new Transport(device);
     }
-    //resetMessage.style.display = "block";
-    //consoleStartButton.style.display = "none";
     $('#resetConfirmation').click();
     consoleStartButton.disabled = false
     if(transport){
@@ -439,10 +433,9 @@ consoleStartButton.onclick = async () => {
             reader.releaseLock();
         }
         if(device){
-            await device.close()
+            await device.close();
         }
     }
-    // await transport.disconnect();
     await transport.connect();
     while (device.readable) {
         
@@ -469,7 +462,7 @@ consoleStartButton.onclick = async () => {
 
 
 function validate_program_inputs() {
-    let offsetArr = []
+    let offsetArr = [];
     var rowCount = table.rows.length;
     var row;
     let offset = 0;
@@ -485,7 +478,7 @@ function validate_program_inputs() {
 
         // Non-numeric or blank offset
         if (Number.isNaN(offset))
-            return "Offset field in row " + index + " is not a valid address!"
+            return "Offset field in row " + index + " is not a valid address!";
         // Repeated offset used
         else if (offsetArr.includes(offset))
             return "Offset field in row " + index + " is already in use!";
@@ -498,22 +491,22 @@ function validate_program_inputs() {
             return "No file selected for row: " + index + "!";
 
     }
-    return "success"
+    return "success";
 }
 
 programButton.onclick = async () => {
-    programButton.disabled = true
-    postFlashClick()
+    programButton.disabled = true;
+    postFlashClick();
     var err = validate_program_inputs();
     if (err != "success") {
         const alertMsg = document.getElementById("alertmsg");
         alertMsg.innerHTML = "<strong>" + err + "</strong>";
         alertDiv.style.display = "block";
         setTimeout(() => {
-            alertDiv.style.display = "none"
+            alertDiv.style.display = "none";
         }, 3000);
-        programButton.disabled = false
-        postFlashDone()
+        programButton.disabled = false;
+        postFlashDone();
         return;
     }
     progressMsgDIY.style.display = "inline";
@@ -532,7 +525,7 @@ programButton.onclick = async () => {
     }
     $('#v-pills-console-tab').click();
     await esploader.write_flash(fileArr, 'keep');
-    postFlashDone()
+    postFlashDone();
 }
 
 async function downloadAndFlash(fileURL) {
@@ -568,10 +561,12 @@ async function downloadAndFlash(fileURL) {
 
 // Based on the configured App store links, show the respective download links.
 function buildAppLinks(){
-    let defaultAppURLsHTML = "You can download phone app from the app store and interact with your device. Scan the QRCode to access the respective apps.<br>";
+    let hrElement = document.getElementById("preview_body").querySelector("hr");
+    hrElement.style.display = "block";
+    let defaultAppURLsHTML = "Note: You can download phone app from the app store and interact with your device. Scan the QRCode to access the respective apps.<br>";
     let appURLsHTML = "";
 
-    if(android_app_url !== ""){
+    if(android_app_url){
         new QRCode(document.getElementById("qrcodeAndroidApp"), {
             text: android_app_url,
             width: 128,
@@ -620,8 +615,13 @@ function buildAppLinks(){
         $("#iosAppLogoQS").html("<a href='" + ios_app_url + "' target='_blank'><img src='./assets/appstore_download.png' height='50' width='130'></a>");
         appURLsHTML = defaultAppURLsHTML;
     }
-    $("#progressMsgQS").html("Firmware Image flashing is complete. " + appURLsHTML);
-    $("#appDownloadLink").html(appURLsHTML);
+    if(appURLsHTML === defaultAppURLsHTML){
+        $("#progressMsgQS").html("Firmware Image flashing is complete. " + appURLsHTML);
+        $("#appDownloadLink").html(appURLsHTML);
+    }else{
+        $("#progressMsgQS").html("Firmware Image flashing is complete. ");
+        hrElement.style.display = "none";
+    }
 }
 
 function cleanUpOldFlashHistory() {
@@ -637,19 +637,29 @@ function cleanUpOldFlashHistory() {
 }
 
 flashButton.onclick = async () => {
-    let flashFile = $("input[type='radio'][name='chipType']:checked").val();
-    var file_server_url = config.firmware_images_url;
-
-    progressMsgQS.style.display = "inline";
-
-    cleanUpOldFlashHistory();
-    postFlashClick()
-    await downloadAndFlash(file_server_url + flashFile);
-
-    buildAppLinks();
-    $("#statusModal").click();
-    esploader.status = "started";
-    postFlashDone()
+    if(chipSetsRadioGroup.querySelectorAll("input[type=radio]:checked").length!== 0){
+        let flashFile = $("input[type='radio'][name='chipType']:checked").val();
+        var file_server_url = config.firmware_images_url;
+    
+        progressMsgQS.style.display = "inline";
+    
+        cleanUpOldFlashHistory();
+        postFlashClick();
+        await downloadAndFlash(file_server_url + flashFile);
+    
+        buildAppLinks();
+        $("#statusModal").click();
+        esploader.status = "started";
+        postFlashDone();
+    }else{
+        let previousState = lblConnTo.innerHTML;
+        let alertChipsetSelectMsg = `<b><span style="color:red">Unable to flash device. Please ensure that chipset type is selected before flashing.</span></b>`;
+        lblConnTo.innerHTML = alertChipsetSelectMsg;
+        window.scrollTo(0,0);
+        setTimeout(() => {
+            lblConnTo.innerHTML = previousState;
+        }, 3000);
+    }
 }
 let postFlashClick = () => {
     flashButton.disabled = true;
