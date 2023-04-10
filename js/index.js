@@ -44,7 +44,7 @@ fitAddon.fit();
 
 let reader = undefined
 let device = null;
-let transport;
+let transport = undefined;
 let chip = "default";
 let chipDesc = "default"
 let esploader;
@@ -52,6 +52,8 @@ let file1 = null;
 let connected = false;
 let ios_app_url = "";
 let android_app_url = "";
+
+terminal.style.display = "none"
 
 disconnectButton.style.display = "none";
 eraseButton.style.display = "none";
@@ -297,6 +299,7 @@ function postConnectControls() {
         disconnectButton.style.display = "initial";
         eraseButton.style.display = "initial";
         filesDiv.style.display = "initial";
+        terminal.style.display = "block"
     }
     else
         lblConnTo.innerHTML = "<b><span style='color:red'>Unable to detect device. Please ensure the device is not connected in another application</span></b>";
@@ -385,8 +388,9 @@ function removeRow(btnName) {
 // to be called on disconnect - remove any stale references of older connections if any
 function cleanUp() {
     device = null;
-    transport = null;
-    chip = null;
+    transport = undefined;
+    chip = "default";
+    reader = undefined
 }
 
 disconnectButton.onclick = async () => {
@@ -400,8 +404,8 @@ disconnectButton.onclick = async () => {
             await device.close()
         }
     }
+    terminal.style.display = "none"
     term.clear();
-    transport = null;
     connected = false;
     $("#baudrates").prop("disabled", false);
     $("#flashButton").prop("disabled", true);
