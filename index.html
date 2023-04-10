@@ -235,7 +235,7 @@
                 <input class="btn btn-danger btn-sm" type="button" id="eraseButton" value="Erase Flash" data-toggle="tooltip" 
             data-placement="top" title="Erase firmware on your device"/>
                 
-                <div class="alert alert-danger alert-dismissible" id="alertDiv" style="display:none; margin-top:10px">
+                <div class="alert alert-danger alert-dismissible fade-in-down" id="alertDiv" style="display:none; margin-top:10px">
                     <a href="#" class="close" aria-label="close" onclick="$('.alert').hide()">&times;</a>
                     <span id="alertmsg"></span>
                 </div>
@@ -259,8 +259,9 @@
                     <div class="button-container text-end mb-sm-3">
                         <button type="button" class="app-button submit-form-button btn btn-outline-dark" id="addFile"
                         data-toggle="tooltip" data-placement="right" title="Add another file to flash set" style="margin-right:10px;">Add File</button>
-                        <button type="button" class="app-button submit-form-button btn btn-outline-dark" id="programButton"
-                        data-toggle="tooltip" data-placement="right" title="This will flash the firmware image on your device">Program</button>
+                    <div class="field-container" data-toggle="tooltip" data-placement="right" title="Click on 'Connect' button in top menu" id="programwrapper" style="display:inline-block">
+                        <button type="button" class="app-button submit-form-button btn btn-outline-dark" id="programButton" disabled>Program</button>
+                    </div>
                     </div>
                 </div>
                 <output id="list"></output>
@@ -274,9 +275,10 @@
             <div class="row">
                 <div class="col-xs-12 ">
                     <div class="button-container text-end mb-sm-3">
-                        <button type="button" class="app-button btn btn-outline-dark" id="consoleStartButton" data-toggle="tooltip"
-                        data-placement="right" title="Reset your device" disabled
-                        >Reset Device</button>
+                        <div class="field-container" data-toggle="tooltip" data-placement="right" title="Reset your device" style="display:inline-block">
+                            <button type="button" class="app-button btn btn-outline-dark" id="consoleStartButton"  disabled
+                            >Reset Device</button>
+                        </div>
                     </div>
                     <div id="terminal"></div>
                 </div>
@@ -407,9 +409,9 @@
     </p>
     </div>
 
-        <footer class="container footer mt-auto py-3 bg-light">
+        <footer class="mt-auto py-3">
             <div class="container text-center">
-                <span class="text-muted">Copyright © 2022 Espressif Systems</span>
+                <span class="text-muted">Copyright © 2023 Espressif Systems</span>
             </div>
         </footer>
         <!-- Third party libraries-->

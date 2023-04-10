@@ -3480,7 +3480,8 @@ textarea.form-control-lg {
   box-shadow: 0 0 0 0.25rem rgba(33, 37, 41, 0.5);
 }
 .btn-outline-dark:disabled, .btn-outline-dark.disabled {
-  color: #212529;
+  color: #c8c8c8;
+  border-color: #c8c8c8;
   background-color: transparent;
 }
 

@@ -46,7 +46,7 @@ android_app_url = "https://play.google.com/store/apps/details?id=com.espressif.r
 ios_app_url = "https://apps.apple.com/app/esp-rainmaker/id1497491540"
 
 [RainMaker-Switch]
-chipsets = ["ESP32", "ESP32-S2", "ESP3-C3"]
+chipsets = ["ESP32", "ESP32-S2", "ESP32-C3"]
 image.esp32 = "esp32_rainmaker_switch_merged.bin"
 image.esp32-s2 = "esp32s2_rainmaker_switch_merged.bin"
 image.esp32-c3 = "esp32c3_rainmaker_switch_merged.bin"

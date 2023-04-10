@@ -1,3 +1,6 @@
+.fade-in-down {
+    animation: fadeInDown ease 1s;
+}
 .logo {
     width: 325px;
 }
@@ -287,4 +290,14 @@ td img {
     .form > .field-container > label {
         margin-bottom: 15px;
     }
+}
+@keyframes fadeInDown {
+	from {
+		opacity: 0;
+		transform: translate3d(0, -20%, 0);
+	}
+	to {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
 }

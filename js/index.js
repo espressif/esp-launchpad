@@ -42,6 +42,7 @@ term.loadAddon(fitAddon);
 term.open(terminal);
 fitAddon.fit();
 
+let reader = undefined
 let device = null;
 let transport;
 let chip = "default";
@@ -192,6 +193,21 @@ $('#device').on('change', function() {
 
 $(function () {
     $('[data-toggle="tooltip"]').tooltip()
+    $('[data-toggle="tooltip"]').tooltip({
+        trigger: "manual"
+    });
+    
+    $('[data-toggle="tooltip"]').on('mouseleave', function () {
+        $(this).tooltip('hide');
+    });
+    
+    $('[data-toggle="tooltip"]').on('mouseenter', function () {
+        $(this).tooltip('show');
+    });
+    
+    $('[data-toggle="tooltip"]').on('click', function () {
+        $(this).tooltip('hide');
+    });
 })
 
 function convertUint8ArrayToBinaryString(u8Array) {
@@ -265,22 +281,27 @@ async function connectToDevice() {
 }
 
 function postConnectControls() {
-    if(chipDesc !== "default")
+    if(chipDesc !== "default"){
         lblConnTo.innerHTML = "<b><span style='color:#17a2b8'>Connected to device: </span>" + chipDesc + "</b>";
+        $("#programButton").prop("disabled", false);
+        $("#programwrapper").tooltip().attr("data-bs-original-title","This will flash the firmware image on your device");
+        $("#baudrates").prop("disabled", true);
+        $("#flashButton").prop("disabled", false);
+        $("#flashWrapper").tooltip().attr('data-bs-original-title', "This will download and flash the firmware image on your device");
+        $("#consoleStartButton").prop("disabled", false);
+        $("#eraseButton").prop("disabled", false);
+
+        ensureConnect.style.display = "none"
+        settingsWarning.style.display = "initial";
+        connectButton.style.display = "none";
+        disconnectButton.style.display = "initial";
+        eraseButton.style.display = "initial";
+        filesDiv.style.display = "initial";
+    }
     else
         lblConnTo.innerHTML = "<b><span style='color:red'>Unable to detect device. Please ensure the device is not connected in another application</span></b>";
     lblConnTo.style.display = "block";
-    $("#baudrates").prop("disabled", true);
-    $("#flashButton").prop("disabled", false);
-    $("#flashWrapper").tooltip().attr('data-bs-original-title', "This will download and flash the firmware image on your device");
-    $("#programButton").prop("disabled", false);
-    $("#consoleStartButton").prop("disabled", false);
-    ensureConnect.style.display = "none"
-    settingsWarning.style.display = "initial";
-    connectButton.style.display = "none";
-    disconnectButton.style.display = "initial";
-    eraseButton.style.display = "initial";
-    filesDiv.style.display = "initial";
+
     $('input:radio[id="radio-' + chip + '"]').attr('checked', true);
 }
 
@@ -296,6 +317,8 @@ connectButton.onclick = async () => {
 
 resetButton.onclick = async () => {
     //resetMessage.style.display = "none";
+    postFlashClick()
+    consoleStartButton.disabled = false
     $('#closeResetModal').click();
     await transport.setDTR(false);
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -304,9 +327,11 @@ resetButton.onclick = async () => {
 }
 
 eraseButton.onclick = async () => {
+    postFlashClick()
     eraseButton.disabled = true;
     $('#v-pills-console-tab').click();
     await esploader.erase_flash();
+    postFlashDone()
     eraseButton.disabled = false;
 }
 
@@ -365,15 +390,23 @@ function cleanUp() {
 }
 
 disconnectButton.onclick = async () => {
-    if(transport)
-        await transport.disconnect();
-
+    // if(transport)
+    //     await transport.disconnect();
+    if(transport){
+        if(reader !== undefined){
+            reader.releaseLock();
+        }
+        if(device){
+            await device.close()
+        }
+    }
     term.clear();
     transport = null;
     connected = false;
     $("#baudrates").prop("disabled", false);
     $("#flashButton").prop("disabled", true);
     $("#flashWrapper").tooltip().attr('data-bs-original-title', "Click on 'Connect' button in top Menu");
+    $("#programwrapper").tooltip().attr("data-bs-original-title","Click on 'Connect' button in top Menu");
     $("#programButton").prop("disabled", true);
     $("#consoleStartButton").prop("disabled", true);
     settingsWarning.style.display = "none";
@@ -396,18 +429,37 @@ consoleStartButton.onclick = async () => {
     //resetMessage.style.display = "block";
     //consoleStartButton.style.display = "none";
     $('#resetConfirmation').click();
-
-    await transport.disconnect();
-    await transport.connect();
-
-    while (true) {
-        let val = await transport.rawRead();
-        if (typeof val !== 'undefined') {
-            term.write(val);
-        } else {
-            break;
+    consoleStartButton.disabled = false
+    if(transport){
+        if(reader !== undefined){
+            reader.releaseLock();
+        }
+        if(device){
+            await device.close()
         }
     }
+    // await transport.disconnect();
+    await transport.connect();
+    while (device.readable) {
+        
+        if (!device.readable.locked) {
+            reader = device.readable.getReader();
+        }
+    
+        try {
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) {
+              // Allow the serial port to be closed later.
+              reader.releaseLock();
+              break;
+            }
+            if (value) {
+              term.write(value);
+            }
+          }
+        } catch (error) {}
+      }
     console.log("quitting console");
 }
 
@@ -446,11 +498,18 @@ function validate_program_inputs() {
 }
 
 programButton.onclick = async () => {
+    programButton.disabled = true
+    postFlashClick()
     var err = validate_program_inputs();
     if (err != "success") {
         const alertMsg = document.getElementById("alertmsg");
         alertMsg.innerHTML = "<strong>" + err + "</strong>";
         alertDiv.style.display = "block";
+        setTimeout(() => {
+            alertDiv.style.display = "none"
+        }, 3000);
+        programButton.disabled = false
+        postFlashDone()
         return;
     }
     progressMsgDIY.style.display = "inline";
@@ -467,8 +526,9 @@ programButton.onclick = async () => {
        
         fileArr.push({data:fileObj.data, address:offset});
     }
-    await esploader.write_flash(fileArr, 'keep');
     $('#v-pills-console-tab').click();
+    await esploader.write_flash(fileArr, 'keep');
+    postFlashDone()
 }
 
 async function downloadAndFlash(fileURL) {
@@ -579,14 +639,26 @@ flashButton.onclick = async () => {
     progressMsgQS.style.display = "inline";
 
     cleanUpOldFlashHistory();
-
+    postFlashClick()
     await downloadAndFlash(file_server_url + flashFile);
 
     buildAppLinks();
     $("#statusModal").click();
     esploader.status = "started";
+    postFlashDone()
 }
-
+let postFlashClick = () => {
+    flashButton.disabled = true;
+    consoleStartButton.disabled = true;
+    programButton.disabled = true;
+    eraseButton.disabled = true;
+  };
+  let postFlashDone = () => {
+    flashButton.disabled = false;
+    consoleStartButton.disabled = false;
+    programButton.disabled = false;
+    eraseButton.disabled = false;
+  };
 /*
 connectPreview.onclick = async () => {
     await connectToDevice();
