@@ -19,6 +19,7 @@ const deviceTypeSelect = document.getElementById("device");
 const frameworkSelect = document.getElementById("frameworkSel");
 const chipSetsRadioGroup = document.getElementById("chipsets");
 const mainContainer = document.getElementById("mainContainer");
+const DIYButton = document.getElementById("diy");
 let resizeTimeout = false;
 
 import * as esptooljs from "../node_modules/esptool-js/bundle.js";
@@ -115,6 +116,11 @@ function buildQuickTryUI_v1_0() {
         addDeviceTypeOption(supported_apps);
         populateSupportedChipsets(config[supported_apps[0]]);
     }
+    if(config["multipart"]){
+        // ClearPreviousRowsOfDIY()
+        build_DIY_UI(deviceTypeSelect.value);
+        DIYButton.click();
+    }
     setAppURLs(config[supported_apps[0]]);
 }
 
@@ -143,7 +149,69 @@ function populateDeviceTypes(imageConfig) {
         deviceTypeSelect.appendChild(option);
     });
 }*/
-
+let partsArray = undefined;
+let addressesArray = undefined;
+function build_DIY_UI(application){
+    let chipType = undefined;
+    let chipInConfToml = undefined;
+    let imageString = undefined;
+    let addressString = undefined;
+    if(chip === "default" && config["multipart"]){
+      chipInConfToml = config["chip"];
+    }
+    let chipTypeElement = chipSetsRadioGroup.querySelector("input[type='radio'][name='chipType']:checked")
+    if(chipTypeElement){
+  
+      if(chipTypeElement.value)
+         chipType = chipTypeElement.parentNode.innerText.trim();
+    }
+     if(chip==="default" && chipInConfToml !== undefined){
+       imageString = "image." + chipInConfToml.toLowerCase() + ".parts";
+       addressString = "image." + chipInConfToml.toLowerCase() + ".addresses";
+      }else{
+        imageString = "image." + chip.toLowerCase() + ".parts";
+        addressString = "image." + chip.toLowerCase() + ".addresses";  
+     }
+     partsArray = config[application][imageString];
+     addressesArray = config[application][addressString];
+    if(document.getElementById("row0") !== null && config["multipart"] && partsArray)
+    {
+        document.getElementById("row0").remove();
+    }
+    if(partsArray){
+      partsArray.forEach(function(curr,index){
+   
+        var rowCount = table.rows.length;
+        var row = table.getElementsByTagName("tbody")[0].insertRow(rowCount-1);
+        //Column 1 - Offset
+        var cell1 = row.insertCell(0);
+        var element1 = document.createElement("input");
+        element1.type = "text";
+        element1.id = "offset" + rowCount;
+        element1.setAttribute('value',addressesArray[index] );
+        cell1.appendChild(element1);
+        
+        // Column 2 - File selector
+        var cell2 = row.insertCell(1);
+        var element2 = document.createElement("p");
+        element2.innerText = partsArray[index];
+        cell2.appendChild(element2);
+        
+        // Column 3  - Remove File
+        var cell3 = row.insertCell(2);
+        var element3 = document.createElement("input");
+        element3.type = "image";
+        element3.src = "assets/icons/remove.png";
+        var btnName = "rem-" + rowCount;
+        element3.name = btnName;
+        element3.onclick = function() {
+                removeRow(btnName);
+                return false;
+        }
+        cell3.appendChild(element3);
+      })
+    }
+  }
 function populateSupportedChipsets(deviceConfig) {
     chipSetsRadioGroup.innerHTML = "";
     const supportedChipSets = deviceConfig["chipsets"];
@@ -163,9 +231,18 @@ function populateSupportedChipsets(deviceConfig) {
         inputElement.setAttribute("class", "form-check-input");
         inputElement.name = "chipType";
         inputElement.id = "radio-" + chipset;
-        inputElement.value = deviceConfig["image." + chipset.toLowerCase()];
-        if (chipset.toLowerCase() === chip.toLowerCase())
-            inputElement.checked = true;
+        if(config["multipart"] === true)
+        {
+          let imageString = "image." + chipset.toLowerCase();
+          let partsArray = deviceConfig[imageString + ".parts"];
+          inputElement.value = partsArray[0];
+        }else{
+          inputElement.value = deviceConfig["image." + chipset.toLowerCase()];
+        }
+        if(chip){
+            if (chipset.toLowerCase() === chip.toLowerCase())
+                inputElement.checked = true;
+        }
 
         lblElement.appendChild(inputElement);
 
@@ -187,10 +264,22 @@ $('#frameworkSel').on('change', function() {
     addDeviceTypeOption(config["supported_apps"], frameworkSelect.value);
     setAppURLs(frameworkSelect.value);
 });
+function ClearPreviousRowsOfDIY()
+{
+  let rowCount = table.rows.length;
+  while(rowCount>1){
 
+    table.deleteRow(rowCount-1);
+    rowCount--;
+  }
+}
 $('#device').on('change', function() {
     populateSupportedChipsets(config[deviceTypeSelect.value]);
     setAppURLs(config[deviceTypeSelect.value]);
+    if(config["multipart"]){
+        ClearPreviousRowsOfDIY();
+        build_DIY_UI(deviceTypeSelect.value);
+    }
 });
 
 $(function () {
@@ -292,7 +381,6 @@ function postConnectControls() {
         $("#flashWrapper").tooltip().attr('data-bs-original-title', "This will download and flash the firmware image on your device");
         $("#consoleStartButton").prop("disabled", false);
         $("#eraseButton").prop("disabled", false);
-
         ensureConnect.style.display = "none";
         settingsWarning.style.display = "initial";
         connectButton.style.display = "none";
@@ -300,12 +388,11 @@ function postConnectControls() {
         eraseButton.style.display = "initial";
         filesDiv.style.display = "initial";
         terminal.style.display = "block"
+        $('input:radio[id="radio-' + chip + '"]').attr('checked', true);
     }
     else
         lblConnTo.innerHTML = "<b><span style='color:red'>Unable to detect device. Please ensure the device is not connected in another application</span></b>";
     lblConnTo.style.display = "block";
-
-    $('input:radio[id="radio-' + chip + '"]').attr('checked', true);
 }
 
 connectButton.onclick = async () => {
@@ -314,7 +401,11 @@ connectButton.onclick = async () => {
 
     console.log("Settings done for :" + chip);
     postConnectControls();
-
+    if(config["multipart"]){
+        ClearPreviousRowsOfDIY();
+        DIYButton.click();
+        build_DIY_UI(deviceTypeSelect.value);
+    }
 }
 
 
@@ -377,8 +468,10 @@ function removeRow(btnName) {
         var row = table.rows[i];
         var rowObj = row.cells[2].childNodes[0];
         if (rowObj.name == btnName) {
-            table.deleteRow(i);
-            rowCount--;
+            if(!(rowObj.name === "rem-1")){
+                table.deleteRow(i);
+                rowCount--;
+            }
         }
     }
 }
@@ -484,11 +577,12 @@ function validate_program_inputs() {
             return "Offset field in row " + index + " is already in use!";
         else
             offsetArr.push(offset);
-
-        var fileObj = row.cells[1].childNodes[0];
-        fileData = fileObj.data;
-        if (fileData == null)
-            return "No file selected for row: " + index + "!";
+        if(!config["multipart"]){
+            var fileObj = row.cells[1].childNodes[0];
+            fileData = fileObj.data;
+            if (fileData == null)
+                return "No file selected for row: " + index + "!";
+        }
 
     }
     return "success";
@@ -497,37 +591,92 @@ function validate_program_inputs() {
 programButton.onclick = async () => {
     programButton.disabled = true;
     postFlashClick();
-    var err = validate_program_inputs();
-    if (err != "success") {
-        const alertMsg = document.getElementById("alertmsg");
-        alertMsg.innerHTML = "<strong>" + err + "</strong>";
-        alertDiv.style.display = "block";
-        setTimeout(() => {
-            alertDiv.style.display = "none";
-        }, 3000);
-        programButton.disabled = false;
-        postFlashDone();
-        return;
-    }
-    progressMsgDIY.style.display = "inline";
+    let err =  validate_program_inputs();
+    if(config["multipart"] === true){
+          if (err !== "success") {
+            const alertMsg = document.getElementById("alertmsg");
+            alertMsg.innerHTML = "<strong>" + err + "</strong>";
+            alertDiv.style.display = "block";
+            return;
+        }
+        progressMsgDIY.style.display = "inline";
+        try {
+            await downloadAndFlashForMultiparts();
+        } catch (error) {
+        }
+    }else{
+        if (err != "success") {
+            const alertMsg = document.getElementById("alertmsg");
+            alertMsg.innerHTML = "<strong>" + err + "</strong>";
+            alertDiv.style.display = "block";
+            setTimeout(() => {
+                alertDiv.style.display = "none";
+            }, 3000);
+            programButton.disabled = false;
+            postFlashDone();
+            return;
+        }
+        progressMsgDIY.style.display = "inline";
+        let fileArr = [];
+        let offset = 0x1000;
+        var rowCount = table.rows.length;
+        var row;
+        for (let index = 1; index < rowCount; index ++) {
+            row = table.rows[index];
+            var offSetObj = row.cells[0].childNodes[0];
+            offset = parseInt(offSetObj.value);
+
+            var fileObj = row.cells[1].childNodes[0];
+        
+            fileArr.push({data:fileObj.data, address:offset});
+        }
+        $('#v-pills-console-tab').click();
+        await esploader.write_flash(fileArr, 'keep');
+}
+
+    postFlashDone();
+}
+async function downloadAndFlashForMultiparts() {
+    var file_server_url = config.firmware_images_url;
     let fileArr = [];
-    let offset = 0x1000;
     var rowCount = table.rows.length;
     var row;
     for (let index = 1; index < rowCount; index ++) {
         row = table.rows[index];
         var offSetObj = row.cells[0].childNodes[0];
-        offset = parseInt(offSetObj.value);
-
+        var offset = parseInt(offSetObj.value);
         var fileObj = row.cells[1].childNodes[0];
-       
-        fileArr.push({data:fileObj.data, address:offset});
+        let data = await new Promise(resolve => {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', file_server_url + fileObj.innerText, true);
+            xhr.responseType = "blob";
+            xhr.send();
+            xhr.onload = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var blob = new Blob([xhr.response], {type: "application/octet-stream"});
+                    var reader = new FileReader();
+                    reader.onload = (function(theFile) {
+                        return function(e) {
+                            resolve(e.target.result);
+                        };
+                    })(blob);
+                    reader.readAsBinaryString(blob);
+                } else {
+                    resolve(undefined);
+                }
+            };
+            xhr.onerror = function() {
+                resolve(undefined);
+            }
+        });
+        fileArr.push({data:data, address:offset});
     }
-    $('#v-pills-console-tab').click();
-    await esploader.write_flash(fileArr, 'keep');
-    postFlashDone();
+        $('#v-pills-console-tab').click();
+        try {
+           await esploader.write_flash(fileArr,'keep');
+        } catch (error) {
+  }
 }
-
 async function downloadAndFlash(fileURL) {
     let data = await new Promise(resolve => {
         var xhr = new XMLHttpRequest();
@@ -661,12 +810,14 @@ flashButton.onclick = async () => {
         }, 3000);
     }
 }
+// Helper function for flashButton click event -> Helps to disable some functionallity during flashing to avoid errors.
 let postFlashClick = () => {
     flashButton.disabled = true;
     consoleStartButton.disabled = true;
     programButton.disabled = true;
     eraseButton.disabled = true;
   };
+// Helper function for flashButton click event -> Helps to enbles functionallity that were disabled by postFlashClick().
   let postFlashDone = () => {
     flashButton.disabled = false;
     consoleStartButton.disabled = false;

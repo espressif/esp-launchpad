@@ -126,6 +126,7 @@
 
 .xterm {
     cursor: text;
+    border-left: solid 4px black;
 }
 
 .xterm.enable-mouse-events {
