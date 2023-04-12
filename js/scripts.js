@@ -13,6 +13,7 @@ function init() {
     
     $(".navbar-nav .nav-item[data-role='nav-menu-tab']").on("click", handleTabChange);
     $( "h4.topic" ).on( "click", handleTabChange);
+    $( "h6.trynow" ).on( "click", handleTabChange);
 }
 
 function handleTabChange(e) {
@@ -26,6 +27,7 @@ function handleTabChange(e) {
         hideAllMainPageTabs();
         showMainPageTab(targetTabPanelId);
     }
+    window.scrollTo(0,0)
 }
 
 function hideAllMainPageTabs() {
