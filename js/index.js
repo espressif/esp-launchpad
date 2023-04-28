@@ -53,6 +53,8 @@ let file1 = null;
 let connected = false;
 let ios_app_url = "";
 let android_app_url = "";
+let partsArray = undefined;
+let addressesArray = undefined;
 
 terminal.style.display = "none";
 
@@ -116,10 +118,10 @@ function buildQuickTryUI_v1_0() {
         addDeviceTypeOption(supported_apps);
         populateSupportedChipsets(config[supported_apps[0]]);
     }
-    if(config["multipart"]){
-        // ClearPreviousRowsOfDIY()
-        build_DIY_UI(deviceTypeSelect.value);
+    if (config["multipart"]) {
+        buildDIYUI(supported_apps[0]);
         DIYButton.click();
+        deviceTypeSelect.disabled = true;
     }
     setAppURLs(config[supported_apps[0]]);
 }
@@ -149,36 +151,27 @@ function populateDeviceTypes(imageConfig) {
         deviceTypeSelect.appendChild(option);
     });
 }*/
-let partsArray = undefined;
-let addressesArray = undefined;
-function build_DIY_UI(application){
-    let chipType = undefined;
-    let chipInConfToml = undefined;
+function buildDIYUI(application){
+    let chipInFlashConfigTOML = undefined;
     let imageString = undefined;
     let addressString = undefined;
-    if(chip === "default" && config["multipart"]){
-      chipInConfToml = config["chip"];
+    if (config["multipart"]) {
+      chipInFlashConfigTOML = config["chip"];
     }
-    let chipTypeElement = chipSetsRadioGroup.querySelector("input[type='radio'][name='chipType']:checked")
-    if(chipTypeElement){
-  
-      if(chipTypeElement.value)
-         chipType = chipTypeElement.parentNode.innerText.trim();
+    if (chipInFlashConfigTOML) {
+       imageString = "image." + chipInFlashConfigTOML.toLowerCase() + ".parts";
+       addressString = "image." + chipInFlashConfigTOML.toLowerCase() + ".addresses";
     }
-     if(chip==="default" && chipInConfToml !== undefined){
-       imageString = "image." + chipInConfToml.toLowerCase() + ".parts";
-       addressString = "image." + chipInConfToml.toLowerCase() + ".addresses";
-      }else{
+    else {
         imageString = "image." + chip.toLowerCase() + ".parts";
         addressString = "image." + chip.toLowerCase() + ".addresses";  
-     }
-     partsArray = config[application][imageString];
-     addressesArray = config[application][addressString];
-    if(document.getElementById("row0") !== null && config["multipart"] && partsArray)
-    {
+    }
+    partsArray = config[application][imageString];
+    addressesArray = config[application][addressString];
+    if (document.getElementById("row0") !== null && config["multipart"] && partsArray) {
         document.getElementById("row0").remove();
     }
-    if(partsArray){
+    if (partsArray) {
       partsArray.forEach(function(curr,index){
    
         var rowCount = table.rows.length;
@@ -231,15 +224,8 @@ function populateSupportedChipsets(deviceConfig) {
         inputElement.setAttribute("class", "form-check-input");
         inputElement.name = "chipType";
         inputElement.id = "radio-" + chipset;
-        if(config["multipart"] === true)
-        {
-          let imageString = "image." + chipset.toLowerCase();
-          let partsArray = deviceConfig[imageString + ".parts"];
-          inputElement.value = partsArray[0];
-        }else{
-          inputElement.value = deviceConfig["image." + chipset.toLowerCase()];
-        }
-        if(chip){
+        inputElement.value = deviceConfig["image." + chipset.toLowerCase()];
+        if (chip) {
             if (chipset.toLowerCase() === chip.toLowerCase())
                 inputElement.checked = true;
         }
@@ -266,20 +252,11 @@ $('#frameworkSel').on('change', function() {
 });
 function ClearPreviousRowsOfDIY()
 {
-  let rowCount = table.rows.length;
-  while(rowCount>1){
-
-    table.deleteRow(rowCount-1);
-    rowCount--;
-  }
+    $("tbody").children().remove();
 }
 $('#device').on('change', function() {
     populateSupportedChipsets(config[deviceTypeSelect.value]);
     setAppURLs(config[deviceTypeSelect.value]);
-    if(config["multipart"]){
-        ClearPreviousRowsOfDIY();
-        build_DIY_UI(deviceTypeSelect.value);
-    }
 });
 
 $(function () {
@@ -372,7 +349,7 @@ async function connectToDevice() {
 }
 
 function postConnectControls() {
-    if(chipDesc !== "default"){
+    if (chipDesc !== "default") {
         lblConnTo.innerHTML = "<b><span style='color:#17a2b8'>Connected to device: </span>" + chipDesc + "</b>";
         $("#programButton").prop("disabled", false);
         $("#programwrapper").tooltip().attr("data-bs-original-title","This will flash the firmware image on your device");
@@ -401,10 +378,15 @@ connectButton.onclick = async () => {
 
     console.log("Settings done for :" + chip);
     postConnectControls();
-    if(config["multipart"]){
+    if (config["multipart"]) {
         ClearPreviousRowsOfDIY();
         DIYButton.click();
-        build_DIY_UI(deviceTypeSelect.value);
+        buildDIYUI(config["supported_apps"][0]);
+        const chipsetArray = chipSetsRadioGroup.querySelectorAll("input[type=radio]");
+        for (let i = 0; i < chipsetArray.length; i++) {
+            chipsetArray[i].disabled = true;
+          }
+        flashButton.disabled = true;
     }
 }
 
@@ -468,10 +450,8 @@ function removeRow(btnName) {
         var row = table.rows[i];
         var rowObj = row.cells[2].childNodes[0];
         if (rowObj.name == btnName) {
-            if(!(rowObj.name === "rem-1")){
-                table.deleteRow(i);
-                rowCount--;
-            }
+            table.deleteRow(i);
+            rowCount--;
         }
     }
 }
@@ -485,11 +465,11 @@ function cleanUp() {
 }
 
 disconnectButton.onclick = async () => {
-    if(transport){
-        if(reader !== undefined){
+    if (transport) {
+        if (reader !== undefined) {
             reader.releaseLock();
         }
-        if(device){
+        if (device) {
             await device.close();
         }
     }
@@ -521,11 +501,11 @@ consoleStartButton.onclick = async () => {
     }
     $('#resetConfirmation').click();
     consoleStartButton.disabled = false
-    if(transport){
-        if(reader !== undefined){
+    if (transport) {
+        if (reader !== undefined) {
             reader.releaseLock();
         }
-        if(device){
+        if (device) {
             await device.close();
         }
     }
@@ -577,13 +557,16 @@ function validate_program_inputs() {
             return "Offset field in row " + index + " is already in use!";
         else
             offsetArr.push(offset);
-        if(!config["multipart"]){
+        if (!config["multipart"]) {
             var fileObj = row.cells[1].childNodes[0];
             fileData = fileObj.data;
             if (fileData == null)
                 return "No file selected for row: " + index + "!";
         }
 
+    }
+    if (rowCount === 1){
+        return "No file selected for row: " + rowCount + "!";
     }
     return "success";
 }
@@ -592,31 +575,25 @@ programButton.onclick = async () => {
     programButton.disabled = true;
     postFlashClick();
     let err =  validate_program_inputs();
-    if(config["multipart"] === true){
-          if (err !== "success") {
-            const alertMsg = document.getElementById("alertmsg");
-            alertMsg.innerHTML = "<strong>" + err + "</strong>";
-            alertDiv.style.display = "block";
-            return;
-        }
-        progressMsgDIY.style.display = "inline";
+    if (err !== "success") {
+        const alertMsg = document.getElementById("alertmsg");
+        alertMsg.innerHTML = "<strong>" + err + "</strong>";
+        alertDiv.style.display = "block";
+        setTimeout(() => {
+            alertDiv.style.display = "none";
+        }, 3000);
+        programButton.disabled = false;
+        postFlashDone();
+        return;
+    }
+    progressMsgDIY.style.display = "inline";
+    if (config["multipart"] === true) {
         try {
             await downloadAndFlashForMultiparts();
         } catch (error) {
         }
-    }else{
-        if (err != "success") {
-            const alertMsg = document.getElementById("alertmsg");
-            alertMsg.innerHTML = "<strong>" + err + "</strong>";
-            alertDiv.style.display = "block";
-            setTimeout(() => {
-                alertDiv.style.display = "none";
-            }, 3000);
-            programButton.disabled = false;
-            postFlashDone();
-            return;
-        }
-        progressMsgDIY.style.display = "inline";
+    }
+    else {
         let fileArr = [];
         let offset = 0x1000;
         var rowCount = table.rows.length;
@@ -661,7 +638,8 @@ async function downloadAndFlashForMultiparts() {
                         };
                     })(blob);
                     reader.readAsBinaryString(blob);
-                } else {
+                }
+                else {
                     resolve(undefined);
                 }
             };
@@ -715,7 +693,7 @@ function buildAppLinks(){
     let defaultAppURLsHTML = "Note: You can download phone app from the app store and interact with your device. Scan the QRCode to access the respective apps.<br>";
     let appURLsHTML = "";
 
-    if(android_app_url){
+    if (android_app_url) {
         new QRCode(document.getElementById("qrcodeAndroidApp"), {
             text: android_app_url,
             width: 128,
@@ -764,10 +742,11 @@ function buildAppLinks(){
         $("#iosAppLogoQS").html("<a href='" + ios_app_url + "' target='_blank'><img src='./assets/appstore_download.png' height='50' width='130'></a>");
         appURLsHTML = defaultAppURLsHTML;
     }
-    if(appURLsHTML === defaultAppURLsHTML){
+    if (appURLsHTML === defaultAppURLsHTML) {
         $("#progressMsgQS").html("Firmware Image flashing is complete. " + appURLsHTML);
         $("#appDownloadLink").html(appURLsHTML);
-    }else{
+    }
+    else {
         $("#progressMsgQS").html("Firmware Image flashing is complete. ");
         hrElement.style.display = "none";
     }
@@ -786,7 +765,7 @@ function cleanUpOldFlashHistory() {
 }
 
 flashButton.onclick = async () => {
-    if(chipSetsRadioGroup.querySelectorAll("input[type=radio]:checked").length!== 0){
+    if (chipSetsRadioGroup.querySelectorAll("input[type=radio]:checked").length!== 0) {
         let flashFile = $("input[type='radio'][name='chipType']:checked").val();
         var file_server_url = config.firmware_images_url;
     
@@ -800,7 +779,8 @@ flashButton.onclick = async () => {
         $("#statusModal").click();
         esploader.status = "started";
         postFlashDone();
-    }else{
+    }
+    else {
         let previousState = lblConnTo.innerHTML;
         let alertChipsetSelectMsg = `<b><span style="color:red">Unable to flash device. Please ensure that chipset type is selected before flashing.</span></b>`;
         lblConnTo.innerHTML = alertChipsetSelectMsg;
@@ -819,7 +799,12 @@ let postFlashClick = () => {
   };
 // Helper function for flashButton click event -> Helps to enbles functionallity that were disabled by postFlashClick().
   let postFlashDone = () => {
-    flashButton.disabled = false;
+    if (config["multipart"]) {
+        flashButton.disabled = true;
+    }
+    else {
+        flashButton.disabled = false;
+    }
     consoleStartButton.disabled = false;
     programButton.disabled = false;
     eraseButton.disabled = false;
