@@ -270,9 +270,13 @@ async function connectToDevice() {
     }
 
     try {
-        esploader = new ESPLoader(transport, baudrates.value, espLoaderTerminal);
+        const loaderOptions = {
+            transport,
+            baudrate: baudrates.value,
+            terminal: espLoaderTerminal
+        };
+        esploader = new ESPLoader(loaderOptions);
         connected = true;
-
         chipDesc = await esploader.main_fn();
         chip = esploader.chip.CHIP_NAME;
 
@@ -524,8 +528,19 @@ programButton.onclick = async () => {
         fileArr.push({data:fileObj.data, address:offset});
     }
     $('#v-pills-console-tab').click();
-    await esploader.write_flash(fileArr, 'keep');
-    postFlashDone();
+    try {
+        const flashOptions = {
+            fileArray : fileArr,
+            flashSize: "keep",
+            flashMode: undefined,
+            flashFreq: undefined,
+            eraseAll: false,
+            compress: true,
+        };
+        await esploader.write_flash(flashOptions);
+        postFlashDone();
+    } catch (e) {
+    }
 }
 
 async function downloadAndFlash(fileURL) {
@@ -552,9 +567,20 @@ async function downloadAndFlash(fileURL) {
             resolve(undefined);
         }
     });
-    if (data !== undefined) {
-        $('#v-pills-console-tab').click();
-        await esploader.write_flash([{data:data, address:0x0000}], 'keep');
+    try {
+        if (data !== undefined) {
+            $('#v-pills-console-tab').click();
+            const flashOptions = {
+                fileArray : [{data:data, address:0x0000}],
+                flashSize: "keep",
+                flashMode: undefined,
+                flashFreq: undefined,
+                eraseAll: false,
+                compress: true,
+            };
+            await esploader.write_flash(flashOptions);
+        }
+    } catch (e) {
     }
 }
 
