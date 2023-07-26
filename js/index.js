@@ -316,7 +316,6 @@ connectButton.onclick = async () => {
     if(!connected)
         await connectToDevice();
 
-    console.log("Settings done for :" + chip);
     postConnectControls();
 
 }
@@ -326,9 +325,38 @@ resetButton.onclick = async () => {
     postFlashClick();
     consoleStartButton.disabled = false;
     $('#closeResetModal').click();
+    if(transport){
+        if(reader !== undefined){
+            reader.releaseLock();
+        }
+        if(device){
+            await device.close();
+        }
+    }
+    await transport.connect();
     await transport.setDTR(false);
     await new Promise(resolve => setTimeout(resolve, 100));
     await transport.setDTR(true);
+    while (device.readable) {
+
+        if (!device.readable.locked) {
+            reader = device.readable.getReader();
+        }
+
+        try {
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) {
+              // Allow the serial port to be closed later.
+              reader.releaseLock();
+              break;
+            }
+            if (value) {
+              term.write(value);
+            }
+          }
+        } catch (error) {}
+      }
 }
 
 eraseButton.onclick = async () => {
@@ -431,37 +459,6 @@ consoleStartButton.onclick = async () => {
         transport = new Transport(device);
     }
     $('#resetConfirmation').click();
-    consoleStartButton.disabled = false
-    if(transport){
-        if(reader !== undefined){
-            reader.releaseLock();
-        }
-        if(device){
-            await device.close();
-        }
-    }
-    await transport.connect();
-    while (device.readable) {
-        
-        if (!device.readable.locked) {
-            reader = device.readable.getReader();
-        }
-    
-        try {
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) {
-              // Allow the serial port to be closed later.
-              reader.releaseLock();
-              break;
-            }
-            if (value) {
-              term.write(value);
-            }
-          }
-        } catch (error) {}
-      }
-    console.log("quitting console");
 }
 
 
