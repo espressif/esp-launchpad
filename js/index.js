@@ -21,22 +21,14 @@ const chipSetsRadioGroup = document.getElementById("chipsets");
 const mainContainer = document.getElementById("mainContainer");
 let resizeTimeout = false;
 
+import * as utilities from "./utils.js";
 import * as esptooljs from "../node_modules/esptool-js/bundle.js";
 const ESPLoader = esptooljs.ESPLoader;
 const Transport = esptooljs.Transport;
 
-const usbPortFilters = [
-    { usbVendorId: 0x10c4, usbProductId: 0xea60 }, /* CP2102/CP2102N */
-    { usbVendorId: 0x0403, usbProductId: 0x6010 }, /* FT2232H */
-    { usbVendorId: 0x303a, usbProductId: 0x1001 }, /* Espressif USB_SERIAL_JTAG */
-    { usbVendorId: 0x303a, usbProductId: 0x1002 }, /* Espressif esp-usb-bridge firmware */
-    { usbVendorId: 0x303a, usbProductId: 0x0002 }, /* ESP32-S2 USB_CDC */
-    { usbVendorId: 0x303a, usbProductId: 0x0009 }, /* ESP32-S3 USB_CDC */
-];
-
 const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
 
-let term = new Terminal({cols:getTerminalColumns(), rows:23, fontSize: 14});
+let term = new Terminal({cols: utilities.getTerminalColumns(mainContainer), rows:23, fontSize: 14});
 let fitAddon = new FitAddon.FitAddon();
 term.loadAddon(fitAddon);
 term.open(terminal);
@@ -48,7 +40,6 @@ let transport = undefined;
 let chip = "default";
 let chipDesc = "default";
 let esploader;
-let file1 = null;
 let connected = false;
 let ios_app_url = "";
 let android_app_url = "";
@@ -194,60 +185,10 @@ $('#device').on('change', function() {
 });
 
 $(function () {
-    $('[data-toggle="tooltip"]').tooltip();
-    $('[data-toggle="tooltip"]').tooltip({
-        trigger: "manual"
-    });
-    
-    $('[data-toggle="tooltip"]').on('mouseleave', function () {
-        $(this).tooltip('hide');
-    });
-    
-    $('[data-toggle="tooltip"]').on('mouseenter', function () {
-        $(this).tooltip('show');
-    });
-    
-    $('[data-toggle="tooltip"]').on('click', function () {
-        $(this).tooltip('hide');
-    });
+    utilities.initializeTooltips();
 })
 
-function convertUint8ArrayToBinaryString(u8Array) {
-	var i, len = u8Array.length, b_str = "";
-	for (i=0; i<len; i++) {
-		b_str += String.fromCharCode(u8Array[i]);
-	}
-	return b_str;
-}
-
-function convertBinaryStringToUint8Array(bStr) {
-	var i, len = bStr.length, u8_array = new Uint8Array(len);
-	for (var i = 0; i < len; i++) {
-		u8_array[i] = bStr.charCodeAt(i);
-	}
-	return u8_array;
-}
-
-function handleFileSelect(evt) {
-    var file = evt.target.files[0];
-    var reader = new FileReader();
-
-    reader.onload = (function(theFile) {
-        return function(e) {
-            file1 = e.target.result;
-            evt.target.data = file1;
-        };
-    })(file);
-
-    reader.readAsBinaryString(file);
-}
-
-
-document.getElementById('selectFile1').addEventListener('change', handleFileSelect, false);
-
-function _sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+document.getElementById('selectFile1').addEventListener('change', utilities.handleFileSelect, false);
 
 let espLoaderTerminal = {
     clean() {
@@ -264,7 +205,7 @@ let espLoaderTerminal = {
 async function connectToDevice() {
     if (device === null) {
         device = await navigator.serial.requestPort({
-            filters: usbPortFilters
+            filters: utilities.usbPortFilters
         });
         transport = new Transport(device);
     }
@@ -386,7 +327,7 @@ addFile.onclick = async () => {
     element2.type = "file";
     element2.id = "selectFile" + rowCount;
     element2.name = "selected_File" + rowCount;
-    element2.addEventListener('change', handleFileSelect, false);
+    element2.addEventListener('change', utilities.handleFileSelect, false);
     cell2.appendChild(element2);
     
     // Column 3  - Remove File
@@ -397,22 +338,10 @@ addFile.onclick = async () => {
     var btnName = "rem-" + rowCount;
     element3.name = btnName;
     element3.onclick = function() {
-            removeRow(btnName);
+            utilities.removeRow(table,btnName);
             return false;
     }
     cell3.appendChild(element3);
-}
-
-function removeRow(btnName) {
-    var rowCount = table.rows.length;
-    for (var i = 0; i < rowCount; i++) {
-        var row = table.rows[i];
-        var rowObj = row.cells[2].childNodes[0];
-        if (rowObj.name == btnName) {
-            table.deleteRow(i);
-            rowCount--;
-        }
-    }
 }
 
 // to be called on disconnect - remove any stale references of older connections if any
@@ -454,7 +383,7 @@ disconnectButton.onclick = async () => {
 consoleStartButton.onclick = async () => {
     if (device === null) {
         device = await navigator.serial.requestPort({
-            filters: usbPortFilters
+            filters: utilities.usbPortFilters
         });
         transport = new Transport(device);
     }
@@ -541,29 +470,7 @@ programButton.onclick = async () => {
 }
 
 async function downloadAndFlash(fileURL) {
-    let data = await new Promise(resolve => {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', fileURL, true);
-        xhr.responseType = "blob";
-        xhr.send();
-        xhr.onload = function () {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                var blob = new Blob([xhr.response], {type: "application/octet-stream"});
-                var reader = new FileReader();
-                reader.onload = (function(theFile) {
-                    return function(e) {
-                        resolve(e.target.result);
-                    };
-                })(blob);
-                reader.readAsBinaryString(blob);
-            } else {
-                resolve(undefined);
-            }
-        };
-        xhr.onerror = function() {
-            resolve(undefined);
-        }
-    });
+    let data = await utilities.getImageData(fileURL);
     try {
         if (data !== undefined) {
             $('#v-pills-console-tab').click();
@@ -721,16 +628,7 @@ flashCustom.onclick = async () => {
     postConnectControls();
 }*/
 
-function getTerminalColumns() {
-    const mainContainerWidth = mainContainer?.offsetWidth || 1320;
-    return Math.round(mainContainerWidth / 8.25); 
-}
-
-function resizeTerminal() {
-    fitAddon && fitAddon.fit();
-}
-
 $( window ).resize(function() {
     clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(resizeTerminal, 300);
+    resizeTimeout = setTimeout(() => utilities.resizeTerminal(fitAddon), 300);
 });
