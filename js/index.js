@@ -28,7 +28,7 @@ const Transport = esptooljs.Transport;
 
 const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
 
-let term = new Terminal({cols: utilities.getTerminalColumns(mainContainer), rows:23, fontSize: 14});
+let term = new Terminal({cols: utilities.getTerminalColumns(mainContainer), rows: 23, fontSize: 14, scrollback: 9999999});
 let fitAddon = new FitAddon.FitAddon();
 term.loadAddon(fitAddon);
 term.open(terminal);
@@ -188,7 +188,7 @@ $(function () {
     utilities.initializeTooltips();
 })
 
-document.getElementById('selectFile1').addEventListener('change', utilities.handleFileSelect, false);
+document.getElementById('selectFile1').addEventListener('change', utilities.handleFileSelect);
 
 let espLoaderTerminal = {
     clean() {
@@ -338,7 +338,7 @@ addFile.onclick = async () => {
     var btnName = "rem-" + rowCount;
     element3.name = btnName;
     element3.onclick = function() {
-            utilities.removeRow(table,btnName);
+            utilities.removeRow(table, btnName);
             return false;
     }
     cell3.appendChild(element3);

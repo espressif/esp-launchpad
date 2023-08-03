@@ -1,0 +1,137 @@
+.maincontainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  height: 50%;
+}
+
+.terminal {
+  padding-left: 5px;
+}
+
+.productinfocontainer,
+.terminalcontainer {
+  max-height: 590px;
+  overflow-y: auto;
+}
+
+.navbar {
+  justify-content: space-between;
+}
+
+.slide-right {
+  animation: 2.5s slide-right;
+}
+
+.slide-up {
+  animation: slide-up 1s 1s ease backwards;
+}
+
+.fade-in {
+  animation: fadeIn ease 2s;
+}
+
+.connectButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0px;
+  font-weight: 500;
+  line-height: 28px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  padding: 6px 16px;
+  border-radius: 4px;
+  background-color: rgb(0, 113, 227);
+  width: 350px;
+  color: rgb(255, 255, 255);
+}
+
+.span-svg {
+  display: inherit;
+  margin-right: -4px;
+  margin-left: 8px;
+}
+
+.svg {
+  width: 20px;
+}
+
+.devicelog {
+  margin: 0;
+  font-size: 20px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  background-color: rgb(var(--bs-black-rgb));
+  color: var(--bs-white);
+  display: inline;
+  padding-bottom: 8px;
+  padding-right: 8px;
+  padding-left: 8px;
+}
+
+.btn-outline-dark:focus {
+  box-shadow: none;
+}
+
+.bounce {
+  animation: bounce 2s ease-in-out;
+}
+
+@keyframes bounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-25px);
+  }
+}
+
+@keyframes slide-right {
+  from {
+    margin-left: -50%;
+  }
+
+  to {
+    margin-left: 0%;
+  }
+}
+
+@keyframes slide-up {
+  0% {
+    transform: translate(0px, 100px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translate(0px, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@media only screen and (max-width: 780px) {
+  .split {
+    flex-direction: column-reverse;
+  }
+
+  .productinfocontainer,
+  .terminalcontainer {
+    width: 100%;
+    max-height: 590px;
+    overflow-y: auto;
+  }
+}
