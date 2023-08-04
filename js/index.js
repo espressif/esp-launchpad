@@ -26,6 +26,12 @@ import * as esptooljs from "../node_modules/esptool-js/bundle.js";
 const ESPLoader = esptooljs.ESPLoader;
 const Transport = esptooljs.Transport;
 
+if (utilities.isWebUSBSerialSupported()) {
+    document.getElementById("unsupportedBrowserErr").style.display = "inline";
+    document.getElementById("main").style.display = "none";
+    throw new Error('Unsupported Browser');
+}
+
 const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
 
 let term = new Terminal({cols: utilities.getTerminalColumns(mainContainer), rows: 23, fontSize: 14, scrollback: 9999999});

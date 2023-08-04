@@ -88,6 +88,21 @@ export function handleFileSelect(evt) {
     reader.readAsBinaryString(file);
 }
 
+export function isWebUSBSerialSupported() {
+    let isSafari =
+        /constructor/i.test(window.HTMLElement) ||
+        (function (p) {
+            return p.toString() === "[object SafariRemoteNotification]";
+        })(
+            !window["safari"] ||
+            (typeof safari !== "undefined" && window["safari"].pushNotification)
+        );
+
+    let isFirefox = typeof InstallTrigger !== "undefined";
+
+    return (isSafari || isFirefox);
+}
+
 // unused functions
 function convertUint8ArrayToBinaryString(u8Array) {
     var i, len = u8Array.length, b_str = "";

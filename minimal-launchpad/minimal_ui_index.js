@@ -13,6 +13,12 @@ import * as esptooljs from "../node_modules/esptool-js/bundle.js";
 const ESPLoader = esptooljs.ESPLoader;
 const Transport = esptooljs.Transport;
 
+if (utilities.isWebUSBSerialSupported()) {
+    document.getElementById("unsupportedBrowserErr").style.display = "inline";
+    document.getElementById("main").style.display = "none";
+    throw new Error('Unsupported Browser');
+}
+
 let term = new Terminal({ cols: utilities.getTerminalColumns(), rows: 23, fontSize: 14, scrollback: 9999999 });
 let fitAddon = new FitAddon.FitAddon();
 term.loadAddon(fitAddon);
@@ -101,14 +107,28 @@ async function buildMinimalLaunchpadUI() {
     } else {
         tomlFileURL = urlParams.get(parameter);
     }
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', tomlFileURL, true);
-    xhr.send();
-    xhr.onload = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            config = toml.parse(xhr.responseText);
-            return config;
+    if (tomlFileURL) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', tomlFileURL, true);
+        xhr.send();
+        xhr.onload = function () {
+            if (xhr.status === 404) {
+                connectButton.disabled = true;
+                alertContainer.style.display = 'initial';
+                lblConnTo.innerHTML = `<b style='text-align:center'><span style='color:red;'>Unable to access the TOML file. Please ensure that you have provided the correct TOML file link to the flashConfigURL parameter.</span></b>`;
+                lblConnTo.style.display = "block";
+            }
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                config = toml.parse(xhr.responseText);
+                return config;
+            }
         }
+    } else {
+        connectButton.disabled = true;
+        alertContainer.style.display = 'initial';
+        lblConnTo.innerHTML = `<b><span style='color:red;'>Please provide a TOML link supported by the minimal launchpad in flashConfigURL as shown below</span></b>
+        <br /><code style="color:#664d03">https://espressif.github.io/esp-launchpad/minimal-launchpad/?flashConfigURL=&ltYOUR_TOML_FILE_LINK&gt</code>`;
+        lblConnTo.style.display = "block";
     }
 }
 
@@ -176,17 +196,17 @@ connectButton.onclick = async () => {
             }, 2500)
         } else {
             alertContainer.style.display = "initial";
-            lblConnTo.innerHTML = "<b><span style='color:red'>Unable to detect device. Please ensure the device is not connected in another application</span></b>";
+            lblConnTo.innerHTML = "<b><span style='color:red'>Unable to connect device. Please ensure the device is not connected in another application</span></b>";
             lblConnTo.style.display = "block";
             setTimeout(() => {
                 alertContainer.style.display = "none";
-                connectButton.style.display = "initial";
+                connectButton.style.display = "inline-flex";
                 connected = false;
             }, 5000)
         }
     } catch (error) {
         if (error.message === "Failed to execute 'requestPort' on 'Serial': No port selected by the user.") {
-            connectButton.style.display = "initial";
+            connectButton.style.display = "inline-flex";
         }
     }
 
