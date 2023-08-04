@@ -9,18 +9,18 @@ supported_apps = ["Matter-AllClustersApp-TE9", "Matter-AllClustersApp-M5Stack-TE
 chipsets = ["ESP32", "ESP32-C3"]
 image.esp32 = "esp32_matter_all-clusters-app.bin"
 image.esp32-c3 = "esp32c3_matter_all-clusters-app.bin"
-ios_app_url = "https://apps.apple.com/app/espressif-matter/id1604739172?platform=iphone"
+ios_app_url = "https://apps.apple.com/app/esp-rainmaker/id1497491540"
 android_app_url = ""
 
 [Matter-AllClustersApp-M5Stack-TE9]
 chipsets = ["ESP32"]
 image.esp32 = "m5stack_matter_all-clusters-app.bin"
-ios_app_url = "https://apps.apple.com/app/espressif-matter/id1604739172?platform=iphone"
+ios_app_url = "https://apps.apple.com/app/esp-rainmaker/id1497491540"
 android_app_url = ""
 
 [Matter-LightingApp-TE9]
 chipsets = ["ESP32", "ESP32-C3"]
 image.esp32 = "esp32_matter_lighting-app.bin"
 image.esp32-c3 = "esp32c3_matter_lighting-app.bin"
-ios_app_url = "https://apps.apple.com/app/espressif-matter/id1604739172?platform=iphone"
+ios_app_url = "https://apps.apple.com/app/esp-rainmaker/id1497491540"
 android_app_url = ""
