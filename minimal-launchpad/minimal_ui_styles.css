@@ -43,11 +43,14 @@
     Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   padding: 6px 16px;
   border-radius: 4px;
-  background-color: rgb(0, 113, 227);
+  background-color: rgb(0, 113, 225);
   width: 350px;
-  color: rgb(255, 255, 255);
+  color: var(--bs-white);
 }
 
+.connectButton:disabled {
+ background: rgba(0, 0, 0, 0.2);
+}
 .span-svg {
   display: inherit;
   margin-right: -4px;
