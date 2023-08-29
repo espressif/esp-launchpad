@@ -19,6 +19,13 @@ const deviceTypeSelect = document.getElementById("device");
 const frameworkSelect = document.getElementById("frameworkSel");
 const chipSetsRadioGroup = document.getElementById("chipsets");
 const mainContainer = document.getElementById("mainContainer");
+const setupPayloadRow = document.getElementById("setupPayloadRow");
+const setupPayloadRowQS = document.getElementById("setupPayloadRowQS");
+const setupQRCodeContainer = document.getElementById("setupQRCodeContainer");
+const setupQRCodeContainerQS = document.getElementById("setupQRCodeContainerQS");
+const setupLogoContainer = document.getElementById("setupLogoContainer");
+const setupLogoContainerQS = document.getElementById("setupLogoContainerQS");
+
 let resizeTimeout = false;
 
 import * as utilities from "./utils.js";
@@ -49,6 +56,8 @@ let esploader;
 let connected = false;
 let ios_app_url = "";
 let android_app_url = "";
+let setup_payload_logo_url = "";
+let setup_qrcode_payload = "";
 
 terminal.style.display = "none";
 
@@ -177,6 +186,8 @@ function populateSupportedChipsets(deviceConfig) {
 function setAppURLs(appConfig) {
     ios_app_url = appConfig.ios_app_url;
     android_app_url = appConfig.android_app_url;
+    setup_payload_logo_url = appConfig.setup_payload_logo;
+    setup_qrcode_payload = appConfig.setup_payload;
 }
 
 $('#frameworkSel').on('change', function() {
@@ -499,8 +510,9 @@ async function downloadAndFlash(fileURL) {
 function buildAppLinks(){
     let hrElement = document.getElementById("preview_body").querySelector("hr");
     hrElement.style.display = "block";
-    let defaultAppURLsHTML = "Note: You can download phone app from the app store and interact with your device. Scan the QRCode to access the respective apps.<br>";
+    let defaultAppURLsHTML = "Note: You can download phone app from the app store and interact with your device. Scan the QRCode to access the respective apps.";
     let appURLsHTML = "";
+    let setupPayloadInfo = "To set up the device, use a supported phone app to scan the QRCode located on the rightmost side.";
 
     if(android_app_url){
         new QRCode(document.getElementById("qrcodeAndroidApp"), {
@@ -551,8 +563,45 @@ function buildAppLinks(){
         $("#iosAppLogoQS").html("<a href='" + ios_app_url + "' target='_blank'><img src='./assets/appstore_download.png' height='50' width='130'></a>");
         appURLsHTML = defaultAppURLsHTML;
     }
+
+    if (setup_qrcode_payload) {
+        new QRCode(setupQRCodeContainer, {
+            text: setup_qrcode_payload,
+            width: 128,
+            height: 128,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+	        correctLevel : QRCode.CorrectLevel.H
+            });
+
+        new QRCode(setupQRCodeContainerQS, {
+            text: setup_qrcode_payload,
+            width: 128,
+            height: 128,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+	        correctLevel : QRCode.CorrectLevel.H
+            });
+
+        if (setup_payload_logo_url) {
+            setupLogoContainer.innerHTML = `<img src=${setup_payload_logo_url} height='50' width='130' />`;
+            setupLogoContainerQS.innerHTML = `<img src=${setup_payload_logo_url} height='50' width='130' />`;
+        } else {
+            let emptyPayloadLogoCSS = `position:relative; top:50px`
+            setupQRCodeContainer.style.cssText = emptyPayloadLogoCSS;
+            setupQRCodeContainerQS.style.cssText = emptyPayloadLogoCSS;
+        }
+
+        document.getElementById("setupPayloadInfoText").innerText = setupPayloadInfo;
+        document.getElementById("setupPayloadInfoTextQS").innerText = setupPayloadInfo;
+
+    } else {
+        setupPayloadRow.style.display = "none";
+        setupPayloadRowQS.style.display = "none";
+    }
+
     if(appURLsHTML === defaultAppURLsHTML){
-        $("#progressMsgQS").html("Firmware Image flashing is complete. " + appURLsHTML);
+        $("#progressMsgQS").html("Firmware Image flashing is complete.<br /><br />" + appURLsHTML);
         $("#appDownloadLink").html(appURLsHTML);
     }else{
         $("#progressMsgQS").html("Firmware Image flashing is complete. ");
@@ -570,6 +619,15 @@ function cleanUpOldFlashHistory() {
     $("#qrcodeAndroidAppQS").html("");
     $("#qrcodeIOSApp").html("");
     $("#qrcodeIOSAppQS").html("");
+    $("#setupLogoContainer").html("");
+    $("#setupLogoContainerQS").html("");
+    $("#setupPayloadInfoText").text("");
+    $("#setupPayloadInfoTextQS").text("");
+    $("#setupQRCodeContainer").html("");
+    $("#setupQRCodeContainerQS").html("");
+    setupQRCodeContainer.style.cssText = "";
+    setupQRCodeContainerQS.style.cssText = "";
+
 }
 
 flashButton.onclick = async () => {

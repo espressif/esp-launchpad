@@ -32,6 +32,8 @@
                     <div><p>Flashing of firmware is completed! Click the <b>'Reset Device'</b> button on the Console Tab to reset your device with the new flashed firnware.
                       <br><br>
                       <span id="appDownloadLink"></span>
+                      <br /><br />
+                      <span id="setupPayloadInfoText"></span>
                     </p>
                     </div>
                     <hr>
@@ -42,7 +44,11 @@
                         </div>
                         <div id="qrIOSRow">
                             <div id="iosAppLogo" style="padding-bottom: 5px;"></div>
-                            <div id='qrcodeIOSApp'></div>
+                            <div id='qrcodeIOSApp' style="padding-right: 40px;"></div>
+                        </div>
+                        <div id="setupPayloadRow" class="ms-auto">
+                            <div id="setupLogoContainer" style="padding-bottom: 5px;"></div>
+                            <div id='setupQRCodeContainer'></div>
                         </div>
                     </div>
                   </div>
@@ -207,8 +213,10 @@
                         <button class="app-button submit-form-button btn btn-outline-dark" id="flashButton" disabled>Flash</button>
                     </div>
                 </div>
-                <div class="field-container">
+                <div class="mt-xl-5 ">
                     <span id="progressMsgQS" style="display:none"><i>This may take a short while. Check console for the progress</i></span>
+                    <br /><br />
+                    <span id="setupPayloadInfoTextQS"></span>
                 </div>
                 <br><br>
                 <div>
@@ -219,7 +227,11 @@
                         </div>
                         <div id="qrIOSRowQS">
                             <div id="iosAppLogoQS" style="padding-bottom: 5px;"></div>
-                            <div id='qrcodeIOSAppQS' style="padding-bottom: 40px;"></div>
+                            <div id='qrcodeIOSAppQS' style="padding-right: 40px;"></div>
+                        </div>
+                        <div id="setupPayloadRowQS" class="ms-auto">
+                            <div id="setupLogoContainerQS" style="padding-bottom: 5px;"></div>
+                            <div id='setupQRCodeContainerQS'></div>
                         </div>
                     </div>
                 </div>
