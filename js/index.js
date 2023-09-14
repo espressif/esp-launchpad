@@ -92,7 +92,17 @@ async function buildQuickTryUI() {
     xhr.onload = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
             config = toml.parse(xhr.responseText);
+            var requestedApp = urlParams.get("app");
+            if (requestedApp) {
+                // Filter the supported_apps that start with the app name
+                const filtered_apps = config.supported_apps.filter(app => app.startsWith(`${requestedApp}-`));
 
+                if (filtered_apps.length > 0) {
+                    config["supported_apps"] = filtered_apps;
+                } else {
+                    alert(`No applications found for ${requestedApp}`);
+                }
+            }
             if(!isDefault) {
                 $("#qtLabel").html("Choose from the firmware images listed below. <Br> You have chosen to try the firmware images from an <b><u>external source</u> - "
                                             + tomlFileURL + "</b>");
@@ -107,7 +117,6 @@ async function buildQuickTryUI() {
             catch (err){
                 alert ("Unsupported config version used -" + err.message);
             }
-
             return config;
         }
     }
