@@ -168,7 +168,7 @@ async function connectToDevice() {
     try {
         const loaderOptions = {
             transport: transport,
-            baudrate: 921600,
+            baudrate: 460800,
             terminal: espLoaderTerminal
         };
         esploader = new ESPLoader(loaderOptions);
