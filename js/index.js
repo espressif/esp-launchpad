@@ -34,6 +34,8 @@ let resizeTimeout = false;
 
 import * as utilities from "./utils.js";
 import * as esptooljs from "../node_modules/esptool-js/bundle.js";
+import * as toml from '../node_modules/smol-toml/dist/index.js';
+
 const ESPLoader = esptooljs.ESPLoader;
 const Transport = esptooljs.Transport;
 
@@ -132,8 +134,8 @@ function buildQuickTryUI_v1_0() {
     if(supported_apps) {
         addDeviceTypeOption(supported_apps);
         populateSupportedChipsets(config[supported_apps[0]]);
-        if (config[supported_apps[0]]["readme.text"]) {
-            markdown_payload_url = config[supported_apps[0]]["readme.text"];
+        if (config[supported_apps[0]].readme?.text) {
+            markdown_payload_url = config[supported_apps[0]].readme.text;
         }
     }
     setAppURLs(config[supported_apps[0]]);
@@ -186,7 +188,7 @@ function populateSupportedChipsets(deviceConfig) {
         inputElement.setAttribute("class", "form-check-input");
         inputElement.name = "chipType";
         inputElement.id = "radio-" + chipset;
-        inputElement.value = deviceConfig["image." + chipset.toLowerCase()];
+        inputElement.value = deviceConfig["image"][chipset.toLowerCase()];
         if (chipset.toLowerCase() === chip.toLowerCase())
             inputElement.checked = true;
 
@@ -220,8 +222,8 @@ $('#frameworkSel').on('change', function() {
 $('#device').on('change', function() {
     populateSupportedChipsets(config[deviceTypeSelect.value]);
     setAppURLs(config[deviceTypeSelect.value]);
-    if (config[deviceTypeSelect.value]["readme.text"]) {
-        markdown_payload_url = config[deviceTypeSelect.value]["readme.text"];
+    if (config[deviceTypeSelect.value].readme?.text) {
+        markdown_payload_url = config[deviceTypeSelect.value].readme.text;
     } else {
         markdown_payload_url = "";
     }
