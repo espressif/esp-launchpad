@@ -105,6 +105,12 @@ export function isWebUSBSerialSupported() {
     return (isSafari || isFirefox);
 }
 
+export function mdToHtmlConverter(markdownContent) {
+    let converter = new showdown.Converter({ tables: true });
+    converter.setFlavor('github');
+    return converter.makeHtml(markdownContent);
+}
+
 // unused functions
 function convertUint8ArrayToBinaryString(u8Array) {
     var i, len = u8Array.length, b_str = "";

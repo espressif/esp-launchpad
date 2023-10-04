@@ -25,6 +25,10 @@ const setupQRCodeContainer = document.getElementById("setupQRCodeContainer");
 const setupQRCodeContainerQS = document.getElementById("setupQRCodeContainerQS");
 const setupLogoContainer = document.getElementById("setupLogoContainer");
 const setupLogoContainerQS = document.getElementById("setupLogoContainerQS");
+const appInfoContainer = document.getElementById("appInfoContainer");
+const terminalContainer = document.getElementById("terminalContainer");
+const appInfo = document.getElementById("appInfo");
+const consolePageWrapper = document.getElementById("consolePageWrapper");
 
 let resizeTimeout = false;
 
@@ -58,8 +62,7 @@ let ios_app_url = "";
 let android_app_url = "";
 let setup_payload_logo_url = "";
 let setup_qrcode_payload = "";
-
-terminal.style.display = "none";
+let markdown_payload_url = "";
 
 disconnectButton.style.display = "none";
 eraseButton.style.display = "none";
@@ -129,6 +132,9 @@ function buildQuickTryUI_v1_0() {
     if(supported_apps) {
         addDeviceTypeOption(supported_apps);
         populateSupportedChipsets(config[supported_apps[0]]);
+        if (config[supported_apps[0]]["readme.text"]) {
+            markdown_payload_url = config[supported_apps[0]]["readme.text"];
+        }
     }
     setAppURLs(config[supported_apps[0]]);
 }
@@ -208,6 +214,11 @@ $('#frameworkSel').on('change', function() {
 $('#device').on('change', function() {
     populateSupportedChipsets(config[deviceTypeSelect.value]);
     setAppURLs(config[deviceTypeSelect.value]);
+    if (config[deviceTypeSelect.value]["readme.text"]) {
+        markdown_payload_url = config[deviceTypeSelect.value]["readme.text"];
+    } else {
+        markdown_payload_url = "";
+    }
 });
 
 $(function () {
@@ -270,7 +281,7 @@ function postConnectControls() {
         disconnectButton.style.display = "initial";
         eraseButton.style.display = "initial";
         filesDiv.style.display = "initial";
-        terminal.style.display = "block"
+        terminalContainer.style.display = "block";
     }
     else
         lblConnTo.innerHTML = "<b><span style='color:red'>Unable to detect device. Please ensure the device is not connected in another application</span></b>";
@@ -328,6 +339,7 @@ resetButton.onclick = async () => {
 
 eraseButton.onclick = async () => {
     postFlashClick();
+    terminalContainer.classList.remove("fade-in-down");
     eraseButton.disabled = true;
     $('#v-pills-console-tab').click();
     await esploader.erase_flash();
@@ -387,7 +399,7 @@ disconnectButton.onclick = async () => {
             await device.close();
         }
     }
-    terminal.style.display = "none";
+    terminalContainer.style.display = "none";
     term.clear();
     connected = false;
     $("#baudrates").prop("disabled", false);
@@ -403,6 +415,7 @@ disconnectButton.onclick = async () => {
     lblConnTo.style.display = "none";
     alertDiv.style.display = "none";
     ensureConnect.style.display = "initial";
+    clearAppInfoHistory();
     cleanUp();
 };
 
@@ -479,6 +492,7 @@ programButton.onclick = async () => {
        
         fileArr.push({data:fileObj.data, address:offset});
     }
+    clearAppInfoHistory();
     $('#v-pills-console-tab').click();
     try {
         const flashOptions = {
@@ -491,6 +505,7 @@ programButton.onclick = async () => {
         };
         await esploader.write_flash(flashOptions);
         postFlashDone();
+        terminalContainer.classList.remove("fade-in-down");
     } catch (e) {
     }
 }
@@ -639,6 +654,22 @@ function cleanUpOldFlashHistory() {
 
 }
 
+function clearAppInfoHistory(triggeringAction = "") {
+    switch (triggeringAction) {
+        case "handleFlashCleanup":
+            appInfoContainer.classList.remove("slide-up", "bounce");
+            terminalContainer.classList.remove("slide-right");
+            break;
+        default:
+            appInfo.innerHTML = "";
+            appInfoContainer.style.display = "none";
+            appInfoContainer.classList.remove("slide-up", "bounce");
+            terminalContainer.classList.add("col-12", "fade-in-down");
+            terminalContainer.classList.remove("col-6", "slide-right");
+            break;
+    }
+}
+
 flashButton.onclick = async () => {
     if(chipSetsRadioGroup.querySelectorAll("input[type=radio]:checked").length!== 0){
         let flashFile = $("input[type='radio'][name='chipType']:checked").val();
@@ -647,13 +678,37 @@ flashButton.onclick = async () => {
         progressMsgQS.style.display = "inline";
     
         cleanUpOldFlashHistory();
+        clearAppInfoHistory();
         postFlashClick();
         await downloadAndFlash(file_server_url + flashFile);
-    
+
+        if (markdown_payload_url) {
+            let response = await fetch(markdown_payload_url);
+            let mdContent = await response.text();
+            let htmlText = utilities.mdToHtmlConverter(mdContent);
+
+            appInfo.innerHTML = htmlText;
+            appInfoContainer.style.display = "block";
+            appInfoContainer.classList.add("slide-up");
+            terminalContainer.classList.remove("col-12", "fade-in-down");
+            terminalContainer.classList.add("col-6", "slide-right");
+
+            setTimeout(() => {
+                appInfoContainer.classList.add("bounce");
+            }, 2500);
+
+            setTimeout(() => {
+                clearAppInfoHistory("handleFlashCleanup");
+            }, 5000);
+
+            utilities.resizeTerminal(fitAddon);
+        }
+
         buildAppLinks();
         $("#statusModal").click();
         esploader.status = "started";
         postFlashDone();
+        terminalContainer.classList.remove("fade-in-down");
     }else{
         let previousState = lblConnTo.innerHTML;
         let alertChipsetSelectMsg = `<b><span style="color:red">Unable to flash device. Please ensure that chipset type is selected before flashing.</span></b>`;
@@ -705,3 +760,22 @@ $( window ).resize(function() {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => utilities.resizeTerminal(fitAddon), 300);
 });
+
+function removeClassesOnMediaQuery() {
+    const mediaQuery = window.matchMedia("(max-width: 992px)");
+    function handleMediaQueryChange(mediaQuery) {
+        if (mediaQuery.matches) {
+            appInfoContainer.classList.remove("col-6");
+            terminalContainer.classList.remove("col-6");
+            consolePageWrapper.classList.add("flex-column-reverse");
+        } else {
+            appInfoContainer.classList.add("col-6");
+            terminalContainer.classList.add("col-6");
+            consolePageWrapper.classList.remove("flex-column-reverse");
+        }
+    }
+    handleMediaQueryChange(mediaQuery);
+    mediaQuery.addListener(handleMediaQueryChange);
+}
+
+removeClassesOnMediaQuery();
