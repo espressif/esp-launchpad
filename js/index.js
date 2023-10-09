@@ -163,6 +163,8 @@ function populateSupportedChipsets(deviceConfig) {
     chipSetsRadioGroup.innerHTML = "";
     const supportedChipSets = deviceConfig["chipsets"];
     let i = 1;
+    let inputElement;
+
     supportedChipSets.forEach(chipset => {
         //var chipKV = chipset.split(":");
         var div = document.createElement("div");
@@ -173,7 +175,7 @@ function populateSupportedChipsets(deviceConfig) {
         lblElement.setAttribute("for", "radio-" + chipset);
         lblElement.innerHTML = chipset + "&nbsp;";
 
-        var inputElement = document.createElement("input");
+        inputElement = document.createElement("input");
         inputElement.setAttribute("type", "radio");
         inputElement.setAttribute("class", "form-check-input");
         inputElement.name = "chipType";
@@ -190,6 +192,10 @@ function populateSupportedChipsets(deviceConfig) {
 
         i++;
     });
+
+    if (supportedChipSets.length === 1) {
+        inputElement.checked = true;
+    }
 }
 
 function setAppURLs(appConfig) {
