@@ -2,7 +2,7 @@ ESP Launchpad is a web based tool, available for flashing firmware application t
 
 There are two modes available for using this tool:
 - Quick Start : 4 Easy Steps - Plug, Connect, Choose Built-In Firmware Image, Flash!
-- DIY : For Advanced Users, use your own pre-built Firmware Image from local storage and Flash!</li>
+- DIY : For Advanced Users, use your own pre-built Firmware Image from local storage and Flash!
 
 
 **Quick Start:**
@@ -32,12 +32,16 @@ The firmware will be flashed on to your connected device. You can watch the prog
 
 ESP Launchpad also lets you easily publish your firmware apps for others to try.
 
-The ESP Launchpad Quick Start page would be rendered by referring to a TOML configuration file, where you can configure where to pick all the component images of your firmware, and the supported hardware. You could also link to any support phone apps to work along with this firmware. A sample TOML config file can be viewed here
+The ESP Launchpad Quick Start page would be rendered by referring to a TOML configuration file, where you can configure where to pick all the component images of your firmware, and the supported hardware. You could also link to any supported phone apps to work along with this firmware.
+
+You can also include additional information about your application in **Markdown format** within the TOML config file itself. ESP Launchpad will then render the application information and any additional instructions in the browser after flashing the firmware image. A sample TOML config file can be viewed [here](https://github.com/espressif/esp-launchpad/blob/main/config/config.toml)
 
 Rest of the flashing procedure is same easy 4 step process as the Quick Start one above.
 
 Once ready, you can use the following image and URL for supporting ESP Launchpad with your configuration.
-`<a href="https://espressif.github.io/esp-launchpad/">
-         <img alt="Try it with ESP Launchpad" src="https://espressif.github.io/esp-launchpad/assets/try_with_launchpad.png"
-         width="250" height="70">
-</a>`
+
+```
+<a href="https://espressif.github.io/esp-launchpad/">
+    <img alt="Try it with ESP Launchpad" src="https://espressif.github.io/esp-launchpad/assets/try_with_launchpad.png" width="250" height="70">
+</a>
+```
