@@ -66,7 +66,7 @@ async function downloadAndFlash() {
             flashSize: "keep",
             flashMode: undefined,
             flashFreq: undefined,
-            eraseAll: false,
+            eraseAll: true, // Always erasing before flash
             compress: true,
         };
         await esploader.write_flash(flashOptions);
