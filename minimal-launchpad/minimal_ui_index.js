@@ -10,6 +10,8 @@ const message = document.getElementById("message");
 
 import * as utilities from "../js/utils.js"
 import * as esptooljs from "../node_modules/esptool-js/bundle.js";
+import * as toml from '../node_modules/smol-toml/dist/index.js';
+
 const ESPLoader = esptooljs.ESPLoader;
 const Transport = esptooljs.Transport;
 
@@ -39,19 +41,17 @@ var config = [];
 
 // Code for minimalLaunchpad
 function setImagePartsAndOffsetArray() {
-    let application = "supported_apps";
+    let app = config[config["supported_apps"][0]];
     let chipInConfToml = undefined;
-    let imageString = undefined;
-    let addressString = undefined;
+    let appImageObj = undefined;
     if (chip !== "default" && config["multipart"]) {
         chipInConfToml = config["chip"];
+        appImageObj = app["image"][chipInConfToml.toLowerCase()];
     }
     if (chip !== "default" && chipInConfToml !== undefined) {
-        imageString = "image." + chipInConfToml.toLowerCase() + ".parts";
-        addressString = "image." + chipInConfToml.toLowerCase() + ".addresses";
+        imagePartsArray = appImageObj["parts"];
+        imagePartsOffsetArray = appImageObj["addresses"];
     }
-    imagePartsArray = config[config[application][0]][imageString];
-    imagePartsOffsetArray = config[config[application][0]][addressString];
 }
 
 async function downloadAndFlash() {
@@ -79,7 +79,7 @@ function MDtoHtml() {
     var converter = new showdown.Converter({ tables: true });
     converter.setFlavor('github');
     try {
-        fetch(config[config[application][0]]["readme.text"]).then(response => {
+        fetch(config[config[application][0]].readme.text).then(response => {
             return response.text();
         }).then(result => {
             let htmlText = converter.makeHtml(result);
