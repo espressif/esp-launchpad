@@ -7,6 +7,10 @@ const terminalContainer = document.getElementById("terminalContainer");
 const alertContainer = document.getElementById("alert-container");
 const lblConnTo = document.getElementById("lblConnTo");
 const message = document.getElementById("message");
+const commandForm = document.getElementById("commandForm");
+const commandInput = document.getElementById("commandInput");
+const commandHistory = [];
+let historyIndex = -1;
 
 import * as utilities from "../js/utils.js"
 import * as esptooljs from "../node_modules/esptool-js/bundle.js";
@@ -37,7 +41,15 @@ let resizeTimeout = false;
 let imagePartsArray = undefined;
 let imagePartsOffsetArray = undefined;
 let reader = undefined;
+let writer = undefined;
 var config = [];
+
+let serialOptions = {
+    dataBits: 8,
+    stopBits: 1,
+    parity: "none",
+    flowControl: "none"
+} // For Expresslink [Temporary Provision]
 
 // Code for minimalLaunchpad
 function setImagePartsAndOffsetArray() {
@@ -166,11 +178,21 @@ async function connectToDevice() {
     spinner.style.alignItems = "center";
 
     try {
-        const loaderOptions = {
-            transport: transport,
-            baudrate: 460800,
-            terminal: espLoaderTerminal
-        };
+        let loaderOptions;
+        if (config.portConnectionOptions?.length) {
+            loaderOptions = {
+                transport: transport,
+                baudrate: config.portConnectionOptions[0]?.baudRate,
+                terminal: espLoaderTerminal,
+                serialOptions,
+            };
+        } else {
+            loaderOptions = {
+                transport: transport,
+                baudrate: 460800,
+                terminal: espLoaderTerminal,
+            };
+        }
         esploader = new ESPLoader(loaderOptions);
         connected = true;
 
@@ -189,6 +211,9 @@ connectButton.onclick = async () => {
             await connectToDevice();
         if (chipDesc !== "default") {
             terminalContainer.classList.add("fade-in");
+            if (config.portConnectionOptions?.length) {
+                commandForm.style.display = "initial";
+            }
             terminalContainer.style.display = 'initial'
             setImagePartsAndOffsetArray();
             await downloadAndFlash();
@@ -224,7 +249,11 @@ consoleStartButton.onclick = async () => {
             await device.close();
         }
     }
-    await transport.connect();
+    if (config.portConnectionOptions?.length) {
+        await transport.connect(config.portConnectionOptions[0]?.baudRate, serialOptions);
+    } else {
+        await transport.connect();
+    }
     await transport.setDTR(false);
     await new Promise(resolve => setTimeout(resolve, 100));
     await transport.setDTR(true);
@@ -249,6 +278,38 @@ consoleStartButton.onclick = async () => {
         } catch (error) { }
     }
 }
+
+async function sendCommand() {
+    let commandToSend;
+    let textEncoder = new TextEncoder();
+    if (!device.writable.locked) writer = device.writable.getWriter();
+    commandToSend = commandInput.value;
+    commandHistory.unshift(commandToSend);
+    historyIndex = -1;
+    commandInput.value = "";
+    commandToSend = commandToSend + "\r\n";
+    await writer.write(textEncoder.encode(commandToSend));
+    writer.releaseLock();
+}
+
+function getHistory(direction) {
+    historyIndex = Math.max(Math.min(historyIndex + direction, commandHistory.length - 1),-1);
+    if (historyIndex >= 0) {
+        commandInput.value = commandHistory[historyIndex];
+    } else {
+        commandInput.value = "";
+    }
+}
+
+commandInput.addEventListener("keyup", async function (event) {
+    if (event.code === "Enter") {
+        await sendCommand();
+    } else if (event.code === "ArrowUp") {
+        getHistory(1);
+    } else if (event.code === "ArrowDown") {
+        getHistory(-1);
+    }
+});
 
 $(window).resize(function () {
     clearTimeout(resizeTimeout);
