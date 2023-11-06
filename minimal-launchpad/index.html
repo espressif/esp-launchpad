@@ -19,7 +19,7 @@
 <body class="d-flex flex-column h-100" style="align-items: center">
     <!-- Modal for reset device starts-->
 
-    <div id="main" class="maincontainer">
+    <div id="main" class="maincontainer container">
         <!-- Responsive navbar-->
         <nav class="navbar navbar-expand-lg">
             <div class="container">
@@ -35,14 +35,14 @@
                 </div>
             </div>
         </div>
-        <div style="margin-top: auto">
+        <div style="position: absolute; top: 50%;">
             <button class="connectButton" id="connectButton" tabindex="0" type="button">Connect Your Device<span
                     class="span-svg"><svg class="svg" focusable="false" aria-hidden="true" viewBox="0 0 24 24"
                         data-testid="EastIcon">
                         <path fill="#FFFFFF" d="m15 5-1.41 1.41L18.17 11H2v2h16.17l-4.59 4.59L15 19l7-7-7-7z"></path>
                     </svg></span></button>
         </div>
-        <div id="spinner" style="display: none">
+        <div id="spinner" style="display: none; position: absolute; top: 50%;">
             <div>
                 <div class="spinner-grow text-secondary bg-opacity-25" role="status">
                     <span class="sr-only"></span>
@@ -70,9 +70,10 @@
                                 </button>
                             </div>
                         </div>
-                        <div id="terminal"><span class="devicelog">Device logs</span></div>
+                        <div id="terminal"><span class="devicelog">Device Console</span></div>
                         <div id="commandForm" style="display: none;">
-                            <input type="text" autocomplete="off" class="form-control rounded-0 shadow-none" id="commandInput" placeholder="Type Your Command And Press Enter">
+                            <textarea rows="1" class="form-control rounded-0 shadow-none" autocomplete="off" id="commandInput"
+                                placeholder="Type your command and press enter" style="font-size: 14px; font-family: monospace;" disabled></textarea>
                         </div>
                 </div>
             </div>
