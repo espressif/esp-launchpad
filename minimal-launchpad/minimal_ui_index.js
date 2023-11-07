@@ -9,6 +9,14 @@ const lblConnTo = document.getElementById("lblConnTo");
 const message = document.getElementById("message");
 const commandForm = document.getElementById("commandForm");
 const commandInput = document.getElementById("commandInput");
+const errorTroubleshootModalToggleButton = document.getElementById("errorTroubleshootModalToggleButton");
+const errorTroubleshootModal = document.getElementById("errorTroubleshootModal");
+const errorTroubleshootModalTitle = document.getElementById("errorTroubleshootModalTitle");
+const waitButton = document.getElementById("waitButton");
+const errorMessage = document.getElementById("errorMessage");
+const errorMessageDescription = document.getElementById("errorMessageDescription");
+const deviceConnectionDelayTimeout = 30000;
+let deviceConnectionTimeout = undefined;
 const commandHistory = [];
 let historyIndex = -1;
 
@@ -83,6 +91,14 @@ async function downloadAndFlash() {
         };
         await esploader.write_flash(flashOptions);
     } catch (error) {
+        errorTroubleshootModalToggleButton.click();
+        waitButton.style.display = "none";
+        errorTroubleshootModalTitle.textContent = "Flashing Error";
+        errorMessageDescription.textContent = "There is an error while flashing the firmware onto the device.";
+        errorMessage.textContent = `Error: ${error.message}`;
+        errorMessage.style.display = "block";
+        term.writeln(`\x1b[1;31mError: ${error.message}`);
+        throw "Flashing Error";
     }
 }
 
@@ -92,7 +108,9 @@ function MDtoHtml() {
     converter.setFlavor('github');
     try {
         fetch(config[config[application][0]].readme.text).then(response => {
-            return response.text();
+            if (response.ok) {
+                return response.text();
+            }
         }).then(result => {
             let htmlText = converter.makeHtml(result);
             if (htmlText) {
@@ -174,6 +192,9 @@ async function connectToDevice() {
         device = await navigator.serial.requestPort({
             filters: utilities.usbPortFilters
         });
+        deviceConnectionTimeout = setTimeout(function() {
+            errorTroubleshootModalToggleButton.click();
+        }, deviceConnectionDelayTimeout);
         transport = new Transport(device);
     }
     spinner.style.display = "flex";
@@ -200,12 +221,27 @@ async function connectToDevice() {
         connected = true;
 
         chipDesc = await esploader.main_fn();
+        clearTimeout(deviceConnectionTimeout);
+        if (errorTroubleshootModal.classList.contains("show")) {
+            errorTroubleshootModalToggleButton.click();
+        }
         chip = esploader.chip.CHIP_NAME;
 
         await esploader.flash_id();
-    } catch (e) {
+    } catch (error) {
+        clearTimeout(deviceConnectionTimeout);
+        if (!errorTroubleshootModal.classList.contains("show")) {
+            errorTroubleshootModalToggleButton.click();
+        }
+        waitButton.style.display = "none";
+        errorTroubleshootModalTitle.textContent = "Connection Error";
+        errorMessageDescription.textContent = "There is an error while connecting to the device.";
+        errorMessage.textContent = `Error: ${error.message}`;
+        errorMessage.style.display = "block";
+        throw "Connection Error";
+    } finally {
+        spinner.style.display = "none";
     }
-    spinner.style.display = "none";
 }
 
 connectButton.onclick = async () => {
@@ -231,15 +267,6 @@ connectButton.onclick = async () => {
             setTimeout(() => {
                 productInfoContainer.classList.add("bounce");
             }, 2500)
-        } else {
-            alertContainer.style.display = "block";
-            lblConnTo.innerHTML = "<b><span style='color:red'>Unable to connect device. Please ensure the device is not connected in another application</span></b>";
-            lblConnTo.style.display = "block";
-            setTimeout(() => {
-                alertContainer.style.display = "none";
-                connectButton.style.display = "inline-flex";
-                connected = false;
-            }, 5000)
         }
     } catch (error) {
         if (error.message === "Failed to execute 'requestPort' on 'Serial': No port selected by the user.") {
@@ -331,6 +358,13 @@ commandInput.addEventListener("input", autoResize);
 function autoResize() {
     commandInput.style.height = "auto";
     commandInput.style.height = commandInput.scrollHeight + "px";
+}
+
+waitButton.onclick = () => {
+    clearTimeout(deviceConnectionTimeout);
+    deviceConnectionTimeout = setTimeout(function(){
+        errorTroubleshootModalToggleButton.click();
+    }, deviceConnectionDelayTimeout);
 }
 
 $(window).resize(function () {

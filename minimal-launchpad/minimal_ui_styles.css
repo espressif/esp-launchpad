@@ -79,6 +79,13 @@
   animation: bounce 2s ease-in-out;
 }
 
+.errorMessage {
+  font-size: 14px;
+  background-color: #f1d2d2;
+  border: 1px solid #d4bcbc;
+  color: #a35c5c;
+  padding: 5px;
+}
 @keyframes bounce {
 
   0%,
