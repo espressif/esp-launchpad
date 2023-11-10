@@ -1,18 +1,15 @@
 .maincontainer {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: center;
-  height: 50%;
 }
 
 .terminal {
   padding-left: 5px;
 }
 
-.productinfocontainer,
-.terminalcontainer {
-  max-height: 590px;
+.productinfocontainer {
+  max-height: 90vh;
   overflow-y: auto;
 }
 
