@@ -17,7 +17,146 @@
 </head>
 
 <body class="d-flex flex-column h-100" style="align-items: center">
-    <!-- Modal for reset device starts-->
+    <!-- Modal for error troubleshoot starts-->
+    <button type="button" id="errorTroubleshootModalToggleButton" class="btn btn-primary" data-bs-toggle="modal"
+        data-bs-target="#errorTroubleshootModal" hidden>
+        Error Troubleshoot Modal Toggle Button
+    </button>
+    <div class="modal fade" id="errorTroubleshootModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-labelledby="errorTroubleshootModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="errorTroubleshootModalTitle">Connection In Progress</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" hidden></button>
+                </div>
+                <div class="modal-body">
+                    <p id="errorMessageDescription">It's taking longer than usual for connecting the device.</p>
+                    <p class="errorMessage" id="errorMessage" style="display: none;"></p>
+                    <p>Refer to the troubleshooting guide below for assistance in resolving the issue.</p>
+                    <div class="accordion" id="troubleshootAccordion">
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button collapsed" style="background-color: #eee;" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true"
+                                    aria-controls="collapseOne">
+                                    Troubleshooting Guide
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne"
+                                data-bs-parent="#troubleshootAccordion">
+                                <div class="accordion-body" style="font-size: 12px;">
+                                    <div class="container mt-2">
+                                        <div>
+                                            <div class="col-xs-12">
+                                                <div class="col-xs-12 mt-2">
+                                                    <h4 class="topic mb-2" style="font-size: 14px;"><b>Device Connection
+                                                            Issue</b></h4>
+                                                    <p>
+                                                        If your device is not shown in list that pop-up while connection
+                                                        establishing step then your device might be not connected properly
+                                                        to port
+                                                        or their might be the
+                                                        <strong>browser compatability issue</strong>. Please
+                                                        ensure that it is properly connected to the port. Reseating
+                                                        connection cable might also helps to resolve this issue. If your device is connected to any other application, please
+                                                        disconnect it and try again.
+                                                    </p>
+                                                </div>
+                                                <div class="col-xs-12 mt-2">
+                                                    <h4 class="topic mb-2" style="font-size: 14px;"><b>Browser Compatability
+                                                            Issue</b></h4>
+                                                    <p>
+                                                        <span style="color: #e63f36">
+                                                            This tool is not supported on Safari & Firefox browsers yet!
+                                                        </span>
+                                                        Please try using another browser like
+                                                        <strong>Google Chrome</strong> with supported version.
+                                                    </p>
+                                                    <p>
+                                                        ESP Launchpad makes use of <strong>Web Serial API</strong> to
+                                                        communicate with the device. Currently Safari & Firefox browsers
+                                                        don't support it yet. We will add support for this browser as soon
+                                                        as Safari & Firefox starts supporting Web Serial API. Please find
+                                                        more about <strong>Web Serial API</strong> browser compatability
+                                                        guide
+                                                        <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API#browser_compatibility"
+                                                            target="_blank">here</a>
+                                                    </p>
+                                                </div>
+                                                <div class="col-xs-12 mt-2">
+                                                    <h4 class="topic mb-2" style="font-size: 14px;"><b>Device Compatability
+                                                            Issue</b></h4>
+                                                    <p>
+                                                        If you are using older devices or older versions of device then
+                                                        sometimes you may face an issue in
+                                                        connection establishing step or firmware flashing step. Please try
+                                                        that steps by pressing boot
+                                                        button provided on device.
+                                                    <details>
+                                                        <summary>List of devices that supported by ESP Launchpad</summary>
+                                                        <ol>
+                                                            <li>ESP32</li>
+                                                            <li>ESP32-C3</li>
+                                                            <li>ESP32-C6</li>
+                                                            <li>ESP32-H2</li>
+                                                            <li>ESP32-S2</li>
+                                                            <li>ESP32-S3</li>
+                                                            <li>ESP8266</li>
+                                                        </ol>
+                                                    </details>
+                                                    </p>
+                                                </div>
+                                                <div class="col-xs-12 mt-2" id="browserSupport">
+                                                    <h4 class="topic mb-2" style="font-size: 14px;"><b>Driver Compatability
+                                                            Issue</b></h4>
+                                                    <p>
+                                                        It has been seen that on <strong>windows system</strong> with latest
+                                                        <strong>Silicon Lab CP210x USB
+                                                            to UART Bridge</strong>
+                                                        there are device connection or flashing issues.We are looking into
+                                                        it to resolve the issue.
+                                                        You can still try by downgrading silicon lab CP210x USB to UART
+                                                        Bridge driver version to
+                                                        <code>6.7.x</code> that can resolve issue on temporarily basis.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <hr />
+                                        <div style="text-align: center;">
+                                            <p>If you still unable to troubleshoot the problem or face any other issues
+                                                please report them on <a
+                                                    href="https://github.com/espressif/esp-launchpad/issues"
+                                                    target="_blank">ESP launchpad Issues</a></p>
+                                            <p>We will be happy to help you resolve your issues !</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <div class="field-container" data-toggle="tooltip" data-bs-placement="top"
+                        title="You can wait some more time, and we'll continue to attempt the connection"
+                        style="display: inline-block">
+                        <button type="button" class="app-button btn btn-outline-primary" data-bs-dismiss="modal"
+                            id="waitButton">
+                            Wait For Connection
+                        </button>
+                    </div>
+                    <div class="field-container" data-toggle="tooltip" data-bs-placement="top"
+                        title="You can try it again !" style="display: inline-block">
+                        <button type="button" class="app-button btn btn-outline-dark" onClick="window.location.reload();">
+                            Try Again
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal for error troubleshoot ends-->
 
     <div id="main" class="maincontainer container">
         <!-- Responsive navbar-->
