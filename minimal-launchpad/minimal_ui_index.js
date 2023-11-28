@@ -15,10 +15,13 @@ const errorTroubleshootModalTitle = document.getElementById("errorTroubleshootMo
 const waitButton = document.getElementById("waitButton");
 const errorMessage = document.getElementById("errorMessage");
 const errorMessageDescription = document.getElementById("errorMessageDescription");
+const troubleshootAccordionLabel = document.getElementById("troubleshootAccordionLabel");
+const troubleshootAccordion = document.getElementById("troubleshootAccordion");
 const deviceConnectionDelayTimeout = 30000;
 let deviceConnectionTimeout = undefined;
 const commandHistory = [];
 let historyIndex = -1;
+let tomlFileURL = undefined;
 
 import * as utilities from "../js/utils.js"
 import * as esptooljs from "../node_modules/esptool-js/bundle.js";
@@ -134,7 +137,6 @@ function MDtoHtml() {
 }
 // Build the Minimal Launchpad UI using the config toml file.
 async function buildMinimalLaunchpadUI() {
-    let tomlFileURL = undefined;
     const urlParams = new URLSearchParams(window.location.search);
     const url = window.location.search;
     const parameter = "flashConfigURL";
@@ -156,8 +158,18 @@ async function buildMinimalLaunchpadUI() {
             }
             if (xhr.readyState === 4 && xhr.status === 200) {
                 config = toml.parse(xhr.responseText);
-                return config;
+                connectButton.disabled = false;
             }
+        }
+        xhr.onerror = function () {
+            connectButton.style.display = "none";
+            waitButton.style.display = "none";
+            troubleshootAccordionLabel.style.display = "none"
+            troubleshootAccordion.style.display = "none";
+            errorTroubleshootModalTitle.textContent = "Error getting config file";
+            errorMessageDescription.innerHTML = `We are encountering issues downloading the configuration file. Please verify if you can 
+            download <a href=${tomlFileURL} target="_blank">this file</a>, if not, check your network settings (Firewall, VPN, etc.) and try again.`
+            errorTroubleshootModalToggleButton.click();
         }
     } else {
         connectButton.disabled = true;
@@ -168,7 +180,7 @@ async function buildMinimalLaunchpadUI() {
     }
 }
 
-config = await buildMinimalLaunchpadUI();
+await buildMinimalLaunchpadUI();
 
 $(function () {
     utilities.initializeTooltips();

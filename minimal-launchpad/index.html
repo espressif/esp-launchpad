@@ -33,7 +33,7 @@
                 <div class="modal-body">
                     <p id="errorMessageDescription">It's taking longer than usual for connecting the device.</p>
                     <p class="errorMessage" id="errorMessage" style="display: none;"></p>
-                    <p>Refer to the troubleshooting guide below for assistance in resolving the issue.</p>
+                    <p id="troubleshootAccordionLabel">Refer to the troubleshooting guide below for assistance in resolving the issue.</p>
                     <div class="accordion" id="troubleshootAccordion">
                         <div class="accordion-item border-0">
                             <h2 class="accordion-header" id="headingOne">
@@ -175,7 +175,7 @@
             </div>
         </div>
         <div style="position: absolute; top: 50%;">
-            <button class="connectButton" id="connectButton" tabindex="0" type="button">Connect Your Device<span
+            <button class="connectButton" id="connectButton" tabindex="0" type="button" disabled>Connect Your Device<span
                     class="span-svg"><svg class="svg" focusable="false" aria-hidden="true" viewBox="0 0 24 24"
                         data-testid="EastIcon">
                         <path fill="#FFFFFF" d="m15 5-1.41 1.41L18.17 11H2v2h16.17l-4.59 4.59L15 19l7-7-7-7z"></path>
