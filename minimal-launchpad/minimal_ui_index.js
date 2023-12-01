@@ -81,7 +81,7 @@ async function downloadAndFlash() {
     let fileArr = []
     for (let index = 0; index < imagePartsArray.length; index++) {
         let data = await utilities.getImageData(imagePartsArray[index]);
-        fileArr.push({ data: data, address: imagePartsOffsetArray[index] });
+        fileArr.push({ data: data, address: parseInt(imagePartsOffsetArray[index]) });
     }
     try {
         const flashOptions = {
@@ -218,7 +218,7 @@ async function connectToDevice() {
         if (config.portConnectionOptions?.length) {
             loaderOptions = {
                 transport: transport,
-                baudrate: config.portConnectionOptions[0]?.baudRate,
+                baudrate: parseInt(config.portConnectionOptions[0]?.baudRate),
                 terminal: espLoaderTerminal,
                 serialOptions,
             };
@@ -298,7 +298,7 @@ consoleStartButton.onclick = async () => {
         }
     }
     if (config.portConnectionOptions?.length) {
-        await transport.connect(config.portConnectionOptions[0]?.baudRate, serialOptions);
+        await transport.connect(parseInt(config.portConnectionOptions[0]?.baudRate), serialOptions);
     } else {
         await transport.connect();
     }
