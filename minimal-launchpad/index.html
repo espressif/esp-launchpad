@@ -64,6 +64,19 @@
                                                     </p>
                                                 </div>
                                                 <div class="col-xs-12 mt-2">
+                                                    <h4 class="topic mb-2" style="font-size: 14px;">
+                                                        <b>Serial Data Transmission Permission Issue</b>
+                                                    </h4>
+                                                    <div class="mb-3">
+                                                        For linux users, the currently logged in user should have read and write access the serial port over USB. On most Linux
+                                                        distributions, this is done by adding the user to dialout group with the following command:
+                                                        <div class="command-snippet"> usermod -a -G dialout $USER </div>
+                                                        on Arch Linux this is done by adding the user to uucp group with the following command:
+                                                        <div class="command-snippet"> sudo usermod -a -G uucp $USER </div>
+                                                        Make sure you re-login to enable read and write permissions for the serial port.
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-12 mt-2">
                                                     <h4 class="topic mb-2" style="font-size: 14px;"><b>Browser Compatability
                                                             Issue</b></h4>
                                                     <p>

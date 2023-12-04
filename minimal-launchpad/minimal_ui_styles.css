@@ -86,6 +86,13 @@
   color: #a35c5c;
   padding: 5px;
 }
+
+.command-snippet {
+  padding: 10px;
+  background-color: #eee;
+  margin: 5px 5px 5px 0;
+}
+
 @keyframes bounce {
 
   0%,
