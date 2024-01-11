@@ -7,6 +7,7 @@ export const usbPortFilters = [
     { usbVendorId: 0x303a, usbProductId: 0x0009 }, /* ESP32-S3 USB_CDC */
     { usbVendorId: 0x1a86, usbProductId: 0x55d4 }, /* CH9102F */
     { usbVendorId: 0x1a86, usbProductId: 0x7523 }, /* CH340T */
+    { usbVendorId: 0x0403, usbProductId: 0x6001 }, /* FT232R */
 ];
 
 export function getTerminalColumns(mainContainer = null) {
