@@ -58,6 +58,7 @@ let device = null;
 let transport = undefined;
 let chip = "default";
 let chipDesc = "default";
+let consoleBaudrateFromToml;
 let esploader;
 let connected = false;
 let ios_app_url = "";
@@ -136,6 +137,10 @@ function buildQuickTryUI_v1_0() {
         populateSupportedChipsets(config[supported_apps[0]]);
         if (config[supported_apps[0]].readme?.text) {
             markdown_payload_url = config[supported_apps[0]].readme.text;
+        }
+
+        if (config[supported_apps[0]].console_baudrate) {
+            consoleBaudrateFromToml = config[supported_apps[0]].console_baudrate;
         }
     }
     setAppURLs(config[supported_apps[0]]);
@@ -227,6 +232,10 @@ $('#device').on('change', function() {
     } else {
         markdown_payload_url = "";
     }
+
+    if (config[deviceTypeSelect.value].console_baudrate) {
+        consoleBaudrateFromToml = config[deviceTypeSelect.value].console_baudrate;
+    }
 });
 
 $(function () {
@@ -263,10 +272,10 @@ async function connectToDevice() {
         };
         esploader = new ESPLoader(loaderOptions);
         connected = true;
-        chipDesc = await esploader.main_fn();
+        chipDesc = await esploader.main();
         chip = esploader.chip.CHIP_NAME;
 
-        await esploader.flash_id();
+        await esploader.flashId();
     } catch(e) {
     }
 
@@ -319,7 +328,7 @@ resetButton.onclick = async () => {
             await device.close();
         }
     }
-    await transport.connect();
+    await transport.connect(consoleBaudrateFromToml);
     await transport.setDTR(false);
     await new Promise(resolve => setTimeout(resolve, 100));
     await transport.setDTR(true);
@@ -350,7 +359,7 @@ eraseButton.onclick = async () => {
     terminalContainer.classList.remove("fade-in-down");
     eraseButton.disabled = true;
     $('#v-pills-console-tab').click();
-    await esploader.erase_flash();
+    await esploader.eraseFlash();
     postFlashDone();
     eraseButton.disabled = false;
 }
@@ -511,7 +520,7 @@ programButton.onclick = async () => {
             eraseAll: false,
             compress: true,
         };
-        await esploader.write_flash(flashOptions);
+        await esploader.writeFlash(flashOptions);
         postFlashDone();
         terminalContainer.classList.remove("fade-in-down");
     } catch (e) {
@@ -531,7 +540,7 @@ async function downloadAndFlash(fileURL) {
                 eraseAll: false,
                 compress: true,
             };
-            await esploader.write_flash(flashOptions);
+            await esploader.writeFlash(flashOptions);
         }
     } catch (e) {
     }

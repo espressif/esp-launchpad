@@ -21,3 +21,5 @@ android_app_url = ""
 ios_app_url = ""
 # Optional: URL of the Markdown file for additional information about the app
 readme.text = "<URL to your Markdown file>"
+# Optional: Supported console baudrate for app firmware (default value is 115200)
+console_baudrate = <SUPPORTED_CONSOLE_BAUDRATE>
