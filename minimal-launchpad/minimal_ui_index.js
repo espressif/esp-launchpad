@@ -46,6 +46,7 @@ let device = null;
 let transport;
 let chip = "default";
 let chipDesc = "default";
+let consoleBaudrateFromToml;
 let esploader;
 let connected = false;
 let resizeTimeout = false;
@@ -92,7 +93,7 @@ async function downloadAndFlash() {
             eraseAll: true, // Always erasing before flash
             compress: true,
         };
-        await esploader.write_flash(flashOptions);
+        await esploader.writeFlash(flashOptions);
     } catch (error) {
         errorTroubleshootModalToggleButton.click();
         waitButton.style.display = "none";
@@ -232,14 +233,14 @@ async function connectToDevice() {
         esploader = new ESPLoader(loaderOptions);
         connected = true;
 
-        chipDesc = await esploader.main_fn();
+        chipDesc = await esploader.main();
         clearTimeout(deviceConnectionTimeout);
         if (errorTroubleshootModal.classList.contains("show")) {
             errorTroubleshootModalToggleButton.click();
         }
         chip = esploader.chip.CHIP_NAME;
 
-        await esploader.flash_id();
+        await esploader.flashId();
     } catch (error) {
         clearTimeout(deviceConnectionTimeout);
         if (!errorTroubleshootModal.classList.contains("show")) {
@@ -300,7 +301,8 @@ consoleStartButton.onclick = async () => {
     if (config.portConnectionOptions?.length) {
         await transport.connect(parseInt(config.portConnectionOptions[0]?.baudRate), serialOptions);
     } else {
-        await transport.connect();
+        consoleBaudrateFromToml = config[config['supported_apps'][0]].console_baudrate;
+        await transport.connect(consoleBaudrateFromToml);
     }
     await transport.setDTR(false);
     await new Promise(resolve => setTimeout(resolve, 100));

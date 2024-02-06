@@ -2,7 +2,7 @@
 	"name": "esp-launchpad",
 	"dependencies": {
 		"crypto-js": "^4.1.1",
-		"esptool-js": "^0.3.2",
+		"esptool-js": "^0.4.1",
 		"smol-toml": "^1.1.2",
 		"xterm": "^4.17.0",
 		"xterm-addon-fit": "^0.5.0"
