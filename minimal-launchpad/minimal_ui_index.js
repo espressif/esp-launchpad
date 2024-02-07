@@ -215,21 +215,23 @@ async function connectToDevice() {
     spinner.style.alignItems = "center";
 
     try {
+        const commonLoaderOptions = {
+            transport: transport,
+            baudrate: 460800,
+            terminal: espLoaderTerminal,
+        };
+
         let loaderOptions;
+
         if (config.portConnectionOptions?.length) {
             loaderOptions = {
-                transport: transport,
-                baudrate: parseInt(config.portConnectionOptions[0]?.baudRate),
-                terminal: espLoaderTerminal,
+                ...commonLoaderOptions,
                 serialOptions,
             };
         } else {
-            loaderOptions = {
-                transport: transport,
-                baudrate: 460800,
-                terminal: espLoaderTerminal,
-            };
+            loaderOptions = commonLoaderOptions;
         }
+
         esploader = new ESPLoader(loaderOptions);
         connected = true;
 
