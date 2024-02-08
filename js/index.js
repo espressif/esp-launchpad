@@ -1,4 +1,5 @@
-const baudrates = document.getElementById("baudrates");
+const flashingBaudrateSelect = document.getElementById("flashingBaudrateSelect");
+const consoleBaudrateSelect = document.getElementById("consoleBaudrateSelect");
 const connectButton = document.getElementById("connectButton");
 const disconnectButton = document.getElementById("disconnectButton");
 const resetButton = document.getElementById("resetButton");
@@ -66,6 +67,8 @@ let android_app_url = "";
 let setup_payload_logo_url = "";
 let setup_qrcode_payload = "";
 let markdown_payload_url = "";
+let isFlashByDIYMode = false;
+let isFlashByQuickTryMode = false;
 
 disconnectButton.style.display = "none";
 eraseButton.style.display = "none";
@@ -267,7 +270,7 @@ async function connectToDevice() {
     try {
         const loaderOptions = {
             transport,
-            baudrate: parseInt(baudrates.value),
+            baudrate: parseInt(flashingBaudrateSelect.value),
             terminal: espLoaderTerminal
         };
         esploader = new ESPLoader(loaderOptions);
@@ -286,14 +289,14 @@ function postConnectControls() {
         lblConnTo.innerHTML = "<b><span style='color:#17a2b8'>Connected to device: </span>" + chipDesc + "</b>";
         $("#programButton").prop("disabled", false);
         $("#programwrapper").tooltip().attr("data-bs-original-title","This will flash the firmware image on your device");
-        $("#baudrates").prop("disabled", true);
+        $("#flashingBaudrateSelect").prop("disabled", true);
         $("#flashButton").prop("disabled", false);
         $("#flashWrapper").tooltip().attr('data-bs-original-title', "This will download and flash the firmware image on your device");
         $("#consoleStartButton").prop("disabled", false);
         $("#eraseButton").prop("disabled", false);
 
         ensureConnect.style.display = "none";
-        settingsWarning.style.display = "initial";
+        settingsWarning.style.display = "block";
         connectButton.style.display = "none";
         disconnectButton.style.display = "initial";
         eraseButton.style.display = "initial";
@@ -317,6 +320,8 @@ connectButton.onclick = async () => {
 
 
 resetButton.onclick = async () => {
+    let consoleBaudrate;
+
     postFlashClick();
     consoleStartButton.disabled = false;
     $('#closeResetModal').click();
@@ -328,7 +333,12 @@ resetButton.onclick = async () => {
             await device.close();
         }
     }
-    await transport.connect(consoleBaudrateFromToml);
+    if (isFlashByQuickTryMode || isFlashByDIYMode) { // Handle the case of resetting the device after flashing through one of the two modes.
+        consoleBaudrate = isFlashByQuickTryMode && consoleBaudrateFromToml ? consoleBaudrateFromToml : parseInt(consoleBaudrateSelect.value);
+    } else {
+        consoleBaudrate = parseInt(consoleBaudrateSelect.value); // Handle the case of resetting the device without flashing through any mode.
+    }
+    await transport.connect(consoleBaudrate);
     await transport.setDTR(false);
     await new Promise(resolve => setTimeout(resolve, 100));
     await transport.setDTR(true);
@@ -405,6 +415,8 @@ function cleanUp() {
     transport = undefined;
     chip = "default";
     reader = undefined;
+    isFlashByDIYMode = false;
+    isFlashByQuickTryMode = false;
 }
 
 disconnectButton.onclick = async () => {
@@ -419,7 +431,7 @@ disconnectButton.onclick = async () => {
     terminalContainer.style.display = "none";
     term.clear();
     connected = false;
-    $("#baudrates").prop("disabled", false);
+    $("#flashingBaudrateSelect").prop("disabled", false);
     $("#flashButton").prop("disabled", true);
     $("#flashWrapper").tooltip().attr('data-bs-original-title', "Click on 'Connect' button in top Menu");
     $("#programwrapper").tooltip().attr("data-bs-original-title","Click on 'Connect' button in top Menu");
@@ -510,6 +522,8 @@ programButton.onclick = async () => {
         fileArr.push({data:fileObj.data, address:offset});
     }
     clearAppInfoHistory();
+    isFlashByDIYMode = true;
+    isFlashByQuickTryMode = false;
     $('#v-pills-console-tab').click();
     try {
         const flashOptions = {
@@ -697,6 +711,8 @@ flashButton.onclick = async () => {
         cleanUpOldFlashHistory();
         clearAppInfoHistory();
         postFlashClick();
+        isFlashByDIYMode = false;
+        isFlashByQuickTryMode = true;
         await downloadAndFlash(file_server_url + flashFile);
 
         if (markdown_payload_url) {
