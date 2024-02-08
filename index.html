@@ -309,25 +309,49 @@
             <div class="row">
                 <div class="col-xs-12 ">
                     <div class="form">
-                        <div id="baudRateSetting" class="lh-lg">
-                            <span><b>Change the Baudrate to set the serial communication speed:</b></span>
+                        <div id="baudRateSettings" class="lh-lg">
+                            <span><b>Configure the baudrate's for serial communication as per your application:</b></span>
                         </div>
                         <hr/>
-                        <div class="field-container">
-                            <label>
-                                Baudrate
-                            </label>
-                            <div class="field" id="baudSettings">
-                                <select name="baudrates" id="baudrates">
-                                    <option value="921600">921600</option>
-                                    <option value="460800">460800</option>
-                                    <option value="230400">230400</option>
-                                    <option value="115200">115200</option>
-                                </select>
+                        <div class="d-flex justify-content-around">
+                            <div class="field-container">
+                                <label>
+                                    Flashing Baudrate
+                                </label>
+                                <div class="field" id="flashingBaudrateSettings">
+                                    <select name="flashingBaudrateSelect" id="flashingBaudrateSelect">
+                                        <option value="921600">921600</option>
+                                        <option value="460800">460800</option>
+                                        <option value="230400">230400</option>
+                                        <option value="115200">115200</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="field-container">
+                                <label>
+                                    Console Baudrate
+                                </label>
+                                <div class="field" id="consoleBaudrateSettings">
+                                    <select name="consoleBaudrateSelect" id="consoleBaudrateSelect">
+                                        <option value="115200">115200</option>
+                                        <option value="74880">74880</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                        <div id="settingsWarning" style="display:none">
-                            <span><i> ** Settings cannot be changed for a connected device. Please disconnect the device and then change the settings.</i></span>
+                        <div id="settingsWarning" style="display:none" class="mt-3">
+                            <div class="mb-1">
+                                <i>
+                                    ** Flashing baudrate cannot be changed for a connected device. Please disconnect the device and then change the flashing baudrate.
+                                </i>
+                            </div>
+                            <div>
+                                <i>
+                                    ** If you haven't configured the console baudrate in the TOML file as mentioned
+                                    <a href="https://github.com/espressif/esp-launchpad/blob/main/config/config.toml" target="_blank">here</a>
+                                     or are using DIY mode, you can change it in between device resets.
+                                </i>
+                            </div>
                         </div>
                     </div>     
                 </div>
@@ -428,7 +452,7 @@
 
         <footer class="mt-auto py-3">
             <div class="container text-center">
-                <span class="text-muted">Copyright © 2023 Espressif Systems</span>
+                <span class="text-muted">Copyright © 2024 Espressif Systems</span>
             </div>
         </footer>
         <!-- Third party libraries-->
