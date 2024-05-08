@@ -301,7 +301,7 @@ consoleStartButton.onclick = async () => {
         }
     }
     if (config.portConnectionOptions?.length) {
-        await transport.connect(parseInt(config.portConnectionOptions[0]?.baudRate), serialOptions);
+        await transport.connect(parseInt(config.portConnectionOptions[0]?.console_baudrate), serialOptions);
     } else {
         consoleBaudrateFromToml = config[config['supported_apps'][0]].console_baudrate;
         await transport.connect(consoleBaudrateFromToml);
