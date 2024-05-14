@@ -30,6 +30,9 @@ const appInfoContainer = document.getElementById("appInfoContainer");
 const terminalContainer = document.getElementById("terminalContainer");
 const appInfo = document.getElementById("appInfo");
 const consolePageWrapper = document.getElementById("consolePageWrapper");
+const appConfigInfoContainer = document.getElementById("appConfigInfoContainer");
+const appConfigInfo = document.getElementById("appConfigInfo");
+const progressMsgContainerQS = document.getElementById("progressMsgContainerQS");
 
 let resizeTimeout = false;
 
@@ -69,6 +72,7 @@ let setup_qrcode_payload = "";
 let markdown_payload_url = "";
 let isFlashByDIYMode = false;
 let isFlashByQuickTryMode = false;
+let config_readme_url = "";
 
 disconnectButton.style.display = "none";
 eraseButton.style.display = "none";
@@ -133,8 +137,20 @@ async function buildQuickTryUI() {
 
 
 //Parsing of toml based on v1.0 and builing UI accordingly.
-function buildQuickTryUI_v1_0() {
+async function buildQuickTryUI_v1_0() {
     const supported_apps = config["supported_apps"];
+    config_readme_url = config['config_readme_url'] || '';
+    if (config_readme_url) {
+        try {
+            let response = await fetch(config_readme_url);
+            let mdContent = await response.text();
+            let htmlText = utilities.mdToHtmlConverter(mdContent);
+            appConfigInfoContainer.style.display = "flex";
+            appConfigInfo.innerHTML = htmlText;
+        } catch (e) {
+            appConfigInfoContainer.style.display = "none";
+        }
+    }
     if(supported_apps) {
         addDeviceTypeOption(supported_apps);
         populateSupportedChipsets(config[supported_apps[0]]);
@@ -707,6 +723,7 @@ flashButton.onclick = async () => {
         var file_server_url = config.firmware_images_url;
     
         progressMsgQS.style.display = "inline";
+        progressMsgContainerQS.style.display = "block";
     
         cleanUpOldFlashHistory();
         clearAppInfoHistory();
