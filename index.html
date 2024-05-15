@@ -170,73 +170,67 @@
         <div class="container tabs-section main-page-tab-panel" data-tab-panel-id="quickstart">
             <h5 class="pt-4 pb-2 lh-lg"><span id="qtLabel">Choose from some of ESP's pre-built, out-of-the-box examples to flash and play</span></h5>
             <div class="form">
-                <div class="field-container">
-                    <label>
-                        Select Application
-                    </label>
-                    <div class="field">
-                        <select name="device" id="device">
-                            <option value="Matter-AllClustersApp">Matter-AllClustersApp</option>
-                            <option value="RainMaker-Fan">RainMaker-Fan</option>
-                            <option value="RainMaker-GPIO">RainMaker-GPIO</option>
-                            <option value="RainMaker-HomekitSwitch">RainMaker-HomekitSwitch</option>
-                            <option value="RainMaker-LedLight">RainMaker-LedLight</option>
-                            <option value="RainMaker-MultiDevice">RainMaker-MultiDevice</option>
-                            <option value="RainMaker-Switch">RainMaker-Switch</option>
-                            <option value="RainMaker-TemperatureSensor">RainMaker-TemperatureSensor</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="field-container">
-                    <label>
-                        ESP Chipset Type
-                    </label>
-                    <div class="field">
-                        <div id="chipsets">
-                            <div class="form-check-inline">
-                                <label class="form-check-label" for="radio1">ESP32&nbsp;
-                                    <input type="radio" checked class="form-check-input" name="chipType" id="radio1" value="esp32_matter_all-clusters-app_te6_merged.bin">
-                                </label>
+                <div class="d-flex justify-content-between flex-wrap form-config-info-container-wrapper">
+                    <div class="form-container">
+                        <div class="field-container">
+                            <label>
+                                Select Application
+                            </label>
+                            <div class="field">
+                                <select name="device" id="device">
+                                </select>
                             </div>
-                            <div class="form-check-inline">
-                                <label class="form-check-label" for="radio2">ESP32-C3&nbsp;
-                                    <input type="radio" class="form-check-input" name="chipType" id="radio2" value="esp32c3_matter_all-clusters-app_te6_merged.bin">
-                                </label>
+                        </div>
+                        <div class="field-container">
+                            <label>
+                                ESP Chipset Type
+                            </label>
+                            <div class="field">
+                                <div id="chipsets">
+                                    <div class="form-check-inline">
+                                        <label class="form-check-label" for="radio1">ESP32&nbsp;
+                                            <input type="radio" checked class="form-check-input" name="chipType" id="radio1" value="esp32_matter_all-clusters-app_te6_merged.bin">
+                                        </label>
+                                    </div>
+                                    <div class="form-check-inline">
+                                        <label class="form-check-label" for="radio2">ESP32-C3&nbsp;
+                                            <input type="radio" class="form-check-input" name="chipType" id="radio2" value="esp32c3_matter_all-clusters-app_te6_merged.bin">
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field-container">
+                            <div class="field-container" title="Click on 'Connect' button in top Menu" style="display:inline-block" data-toggle="tooltip" id="flashWrapper">
+                                <button class="app-button submit-form-button btn btn-outline-dark" id="flashButton" disabled>Flash</button>
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="field-container">
-                    
-                    <div class="field-container" title="Click on 'Connect' button in top Menu" style="display:inline-block" data-toggle="tooltip" id="flashWrapper">
-                        <button class="app-button submit-form-button btn btn-outline-dark" id="flashButton" disabled>Flash</button>
+                    <div class="card text-dark bg-light app-config-info-container" id="appConfigInfoContainer" style="display: none;">
+                        <div class="card-header">Application Configuration&colon;</div>
+                        <div class="card-body overflow-auto" id="appConfigInfo"></div>
                     </div>
                 </div>
-                <div class="mt-xl-5 ">
+                <div class="mt-xl-5" id="progressMsgContainerQS" style="display:none">
                     <span id="progressMsgQS" style="display:none"><i>This may take a short while. Check console for the progress</i></span>
                     <br /><br />
                     <span id="setupPayloadInfoTextQS"></span>
+                    <br><br>
                 </div>
-                <br><br>
-                <div>
-                    <div id='qrcodeContainerQS' style='display:flex'>
-                        <div id="qrAndroidRowQS">
-                            <div id="androidAppLogoQS" style="padding-bottom: 5px;"></div>
-                            <div id='qrcodeAndroidAppQS' style="padding-right: 40px;"></div>
-                        </div>
-                        <div id="qrIOSRowQS">
-                            <div id="iosAppLogoQS" style="padding-bottom: 5px;"></div>
-                            <div id='qrcodeIOSAppQS' style="padding-right: 40px;"></div>
-                        </div>
-                        <div id="setupPayloadRowQS" class="ms-auto">
-                            <div id="setupLogoContainerQS" style="padding-bottom: 5px;"></div>
-                            <div id='setupQRCodeContainerQS'></div>
-                        </div>
+                <div id='qrcodeContainerQS' style='display:flex'>
+                    <div id="qrAndroidRowQS">
+                        <div id="androidAppLogoQS" style="padding-bottom: 5px;"></div>
+                        <div id='qrcodeAndroidAppQS' style="padding-right: 40px;"></div>
+                    </div>
+                    <div id="qrIOSRowQS">
+                        <div id="iosAppLogoQS" style="padding-bottom: 5px;"></div>
+                        <div id='qrcodeIOSAppQS' style="padding-right: 40px;"></div>
+                    </div>
+                    <div id="setupPayloadRowQS" class="ms-auto">
+                        <div id="setupLogoContainerQS" style="padding-bottom: 5px;"></div>
+                        <div id='setupQRCodeContainerQS'></div>
                     </div>
                 </div>
-                <br> <br>
             </div>
         </div>
         <!-- Quick start tab content - end -->

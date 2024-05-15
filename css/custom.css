@@ -260,6 +260,11 @@ td img {
   margin-top: 3rem;
 }
 
+.app-config-info-container {
+    max-width: 25rem;
+    max-height: 20rem;
+}
+
 @media (min-width: 1400px) {
     .container-xxl, .container-xl, .container-lg, .container-md, .container-sm, .container {
       max-width: 1320px;
@@ -270,6 +275,10 @@ td img {
 @media (max-width: 1200px) {
     .navbar-brand .tagline {
         display: none;
+    }
+    .app-config-info-container {
+        min-width: 100%;
+        margin: 2rem 0rem;
     }
 }
 
@@ -295,6 +304,10 @@ td img {
 
     .form > .field-container > label {
         margin-bottom: 15px;
+    }
+
+    .form-config-info-container-wrapper {
+        display: block !important;
     }
 }
 @keyframes fadeInDown {

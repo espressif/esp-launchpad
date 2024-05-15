@@ -8,6 +8,10 @@ firmware_images_url = "<URL to your firmware images directory>"
 # There should be a config section per listed App
 supported_apps = ["YOUR_FIRMWARE_APP_NAME"]
 
+# Optional: This should be a publicly accessible URL of the application configuration markdown file
+# The markdown file will display the application configuration.
+# It might include details such as the revisions of esp-idf, esp-matter, etc. or any other application configuration
+config_readme_url = "<APP_CONFIG_README_FILE_URL>"
 
 [YOUR_FIRMWARE_APP_NAME]
 # ESP32 Chipsets for which you have a supported Firmware App. Define a property for each supported chipset in the given format.
