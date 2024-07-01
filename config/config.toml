@@ -15,11 +15,18 @@ config_readme_url = "<APP_CONFIG_README_FILE_URL>"
 
 [YOUR_FIRMWARE_APP_NAME]
 # ESP32 Chipsets for which you have a supported Firmware App. Define a property for each supported chipset in the given format.
-chipsets = ["ESP32", "ESP32-S2", "ESP32-C3"]
+chipsets = ["ESP32", "ESP32-S2", "ESP32-C3", "ESP32-S3"]
+# Optional: Set development board for chip model.
+developKits.esp32-s3 = ["esp32-s3-box", "esp32-s3-box3"]
 # Configure the name of the binary file
 image.esp32 = "SINGLE_BIN_FOR_ESP32.bin"
 image.esp32-s2 = "SINGLE_BIN_FOR_ESP32-S2.bin"
 image.esp32-c3 = "SINGLE_BIN_FOR_ESP32-C3.bin"
+# Optinal: Configure the name of the image file for development board. Under this configuration, image.esp32-s3 will become invalid..
+image.esp32-s3-box = "SINGLE_BIN_FOR_ESP32-S3-BOX.bin"
+image.esp32-s3-box3 = "SINGLE_BIN_FOR_ESP32-S3-BOX3.bin"
+# Optional: A brief introduction to this app.
+description = "Description of the firmware app"
 # Optional: Phone APP URLs if any for Playstores
 android_app_url = ""
 ios_app_url = ""
