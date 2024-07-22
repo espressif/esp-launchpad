@@ -38,6 +38,7 @@ const consolePageWrapper = document.getElementById("consolePageWrapper");
 const appConfigInfoContainer = document.getElementById("appConfigInfoContainer");
 const appConfigInfo = document.getElementById("appConfigInfo");
 const progressMsgContainerQS = document.getElementById("progressMsgContainerQS");
+const developKitsContainer = document.getElementById("developKitsContainer");
 
 let resizeTimeout = false;
 
@@ -231,7 +232,7 @@ function populateSupportedDevelopKits(developKitsConfig) {
     developKitsRadioGroup.innerHTML = "";
     let inputElement;
 
-    developKitsConfig.forEach(developKit => {
+    developKitsConfig.forEach((developKit, i) => {
         var div = document.createElement("div");
         div.setAttribute("class", "form-check-inline");
 
@@ -252,15 +253,14 @@ function populateSupportedDevelopKits(developKitsConfig) {
         div.appendChild (lblElement);
 
         developKitsRadioGroup.appendChild(div);
+        if (i === 0) {
+            inputElement.checked = true;
+            var chipTypeButtons = $('input[type="radio"][name="chipType"]:checked');
+            chipTypeButtons.val(inputElement.value);
+        }
     });
 
     developKitsContainer.style.display = "";
-
-    if (developKitsConfig.length === 1) {
-        inputElement.checked = true;
-        var chipTypeButtons = $('input[type="radio"][name="chipType"]:checked');
-        chipTypeButtons.val(inputElement.value);
-    }
 }
 
 function populateSupportedChipsets(deviceConfig) {
@@ -458,10 +458,6 @@ function postConnectControls() {
     lblConnTo.style.display = "block";
 
     $('input:radio[id="radio-' + chip + '"]').prop('checked', true).trigger('change');
-    if (config[deviceTypeSelect.value].developKits?.[chip.toLowerCase()]) {
-        let developKits = config[deviceTypeSelect.value].developKits[chip.toLowerCase()][0];
-        $('input:radio[id="radio-' + developKits + '"]').prop('checked', true).trigger('change');
-    }
 }
 
 connectButton.onclick = async () => {
