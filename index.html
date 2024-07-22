@@ -116,7 +116,7 @@
                                 <span>DIY</span>
                             </button>
                         </li>
-                        
+
                         <li class="nav-item">
                             <button class="nav-link icon-button" id="connectButton">
                                 <img src="assets/icons/connect.png" class="icon" />
@@ -127,7 +127,7 @@
                                 <span>Disconnect</span>
                             </button>
                         </li>
-                        
+
                         <li class="nav-item" data-role="nav-menu-tab" data-target-tab-panel-id="console">
                             <button class="nav-link icon-button" id="v-pills-console-tab">
                                 <img src="assets/icons/console.png" class="icon" />
@@ -200,10 +200,39 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="field-container" id ="developKitsContainer" style="display: none">
+                            <label>
+                                ESP Develop Kits
+                            </label>
+                            <div class="field">
+                                <div id="developKits">
+                                    <div class="form-check-inline">
+                                        <label class="form-check-label" for="radio3">ESP32-S3-DevKits&nbsp;
+                                            <input type="radio" checked class="form-check-input" name="developKitsType" id="radio3" value="">
+                                        </label>
+                                    </div>
+                                    <div class="form-check-inline">
+                                        <label class="form-check-label" for="radio4">ESP32-S3-DevKits&nbsp;
+                                            <input type="radio" class="form-check-input" name="developKitsType" id="radio4" value="">
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field-container" id="appDescriptionContainer" style="display: none; align-items: baseline;">
+                            <label>
+                                Application Description
+                            </label>
+                            <span class="appdescription-text" id="appDescription">
+                            </span>
+                        </div>
                         <div class="field-container">
                             <div class="field-container" title="Click on 'Connect' button in top Menu" style="display:inline-block" data-toggle="tooltip" id="flashWrapper">
                                 <button class="app-button submit-form-button btn btn-outline-dark" id="flashButton" disabled>Flash</button>
                             </div>
+                        </div>
+                        <div class="appinfocontainer col-6" id="appInfoContainer" style="display:none;">
+                            <div id="appInfo"></div>
                         </div>
                     </div>
                     <div class="card text-dark bg-light app-config-info-container" id="appConfigInfoContainer" style="display: none;">
@@ -239,9 +268,9 @@
         <div class="container tabs-section main-page-tab-panel" data-tab-panel-id="diy">
             <h5 class="pt-4 pb-2 lh-lg">Choose your own built firmware image from the local storage to flash and use.</h5>
                 <br>
-                <input class="btn btn-danger btn-sm" type="button" id="eraseButton" value="Erase Flash" data-toggle="tooltip" 
+                <input class="btn btn-danger btn-sm" type="button" id="eraseButton" value="Erase Flash" data-toggle="tooltip"
             data-placement="top" title="Erase firmware on your device"/>
-                
+
                 <div class="alert alert-danger alert-dismissible fade-in-down" id="alertDiv" style="display:none; margin-top:10px">
                     <a href="#" class="close" aria-label="close" onclick="$('.alert').hide()">&times;</a>
                     <span id="alertmsg"></span>
@@ -277,11 +306,11 @@
         </div>
         <!-- DIY tab content - end -->
 
-        <!-- Console tab content - start -->    
+        <!-- Console tab content - start -->
         <div class="container main-page-tab-panel" data-tab-panel-id="console">
             <div class="row" id="consolePageWrapper">
-                <div class="appinfocontainer col-6" id="appInfoContainer" style="display:none;">
-                    <div id="appInfo"></div>
+                <div class="appinfo-flash-container col-6" id="appInfoFlashContainer" style="display:none;">
+                    <div id="appInfoFlash"></div>
                 </div>
                 <div class="col-12 fade-in-down" id="terminalContainer" style="display:none;">
                     <div class="button-container text-end mb-sm-3">
@@ -295,9 +324,9 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Console tab content - end -->
-        
+
         <!-- Settings tab content - start -->
         <div class="container main-page-tab-panel" data-tab-panel-id="settings">
             <div class="row">
@@ -347,7 +376,7 @@
                                 </i>
                             </div>
                         </div>
-                    </div>     
+                    </div>
                 </div>
             </div>
         </div>
@@ -411,7 +440,7 @@
                     this firmware. A sample TOML config file can be viewed <a href="https://espressif.github.io/esp-launchpad/config/config.toml"> here </a> </p>
 
                     <p>Rest of the flashing procedure is same easy 4 step process as the Quick Start one above.</p>
-                        
+
                     <p>Once ready, you can use the following image and add following html code on your website for supporting ESPaunchpad with your configuration.
                         Edit the query parameter in the href, replacing URL_TO_YOUR_CONFIG_TOML value where your TOML config file is hosted.
                     </p>
@@ -432,7 +461,7 @@
         </div>
         <!-- About us tab content - end -->
     </div>
-    
+
     <!-- Safari & FireFox not supported error message-->
     <div id="unsupportedBrowserErr" style="display:none"><p align="center" style="color:red">
         This tool is not supported on Safari & Firefox browsers yet! Please try using another browser like Google Chrome.
