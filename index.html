@@ -230,8 +230,17 @@
                             <div class="field-container" title="Click on 'Connect' button in top Menu" style="display:inline-block" data-toggle="tooltip" id="flashWrapper">
                                 <button class="app-button submit-form-button btn btn-outline-dark" id="flashButton" disabled>Flash</button>
                             </div>
+                            <div id="appInfoTriggerContainer" class="field-container app-info-trigger-container" style="display: none;">
+                                <a href="#" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">Show Application Information</a>
+                            </div>
                         </div>
-                        <div class="appinfocontainer col-6" id="appInfoContainer" style="display:none;">
+                    </div>
+                    <div class="offcanvas offcanvas-end w-50" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+                        <div class="offcanvas-header">
+                          <h2 id="offcanvasRightLabel">Application Information</h2>
+                          <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                        </div>
+                        <div class="offcanvas-body">
                             <div id="appInfo"></div>
                         </div>
                     </div>

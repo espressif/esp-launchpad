@@ -260,12 +260,6 @@ td img {
     word-wrap: break-word;
 }
 
-.appinfocontainer {
-    max-height: 600px;
-    overflow-y: auto;
-    margin-top: 3rem;
-    width: 100%;
-}
 
 .appinfo-flash-container {
     max-height: 600px;
@@ -276,6 +270,11 @@ td img {
 .app-config-info-container {
     max-width: 25rem;
     max-height: 20rem;
+}
+
+.app-info-trigger-container {
+    padding-top: 14px;
+    margin-left: 18px;
 }
 
 @media (min-width: 1400px) {

@@ -29,7 +29,6 @@ const setupLogoContainer = document.getElementById("setupLogoContainer");
 const setupLogoContainerQS = document.getElementById("setupLogoContainerQS");
 const appDescriptionContainer = document.getElementById("appDescriptionContainer");
 const appDescription = document.getElementById("appDescription");
-const appInfoContainer = document.getElementById("appInfoContainer");
 const appInfoFlashContainer = document.getElementById("appInfoFlashContainer");
 const terminalContainer = document.getElementById("terminalContainer");
 const appInfo = document.getElementById("appInfo");
@@ -39,6 +38,8 @@ const appConfigInfoContainer = document.getElementById("appConfigInfoContainer")
 const appConfigInfo = document.getElementById("appConfigInfo");
 const progressMsgContainerQS = document.getElementById("progressMsgContainerQS");
 const developKitsContainer = document.getElementById("developKitsContainer");
+const appInfoTriggerContainer = document.getElementById("appInfoTriggerContainer");
+const rightOffCanvasContainer = document.getElementById("offcanvasRight");
 
 let resizeTimeout = false;
 
@@ -175,17 +176,9 @@ async function buildQuickTryUI_v1_0() {
         let mdContent = await response.text();
         let htmlText = utilities.mdToHtmlConverter(mdContent);
 
+        appInfoTriggerContainer.style.display = '';
         appInfo.innerHTML = htmlText;
-        appInfoContainer.style.display = "block";
-        appInfoContainer.classList.add("slide-up");
 
-        setTimeout(() => {
-            appInfoContainer.classList.add("bounce");
-        }, 2500);
-
-        setTimeout(() => {
-            clearAppInfoHistory("handleFlashCleanup");
-        }, 5000);
 
         utilities.resizeTerminal(fitAddon);
     }
@@ -363,18 +356,9 @@ $('#device').on('change', function() {
             let htmlText = utilities.mdToHtmlConverter(mdContent);
 
             appInfo.innerHTML = htmlText;
-            appInfoContainer.style.display = "block";
-            appInfoContainer.classList.add("slide-up");
-
-            setTimeout(() => {
-                appInfoContainer.classList.add("bounce");
-            }, 2500);
-
-            setTimeout(() => {
-                clearAppInfoHistory("handleFlashCleanup");
-            }, 5000);
 
             utilities.resizeTerminal(fitAddon);
+            appInfoTriggerContainer.style.display = '';
         })
         .catch(error => {
             console.error('Error fetching data:', error);
@@ -383,7 +367,7 @@ $('#device').on('change', function() {
 
     } else {
         markdown_payload_url = "";
-        clearAppInfoHistory();
+        appInfoTriggerContainer.style.display = 'none';
     }
 
     if (config[deviceTypeSelect.value].console_baudrate) {
@@ -834,18 +818,6 @@ function cleanUpOldFlashHistory() {
 
 }
 
-function clearAppInfoHistory(triggeringAction = "") {
-    switch (triggeringAction) {
-        case "handleFlashCleanup":
-            appInfoContainer.classList.remove("slide-up", "bounce");
-            break;
-        default:
-            appInfo.innerHTML = "";
-            appInfoContainer.style.display = "none";
-            appInfoContainer.classList.remove("slide-up", "bounce");
-            break;
-    }
-}
 
 function clearAppInfoFlashHistory(triggeringAction = "") {
     switch (triggeringAction) {
@@ -962,12 +934,10 @@ function removeClassesOnMediaQuery() {
     const mediaQuery = window.matchMedia("(max-width: 992px)");
     function handleMediaQueryChange(mediaQuery) {
         if (mediaQuery.matches) {
-            appInfoContainer.classList.remove("col-6");
             appInfoFlashContainer.classList.remove("col-6");
             terminalContainer.classList.remove("col-6");
             consolePageWrapper.classList.add("flex-column-reverse");
         } else {
-            appInfoContainer.classList.add("col-6");
             appInfoFlashContainer.classList.add("col-6");
             terminalContainer.classList.add("col-6");
             consolePageWrapper.classList.remove("flex-column-reverse");
@@ -978,3 +948,16 @@ function removeClassesOnMediaQuery() {
 }
 
 removeClassesOnMediaQuery();
+
+const mutationObserverCallback = (mutationList) => {
+    mutationList.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+            appInfoTriggerContainer.style.display = Array.from(mutation.target.classList).includes('show') ? 'none' : '';
+        }
+    })
+}
+
+const classChangeObserver = new MutationObserver(mutationObserverCallback)
+classChangeObserver.observe(rightOffCanvasContainer, {
+    attributes: true
+})
