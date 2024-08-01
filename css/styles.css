@@ -6323,7 +6323,7 @@ textarea.form-control-lg {
 
 .offcanvas-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 1rem 1rem;
 }
