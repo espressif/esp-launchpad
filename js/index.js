@@ -676,11 +676,12 @@ programButton.onclick = async () => {
 
 async function downloadAndFlash(fileURL) {
     let data = await utilities.getImageData(fileURL);
+    let offset = parseInt(config[deviceTypeSelect.value].offset ?? "0x0000");
     try {
         if (data !== undefined) {
             $('#v-pills-console-tab').click();
             const flashOptions = {
-                fileArray : [{data:data, address:0x0000}],
+		fileArray : [{data:data, address:offset}],
                 flashSize: "keep",
                 flashMode: undefined,
                 flashFreq: undefined,
@@ -688,7 +689,9 @@ async function downloadAndFlash(fileURL) {
                 compress: true,
             };
             await esploader.writeFlash(flashOptions);
-        }
+        } else {
+	    alert("Image file not found");
+	}
     } catch (e) {
     }
 }
