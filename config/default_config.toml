@@ -1,9 +1,9 @@
 esp_toml_version = 1.0
 
-firmware_images_url = "https://adwait-esp.github.io/flasher/images/"
+firmware_images_url = "https://daniel-maiorano.github.io/esp-launchpad/images/"
 
-supported_apps = ["Matter-AllClustersApp-TE9"]
+supported_apps = ["CGWizard-NG Front"]
 
 [Matter-AllClustersApp-TE9]
 chipsets = ["ESP32-C6"]
-image.esp32-c6 = "esp32c3_matter_all-clusters-app.bin"
+image.esp32-c6 = "CGWizardNG-ESP-F.bin"
