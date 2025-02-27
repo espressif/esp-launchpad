@@ -458,13 +458,8 @@ resetButton.onclick = async () => {
     postFlashClick();
     consoleStartButton.disabled = false;
     $('#closeResetModal').click();
-    if(transport){
-        if(reader !== undefined){
-            reader.releaseLock();
-        }
-        if(device){
-            await device.close();
-        }
+    if (transport) {
+        await transport.disconnect();
     }
     if (isFlashByQuickTryMode || isFlashByDIYMode) { // Handle the case of resetting the device after flashing through one of the two modes.
         consoleBaudrate = isFlashByQuickTryMode && consoleBaudrateFromToml ? consoleBaudrateFromToml : parseInt(consoleBaudrateSelect.value);
@@ -475,25 +470,18 @@ resetButton.onclick = async () => {
     await transport.setDTR(false);
     await new Promise(resolve => setTimeout(resolve, 100));
     await transport.setDTR(true);
-    while (device.readable) {
-
-        if (!device.readable.locked) {
-            reader = device.readable.getReader();
-        }
-
+    while (true && connected) {
         try {
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) {
-              // Allow the serial port to be closed later.
-              reader.releaseLock();
-              break;
+            const readLoop = transport.rawRead();
+            const { value, done } = await readLoop.next();
+            
+            if (done || !value) {
+                break;
             }
-            if (value) {
-              term.write(value);
-            }
-          }
-        } catch (error) {}
+            term.write(value);   
+        } catch (error) {
+            term.writeln(`Error: ${e.message}`);
+        }
       }
 }
 
@@ -553,17 +541,12 @@ function cleanUp() {
 }
 
 disconnectButton.onclick = async () => {
+    connected = false;
     if(transport){
-        if(reader !== undefined){
-            reader.releaseLock();
-        }
-        if(device){
-            await device.close();
-        }
+        await transport.disconnect();
     }
     terminalContainer.style.display = "none";
     term.clear();
-    connected = false;
     $("#flashingBaudrateSelect").prop("disabled", false);
     $("#flashButton").prop("disabled", true);
     $("#flashWrapper").tooltip().attr('data-bs-original-title', "Click on 'Connect' button in top Menu");
