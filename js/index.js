@@ -113,9 +113,14 @@ async function buildQuickTryUI() {
         if (xhr.readyState === 4 && xhr.status === 200) {
             config = toml.parse(xhr.responseText);
             var requestedApp = urlParams.get("app");
+            var exactMatch = urlParams.get("exact") === "true";
             if (requestedApp) {
-                // Filter the supported_apps that start with the app name
-                const filtered_apps = config.supported_apps.filter(app => app.startsWith(`${requestedApp}-`));
+               // Filter supported_apps by exact name if 'exact' is true; otherwise, match apps that start with the requested name
+               const filtered_apps = config.supported_apps.filter(app => {
+                    return exactMatch
+                        ? app === requestedApp
+                        : app.startsWith(`${requestedApp}`);
+                });
 
                 if (filtered_apps.length > 0) {
                     config["supported_apps"] = filtered_apps;
