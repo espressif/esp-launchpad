@@ -13,6 +13,18 @@
         <link href="css/custom.css" rel="stylesheet" />
         <link href="css/xterm.css" rel="stylesheet" />
         <link href="minimal-launchpad/minimal_ui_styles.css" rel="stylesheet" />
+        <script defer data-domain="espressif.github.io" src="https://plausible.espressif.tools/js/script.file-downloads.hash.outbound-links.manual.js"></script>
+        <script>
+        window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) };
+          const flashConfigURL = new URLSearchParams(window.location.search).get('flashConfigURL') || '';
+          if (flashConfigURL) {
+              plausible('pageview', {
+                  props: {
+                      flashConfigURL: flashConfigURL,
+                  }
+              });
+          }
+        </script>
     </head>
     <body class="d-flex flex-column h-100">
          <!-- Modal for flashiing status-->
