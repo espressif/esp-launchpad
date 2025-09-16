@@ -168,7 +168,7 @@ async function buildMinimalLaunchpadUI() {
             troubleshootAccordionLabel.style.display = "none"
             troubleshootAccordion.style.display = "none";
             errorTroubleshootModalTitle.textContent = "Error getting config file";
-            errorMessageDescription.innerHTML = `We are encountering issues downloading the configuration file. Please verify if you can 
+            errorMessageDescription.innerHTML = `We are encountering issues downloading the configuration file. Please verify if you can
             download <a href=${tomlFileURL} target="_blank">this file</a>, if not, check your network settings (Firewall, VPN, etc.) and try again.`
             errorTroubleshootModalToggleButton.click();
         }
@@ -205,7 +205,7 @@ async function connectToDevice() {
         device = await navigator.serial.requestPort({
             filters: utilities.usbPortFilters
         });
-        deviceConnectionTimeout = setTimeout(function() {
+        deviceConnectionTimeout = setTimeout(function () {
             errorTroubleshootModalToggleButton.click();
         }, deviceConnectionDelayTimeout);
         transport = new Transport(device);
@@ -293,12 +293,7 @@ connectButton.onclick = async () => {
 
 consoleStartButton.onclick = async () => {
     if (transport) {
-        if (reader !== undefined) {
-            reader.releaseLock();
-        }
-        if (device) {
-            await device.close();
-        }
+        await transport.disconnect();
     }
     if (config.portConnectionOptions?.length) {
         await transport.connect(parseInt(config.portConnectionOptions[0]?.console_baudrate), serialOptions);
@@ -309,25 +304,19 @@ consoleStartButton.onclick = async () => {
     await transport.setDTR(false);
     await new Promise(resolve => setTimeout(resolve, 100));
     await transport.setDTR(true);
-    while (device.readable) {
 
-        if (!device.readable.locked) {
-            reader = device.readable.getReader();
-        }
-
+    while (true && connected) {
         try {
-            while (true) {
-                const { value, done } = await reader.read();
-                if (done) {
-                    // Allow the serial port to be closed later.
-                    reader.releaseLock();
-                    break;
-                }
-                if (value) {
-                    term.write(value);
-                }
+            const readLoop = transport.rawRead();
+            const { value, done } = await readLoop.next();
+
+            if (done || !value) {
+                break;
             }
-        } catch (error) { }
+            term.write(value);
+        } catch (error) {
+            term.writeln(`Error: ${e.message}`);
+        }
     }
 }
 
@@ -350,7 +339,7 @@ async function sendCommand() {
 }
 
 function getHistory(direction) {
-    historyIndex = Math.max(Math.min(historyIndex + direction, commandHistory.length - 1),-1);
+    historyIndex = Math.max(Math.min(historyIndex + direction, commandHistory.length - 1), -1);
     if (historyIndex >= 0) {
         commandInput.value = commandHistory[historyIndex];
     } else {
@@ -378,7 +367,7 @@ function autoResize() {
 
 waitButton.onclick = () => {
     clearTimeout(deviceConnectionTimeout);
-    deviceConnectionTimeout = setTimeout(function(){
+    deviceConnectionTimeout = setTimeout(function () {
         errorTroubleshootModalToggleButton.click();
     }, deviceConnectionDelayTimeout);
 }
