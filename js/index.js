@@ -98,6 +98,8 @@ async function buildQuickTryUI() {
         else if(solution.toLowerCase() == "rainmaker")
             // use the one published by ci/cd job of rainmaker on the github
             tomlFileURL = "https://espressif.github.io/esp-rainmaker/launchpad.toml";
+        else if(solution.toLowerCase() == "mcpagent")
+            tomlFileURL = "https://adwait-esp.github.io/flasher/config/mcp_agent_config.toml";
     }
     else {
         var externalURL = urlParams.get('flashConfigURL');
