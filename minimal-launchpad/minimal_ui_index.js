@@ -52,7 +52,6 @@ let connected = false;
 let resizeTimeout = false;
 let imagePartsArray = undefined;
 let imagePartsOffsetArray = undefined;
-let reader = undefined;
 let writer = undefined;
 var config = [];
 
@@ -293,12 +292,7 @@ connectButton.onclick = async () => {
 
 consoleStartButton.onclick = async () => {
     if (transport) {
-        if (reader !== undefined) {
-            reader.releaseLock();
-        }
-        if (device) {
-            await device.close();
-        }
+        await transport.disconnect();
     }
     if (config.portConnectionOptions?.length) {
         await transport.connect(parseInt(config.portConnectionOptions[0]?.console_baudrate), serialOptions);
@@ -309,25 +303,19 @@ consoleStartButton.onclick = async () => {
     await transport.setDTR(false);
     await new Promise(resolve => setTimeout(resolve, 100));
     await transport.setDTR(true);
-    while (device.readable) {
 
-        if (!device.readable.locked) {
-            reader = device.readable.getReader();
-        }
-
+    while (true && connected) {
         try {
-            while (true) {
-                const { value, done } = await reader.read();
-                if (done) {
-                    // Allow the serial port to be closed later.
-                    reader.releaseLock();
-                    break;
-                }
-                if (value) {
-                    term.write(value);
-                }
+            const readLoop = transport.rawRead();
+            const { value, done } = await readLoop.next();
+
+            if (done || !value) {
+                break;
             }
-        } catch (error) { }
+            term.write(value);
+        } catch (error) {
+            term.writeln(`Error: ${e.message}`);
+        }
     }
 }
 
