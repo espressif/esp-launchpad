@@ -187,9 +187,28 @@
                 </div>
             </div>
         </div>
-        <div style="position: absolute; top: 50%;">
-            <button class="connectButton" id="connectButton" tabindex="0" type="button" disabled>Connect Your Device<span
-                    class="span-svg"><svg class="svg" focusable="false" aria-hidden="true" viewBox="0 0 24 24"
+        <div
+            style="position: absolute;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center;
+            display: flex; flex-direction: column; align-items: center;">
+            <!-- App Icon and Name Section -->
+            <div id="appIconWithNameContainer" style="display: none; margin-bottom: 20px;">
+                <div style="margin-bottom: 10px; display: none;" id="appIconDiv">
+                    <img id="appIcon" src="" alt="App Icon"
+                        style="max-width: 150px; max-height: 150px; object-fit: contain;">
+                </div>
+                <div>
+                    <a href="#" id="appNameLink" role="button" data-bs-toggle="offcanvas"
+                        data-bs-target="#offcanvasRight" aria-controls="offcanvasRight"
+                        style="font-size: 18px; font-weight: 500; text-decoration: none;">
+                        <span id="appName"></span>
+                    </a>
+                </div>
+            </div>
+            <!-- Connect Button -->
+            <button class="connectButton" id="connectButton" tabindex="0" type="button" disabled>Connect Your
+                Device<span class="span-svg"><svg class="svg" focusable="false" aria-hidden="true" viewBox="0 0 24 24"
                         data-testid="EastIcon">
                         <path fill="#FFFFFF" d="m15 5-1.41 1.41L18.17 11H2v2h16.17l-4.59 4.59L15 19l7-7-7-7z"></path>
                     </svg></span></button>
@@ -228,6 +247,14 @@
                                 placeholder="Type your command and press enter" style="font-size: 14px; font-family: monospace;" disabled></textarea>
                         </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Offcanvas for Application Information -->
+        <div class="offcanvas offcanvas-end w-50" tabindex="-1" id="offcanvasRight"
+            aria-labelledby="offcanvasRightLabel">
+            <div class="offcanvas-body">
+                <div id="appInfo"></div>
             </div>
         </div>
     </div>
