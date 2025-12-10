@@ -17,6 +17,14 @@ const errorMessage = document.getElementById("errorMessage");
 const errorMessageDescription = document.getElementById("errorMessageDescription");
 const troubleshootAccordionLabel = document.getElementById("troubleshootAccordionLabel");
 const troubleshootAccordion = document.getElementById("troubleshootAccordion");
+/* App Icon and Name Container Appear Above Connect Button */
+const appIconWithNameContainer = document.getElementById("appIconWithNameContainer");
+const appIconDiv = document.getElementById("appIconDiv");
+const appIcon = document.getElementById("appIcon");
+const appName = document.getElementById("appName");
+const appInfo = document.getElementById("appInfo");
+const appNameLink = document.getElementById("appNameLink");
+
 const deviceConnectionDelayTimeout = 30000;
 let deviceConnectionTimeout = undefined;
 const commandHistory = [];
@@ -135,6 +143,91 @@ function MDtoHtml() {
         message.style.display = "none";
     }
 }
+
+/*
+* Disable app name link in case of error loading README content.
+* By removing the href, data-bs-toggle, data-bs-target, aria-controls, and role attributes.
+* This is to prevent the user from clicking the app name link and opening the offcanvas.
+*/
+function disableAppNameLink() {
+    appNameLink.removeAttribute("href");
+    appNameLink.removeAttribute("data-bs-toggle");
+    appNameLink.removeAttribute("data-bs-target");
+    appNameLink.removeAttribute("aria-controls");
+    appNameLink.removeAttribute("role");
+}
+
+// Load README content into offcanvas
+async function loadReadmeToOffcanvas() {
+    let application = "supported_apps";
+    var converter = new showdown.Converter({ tables: true });
+    converter.setFlavor('github');
+
+    const readmeFetchErrorMessage = "<h3>Unable to load application information.</h3>";
+    const readmeUrl = config[config[application][0]]?.readme?.text;
+    if (!readmeUrl) {
+        disableAppNameLink();
+        return;
+    }
+    
+    try {
+        const response = await fetch(readmeUrl);
+        if (response.ok) {
+            const result = await response.text();
+            let htmlText = converter.makeHtml(result);
+            if (htmlText) {
+                appInfo.innerHTML = htmlText;
+            }
+        } else {
+            // Response not ok, display error message for 4xx or 5xx status codes.
+            appInfo.innerHTML = readmeFetchErrorMessage;
+        }
+    } catch (error) {
+        // Fetch failed due to network error or
+        // if anything prevented the request from completing (CORS etc).
+        appInfo.innerHTML = readmeFetchErrorMessage;
+    }
+}
+
+// Show app icon and name container
+function showAppIconWithNameContainer() {
+    if (config && config["supported_apps"] && config["supported_apps"].length > 0) {
+        const appKey = config["supported_apps"][0];
+        const appConfig = config[appKey];
+        if (appConfig && (appConfig.icon || appKey)) {
+            appIconWithNameContainer.style.display = "block";
+        }
+    }
+}
+
+// Populate app icon and name from TOML config
+function populateAppIconAndName() {
+    let application = "supported_apps";
+    const appKey = config[application][0];
+    const appConfig = config[appKey];
+
+    if (appConfig) {
+        // Set app icon if available
+        if (appConfig.icon) {
+            appIconDiv.style.display = "block";
+            appIcon.src = appConfig.icon;
+            appIcon.alt = appKey;
+            appIcon.onerror = function() {
+                // If image fails to load, hide the container
+                appIconDiv.style.display = "none";
+            };
+        }
+        // Set app name
+        appName.textContent = appKey
+        // Show the container if we have either icon or name
+        if (appConfig.icon || appKey) {
+            appIconWithNameContainer.style.display = "block";
+        }
+        // Load README content into offcanvas
+        loadReadmeToOffcanvas();
+    }
+}
+
 // Build the Minimal Launchpad UI using the config toml file.
 async function buildMinimalLaunchpadUI() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -159,6 +252,8 @@ async function buildMinimalLaunchpadUI() {
             if (xhr.readyState === 4 && xhr.status === 200) {
                 config = toml.parse(xhr.responseText);
                 connectButton.disabled = false;
+                // Populate app icon and name once config is loaded
+                populateAppIconAndName();
             }
         }
         xhr.onerror = function () {
@@ -199,7 +294,7 @@ let espLoaderTerminal = {
 }
 
 async function connectToDevice() {
-    connectButton.style.display = "none";
+    connectButton.style.visibility = "hidden";
     if (device === null) {
         device = await navigator.serial.requestPort({
             filters: utilities.usbPortFilters
@@ -209,6 +304,7 @@ async function connectToDevice() {
         }, deviceConnectionDelayTimeout);
         transport = new Transport(device);
     }
+    appIconWithNameContainer.style.display = "none"; // Hide app icon and name
     spinner.style.display = "flex";
     spinner.style.flexDirection = "column";
     spinner.style.alignItems = "center";
@@ -283,8 +379,11 @@ connectButton.onclick = async () => {
             }, 2500)
         }
     } catch (error) {
-        if (error.message === "Failed to execute 'requestPort' on 'Serial': No port selected by the user.") {
-            connectButton.style.display = "inline-flex";
+        // If the user cancels the port selection, Web Serial API will throw a NotFoundError.
+        if (error.name === "NotFoundError") {
+            connectButton.style.visibility = "visible";
+            // Show app icon and name again if user cancels port selection
+            showAppIconWithNameContainer();
         }
     }
 
