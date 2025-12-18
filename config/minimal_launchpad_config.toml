@@ -1,0 +1,120 @@
+# ============================================================================
+# ESP Launchpad - Minimal Launchpad Configuration Template
+# ============================================================================
+# This TOML file is specifically designed for the minimal-launchpad interface.
+# Usage: https://espressif.github.io/esp-launchpad/minimal-launchpad/?flashConfigURL=<YOUR_TOML_URL>
+#
+# IMPORTANT: All URLs in this file (including the TOML file URL itself) must be
+# publicly accessible and CORS-enabled to avoid cross-origin request issues.
+# Recommended hosting: GitHub Pages, GitHub Raw URLs, or any CDN with CORS support.
+# ============================================================================
+
+esp_toml_version = 1.0
+
+# ----------------------------------------------------------------------------
+# REQUIRED: Supported Apps
+# ----------------------------------------------------------------------------
+# For minimal-launchpad, only the FIRST app in this array is used.
+# The app name will be displayed in the UI above the connect button.
+supported_apps = ["YOUR_APP_NAME"]
+
+# ----------------------------------------------------------------------------
+# Multipart Flashing Configuration
+# ----------------------------------------------------------------------------
+# Set to true for firmware consists of multiple binary parts (bootloader, 
+# partition table, app, etc.) that need to be flashed at specific addresses.
+# Even for single merged binary
+
+multipart = true
+
+# Target chip name (REQUIRED when multipart = true)
+# This value is lowercased and used to access: app.image.<chip>.parts/addresses
+# NOTE: This must match the image.<chip> key in the app section below
+chip = "esp32"
+
+# ----------------------------------------------------------------------------
+# OPTIONAL: Port Connection Options (for Expresslink or special serial configs)
+# ----------------------------------------------------------------------------
+# Use this for devices that require special serial port configuration.
+# This will enable CLI UI (command input box attached to the console)
+# Uncomment and configure if needed:
+# [[portConnectionOptions]]
+# console_baudrate = 115200
+
+# ============================================================================
+# APP CONFIGURATION SECTION
+# ============================================================================
+# Replace "YOUR_APP_NAME" with the actual app name from supported_apps array
+
+[YOUR_APP_NAME]
+
+# ----------------------------------------------------------------------------
+# OPTIONAL: App Icon
+# ----------------------------------------------------------------------------
+# URL to an icon image displayed above the connect button.
+# icon = "https://example.com/path/to/app-icon.png"
+
+# ----------------------------------------------------------------------------
+# OPTIONAL: App Description / README
+# ----------------------------------------------------------------------------
+# URL to a Markdown file. Displayed in offcanvas when user clicks the app name.
+# readme.text = "https://raw.githubusercontent.com/your-org/your-repo/main/README.md"
+
+# ----------------------------------------------------------------------------
+# OPTIONAL: Console Baudrate
+# ----------------------------------------------------------------------------
+# Baudrate for the serial console after flashing. Default is 115200.
+# console_baudrate = 115200
+
+# ----------------------------------------------------------------------------
+# REQUIRED: Firmware Image Configuration
+# ----------------------------------------------------------------------------
+# The chip name below MUST match the 'chip' value defined at the root level.
+# The chip name is lowercased when accessing: app.image.<chip>.parts/addresses
+#
+# For single merged binary - use one entry in parts/addresses:
+image.esp32.parts = ["<URL_TO_YOUR_MERGED_BINARY>"]
+image.esp32.addresses = ["0x0"]
+#
+# For multipart binary - list all parts with their flash addresses:
+# image.esp32.parts = [
+#     "<URL_TO_BOOTLOADER>",
+#     "<URL_TO_PARTITION_TABLE>",
+#     "<URL_TO_APP_BINARY>"
+# ]
+# image.esp32.addresses = ["0x1000", "0x8000", "0x10000"]
+
+# ============================================================================
+# COMPLETE EXAMPLE: Single Merged Binary for ESP32
+# ============================================================================
+# esp_toml_version = 1.0
+# multipart = true
+# chip = "esp32"
+# supported_apps = ["My-IoT-Device"]
+#
+# [My-IoT-Device]
+# icon = "https://example.com/device-icon.png"
+# readme.text = "https://raw.githubusercontent.com/example/repo/main/README.md"
+# image.esp32.parts = ["https://example.com/firmware/esp32_merged.bin"]
+# image.esp32.addresses = ["0x0"]
+# console_baudrate = 115200
+
+# ============================================================================
+# COMPLETE EXAMPLE: Multipart Binary for ESP32
+# ============================================================================
+# esp_toml_version = 1.0
+# multipart = true
+# chip = "esp32"
+# supported_apps = ["My-Custom-Firmware"]
+#
+# [My-Custom-Firmware]
+# icon = "https://example.com/firmware-icon.png"
+# readme.text = "https://example.com/docs/README.md"
+# image.esp32.parts = [
+#     "https://example.com/bin/bootloader.bin",
+#     "https://example.com/bin/partition-table.bin",
+#     "https://example.com/bin/ota_data_initial.bin",
+#     "https://example.com/bin/app.bin"
+# ]
+# image.esp32.addresses = ["0x1000", "0x8000", "0xd000", "0x10000"]
+# console_baudrate = 115200
