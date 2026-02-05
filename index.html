@@ -477,6 +477,27 @@
                             </textarea>
                         </div>
                     </div>
+                    <div style="margin-top: 20px;">
+                        <h4 class="mb-4" style="color: #e63f36;"><b>Using CORS Proxy for External TOML Files</b></h4>
+                        <p>If your TOML configuration file is hosted on a server that doesn't support CORS (Cross-Origin Resource Sharing), 
+                        or if you want to load a file from your local PC or from a source other than <code>espressif.github.io</code>, 
+                        simply add <code>&crossDomain=true</code> to your URL. The CORS proxy will be applied automatically.</p>
+                        
+                        <p><b>URL Format:</b> Add <code>&crossDomain=true</code> to your <code>flashConfigURL</code>:</p>
+                        <textarea readonly cols="160" rows="2">https://espressif.github.io/esp-launchpad/?flashConfigURL=YOUR_CONFIG_TOML_URL&crossDomain=true</textarea>
+                        
+                        <p style="margin-top: 15px;"><b>Loading from your local PC:</b></p>
+                        <p>To load a TOML file from your local machine, you need to expose it via a tunnel service (e.g., Cloudflare Tunnel, ngrok, or similar). 
+                        Once your local server is accessible via a public URL, use it with <code>&crossDomain=true</code>:</p>
+                        <textarea readonly cols="160" rows="2">https://espressif.github.io/esp-launchpad/?flashConfigURL=https://your-tunnel-url.trycloudflare.com/config.toml&crossDomain=true</textarea>
+                        
+                        <p style="margin-top: 15px;"><b>Loading from a custom server:</b></p>
+                        <p>If your TOML file is hosted on your own server (e.g., <code>https://mycompany.com</code>):</p>
+                        <textarea readonly cols="160" rows="2">https://espressif.github.io/esp-launchpad/?flashConfigURL=https://mycompany.com/firmware/config.toml&crossDomain=true</textarea>
+                        
+                        <p style="margin-top: 15px;"><b>Note:</b> When using an external TOML source, a message will be displayed: 
+                        <i>"You have chosen to try the firmware images from an external source"</i> along with the URL of your configuration file.</p>
+                    </div>
                 </div>
             </div>
         </div>
