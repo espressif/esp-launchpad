@@ -104,6 +104,10 @@ async function buildQuickTryUI() {
     else {
         var externalURL = urlParams.get('flashConfigURL');
         if(externalURL){
+            var crossDomain = urlParams.get('crossDomain') === 'true';
+            if (crossDomain) {
+                externalURL = 'https://cors-proxy.espressif.tools/?url=' + externalURL;
+            }
             tomlFileURL = externalURL;
             isDefault = false;
         }
