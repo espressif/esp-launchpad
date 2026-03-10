@@ -21,7 +21,7 @@ export const usb_Port_Filters = [
 ];
 
 //usb port open allow chipsets are
-export const usbPortOpenChipSets = ["CH592", "CH32X035", "CH572"];
+export const usbPortOpenChipSets = ["CH592", "CH591", "CH32X035", "CH572"];
 
 export function getTerminalColumns(mainContainer = null) {
   const mainContainerWidth = mainContainer?.offsetWidth || 1320;
@@ -113,7 +113,7 @@ export function isWebUSBSerialSupported() {
       return p.toString() === "[object SafariRemoteNotification]";
     })(
       !window["safari"] ||
-        (typeof safari !== "undefined" && window["safari"].pushNotification)
+      (typeof safari !== "undefined" && window["safari"].pushNotification)
     );
 
   let isFirefox = typeof InstallTrigger !== "undefined";

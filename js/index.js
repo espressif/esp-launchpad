@@ -159,8 +159,8 @@ async function buildQuickTryUI() {
       if (!isDefault) {
         $("#qtLabel").html(
           "Choose from the firmware images listed below. <Br> You have chosen to try the firmware images from an <b><u>external source</u> - " +
-            tomlFileURL +
-            "</b>"
+          tomlFileURL +
+          "</b>"
         );
       }
       try {
@@ -491,9 +491,14 @@ async function connectToDevice() {
         device = await navigator.usb.requestDevice({
           filters: utilities.usb_Port_Filters,
         });
+        await device.open();
+        if (device.configuration === null) {
+          await device.selectConfiguration(1);
+        }
+        await device.claimInterface(0);
         loader = new chLodar.CH_loader(device, espLoaderTerminal);
 
-        chLodar.CH_loader.openNth(0);
+        // chLodar.CH_loader.openNth(0);
 
         connected = true;
 
@@ -523,7 +528,7 @@ async function connectToDevice() {
         chip = esploader.chip.CHIP_NAME;
 
         await esploader.flashId();
-      } catch (e) {}
+      } catch (e) { }
     }
   }
 }
@@ -589,31 +594,31 @@ resetButton.onclick = async () => {
       console.log("ERROR", e);
     }
   } else {
-     if (transport) {
-        await transport.disconnect();
+    if (transport) {
+      await transport.disconnect();
     }
     if (isFlashByQuickTryMode || isFlashByDIYMode) { // Handle the case of resetting the device after flashing through one of the two modes.
-        consoleBaudrate = isFlashByQuickTryMode && consoleBaudrateFromToml ? consoleBaudrateFromToml : parseInt(consoleBaudrateSelect.value);
+      consoleBaudrate = isFlashByQuickTryMode && consoleBaudrateFromToml ? consoleBaudrateFromToml : parseInt(consoleBaudrateSelect.value);
     } else {
-        consoleBaudrate = parseInt(consoleBaudrateSelect.value); // Handle the case of resetting the device without flashing through any mode.
+      consoleBaudrate = parseInt(consoleBaudrateSelect.value); // Handle the case of resetting the device without flashing through any mode.
     }
     await transport.connect(consoleBaudrate);
     await transport.setDTR(false);
     await new Promise(resolve => setTimeout(resolve, 100));
     await transport.setDTR(true);
     while (true && connected) {
-        try {
-            const readLoop = transport.rawRead();
-            const { value, done } = await readLoop.next();
-            
-            if (done || !value) {
-                break;
-            }
-            term.write(value);   
-        } catch (error) {
-            term.writeln(`Error: ${e.message}`);
+      try {
+        const readLoop = transport.rawRead();
+        const { value, done } = await readLoop.next();
+
+        if (done || !value) {
+          break;
         }
+        term.write(value);
+      } catch (error) {
+        term.writeln(`Error: ${e.message}`);
       }
+    }
   }
 };
 
@@ -721,9 +726,16 @@ consoleStartButton.onclick = async () => {
         device = await navigator.usb.requestDevice({
           filters: utilities.usb_Port_Filters,
         });
+
+        await device.open();
+        if (device.configuration === null) {
+          await device.selectConfiguration(1);
+        }
+        await device.claimInterface(0);
+
         loader = new chLodar.CH_loader(device, espLoaderTerminal);
 
-        chLodar.CH_loader.openNth(0);
+        // chLodar.CH_loader.openNth(0);
 
         connected = true;
 
@@ -839,7 +851,7 @@ programButton.onclick = async () => {
     }
     postFlashDone();
     terminalContainer.classList.remove("fade-in-down");
-  } catch (e) {}
+  } catch (e) { }
 };
 
 async function downloadAndFlash(fileURL) {
@@ -868,7 +880,7 @@ async function downloadAndFlash(fileURL) {
         await esploader.writeFlash(flashOptions);
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 }
 
 // Based on the configured App store links, show the respective download links.
@@ -893,8 +905,8 @@ function buildAppLinks() {
 
     $("#androidAppLogo").html(
       "<a href='" +
-        android_app_url +
-        "' target='_blank'><img src='./assets/gplay_download.png' height='50' width='130'></a>"
+      android_app_url +
+      "' target='_blank'><img src='./assets/gplay_download.png' height='50' width='130'></a>"
     );
 
     new QRCode(document.getElementById("qrcodeAndroidAppQS"), {
@@ -908,8 +920,8 @@ function buildAppLinks() {
 
     $("#androidAppLogoQS").html(
       "<a href='" +
-        android_app_url +
-        "' target='_blank'><img src='./assets/gplay_download.png' height='50' width='130'></a>"
+      android_app_url +
+      "' target='_blank'><img src='./assets/gplay_download.png' height='50' width='130'></a>"
     );
     appURLsHTML = defaultAppURLsHTML;
   }
@@ -926,8 +938,8 @@ function buildAppLinks() {
 
     $("#iosAppLogo").html(
       "<a href='" +
-        ios_app_url +
-        "' target='_blank'><img src='./assets/appstore_download.png' height='50' width='130'></a>"
+      ios_app_url +
+      "' target='_blank'><img src='./assets/appstore_download.png' height='50' width='130'></a>"
     );
 
     new QRCode(document.getElementById("qrcodeIOSAppQS"), {
@@ -941,8 +953,8 @@ function buildAppLinks() {
 
     $("#iosAppLogoQS").html(
       "<a href='" +
-        ios_app_url +
-        "' target='_blank'><img src='./assets/appstore_download.png' height='50' width='130'></a>"
+      ios_app_url +
+      "' target='_blank'><img src='./assets/appstore_download.png' height='50' width='130'></a>"
     );
     appURLsHTML = defaultAppURLsHTML;
   }
@@ -1036,7 +1048,7 @@ function clearAppInfoFlashHistory(triggeringAction = "") {
 flashButton.onclick = async () => {
   if (
     chipSetsRadioGroup.querySelectorAll("input[type=radio]:checked").length !==
-      0 &&
+    0 &&
     (developKitsContainer.style.display === "none" ||
       developKitsRadioGroup.querySelectorAll("input[type=radio]:checked")
         .length !== 0)
