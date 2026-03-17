@@ -39,8 +39,8 @@ export class UsbTransport {
       filters.some(
         (filter) =>
           device.vendorId === filter.vendorId &&
-          device.productId === filter.productId
-      )
+          device.productId === filter.productId,
+      ),
     );
 
     console.debug(`Found ${matchingDevices.length} WCH ISP USB devices`);
@@ -52,7 +52,7 @@ export class UsbTransport {
     const device = devices[nth];
     if (!device) {
       throw new Error(
-        `No WCH ISP USB device found (4348:55e0 or 1a86:55e0 device not found at index #${nth})`
+        `No WCH ISP USB device found (4348:55e0 or 1a86:55e0 device not found at index #${nth})`,
       );
     }
 
@@ -109,14 +109,24 @@ export class UsbTransport {
   async recvRaw(): Promise<Uint8Array> {
     const result = await this.device.transferIn(UsbTransport.ENDPOINT_IN, 64);
     if (result.data) {
-      return new Uint8Array(result.data.buffer);
+      return new Uint8Array(
+        result.data.buffer,
+        result.data.byteOffset,
+        result.data.byteLength,
+      );
     }
     throw new Error("Failed to receive data");
   }
   async recv(): Promise<Response> {
     const result = await this.device.transferIn(UsbTransport.ENDPOINT_IN, 64);
     if (result.data) {
-      return ResponseHandler.fromRaw(new Uint8Array(result.data.buffer));
+      return ResponseHandler.fromRaw(
+        new Uint8Array(
+          result.data.buffer,
+          result.data.byteOffset,
+          result.data.byteLength,
+        ),
+      );
     }
     throw new Error("Failed to receive data");
   }

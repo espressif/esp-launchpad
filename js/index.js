@@ -56,9 +56,11 @@ const rightOffCanvasContainer = document.getElementById("offcanvasRight");
 const windowHelp_Connect = document.getElementById("windowHelp_Connect");
 const offset1_flashAddress_input = document.getElementById("offset1");
 const addFile_button = document.getElementById("addFile");
+const clearFlashDiv = document.getElementById("clearFlashDiv");
 
 //when load the js file initial windowHelp_Connect it is not display offset1
 windowHelp_Connect.style.display = "none";
+clearFlashDiv.style.display = "none"
 
 let resizeTimeout = false;
 
@@ -159,8 +161,8 @@ async function buildQuickTryUI() {
       if (!isDefault) {
         $("#qtLabel").html(
           "Choose from the firmware images listed below. <Br> You have chosen to try the firmware images from an <b><u>external source</u> - " +
-            tomlFileURL +
-            "</b>"
+          tomlFileURL +
+          "</b>"
         );
       }
       try {
@@ -277,17 +279,35 @@ const selectedChipset = () => {
   }
 };
 
+//find the clear flash state and return back Clear Code Flash and Clear Data Flash
+const getClearFlashOptions = () => {
+  try {
+    // Get checkbox states
+    const clearCodeFlash = $("#clearCodeFlash").prop("checked");
+    const clearDataFlash = $("#clearDataFlash").prop("checked");
+
+    return {
+      clearCodeFlash,
+      clearDataFlash
+    };
+  } catch (e) {
+    console.log("ERROR", e);
+  }
+};
+
 //config[deviceTypeSelect.value].chipType == "WCH"
 async function setWCH_board_UI_Property(deviceConfig) {
   await new Promise((reslove) => setTimeout(reslove, 100));
   let chipSet = selectedChipset();
   if (utilities.usbPortOpenChipSets.includes(chipSet)) {
     windowHelp_Connect.style.display = "block";
+    clearFlashDiv.style.display = "block"
     offset1_flashAddress_input.disabled = true;
     offset1_flashAddress_input.value = "0";
     addFile_button.disabled = true;
   } else {
     windowHelp_Connect.style.display = "none";
+    clearFlashDiv.style.display = "none"
     offset1_flashAddress_input.disabled = false;
     offset1_flashAddress_input.value = "0x1000";
     addFile_button.disabled = false;
@@ -491,9 +511,14 @@ async function connectToDevice() {
         device = await navigator.usb.requestDevice({
           filters: utilities.usb_Port_Filters,
         });
+        await device.open();
+        if (device.configuration === null) {
+          await device.selectConfiguration(1);
+        }
+        await device.claimInterface(0);
         loader = new chLodar.CH_loader(device, espLoaderTerminal);
 
-        chLodar.CH_loader.openNth(0);
+        // chLodar.CH_loader.openNth(0);
 
         connected = true;
 
@@ -523,7 +548,7 @@ async function connectToDevice() {
         chip = esploader.chip.CHIP_NAME;
 
         await esploader.flashId();
-      } catch (e) {}
+      } catch (e) { }
     }
   }
 }
@@ -589,31 +614,31 @@ resetButton.onclick = async () => {
       console.log("ERROR", e);
     }
   } else {
-     if (transport) {
-        await transport.disconnect();
+    if (transport) {
+      await transport.disconnect();
     }
     if (isFlashByQuickTryMode || isFlashByDIYMode) { // Handle the case of resetting the device after flashing through one of the two modes.
-        consoleBaudrate = isFlashByQuickTryMode && consoleBaudrateFromToml ? consoleBaudrateFromToml : parseInt(consoleBaudrateSelect.value);
+      consoleBaudrate = isFlashByQuickTryMode && consoleBaudrateFromToml ? consoleBaudrateFromToml : parseInt(consoleBaudrateSelect.value);
     } else {
-        consoleBaudrate = parseInt(consoleBaudrateSelect.value); // Handle the case of resetting the device without flashing through any mode.
+      consoleBaudrate = parseInt(consoleBaudrateSelect.value); // Handle the case of resetting the device without flashing through any mode.
     }
     await transport.connect(consoleBaudrate);
     await transport.setDTR(false);
     await new Promise(resolve => setTimeout(resolve, 100));
     await transport.setDTR(true);
     while (true && connected) {
-        try {
-            const readLoop = transport.rawRead();
-            const { value, done } = await readLoop.next();
-            
-            if (done || !value) {
-                break;
-            }
-            term.write(value);   
-        } catch (error) {
-            term.writeln(`Error: ${e.message}`);
+      try {
+        const readLoop = transport.rawRead();
+        const { value, done } = await readLoop.next();
+
+        if (done || !value) {
+          break;
         }
+        term.write(value);
+      } catch (error) {
+        term.writeln(`Error: ${e.message}`);
       }
+    }
   }
 };
 
@@ -721,9 +746,16 @@ consoleStartButton.onclick = async () => {
         device = await navigator.usb.requestDevice({
           filters: utilities.usb_Port_Filters,
         });
+
+        await device.open();
+        if (device.configuration === null) {
+          await device.selectConfiguration(1);
+        }
+        await device.claimInterface(0);
+
         loader = new chLodar.CH_loader(device, espLoaderTerminal);
 
-        chLodar.CH_loader.openNth(0);
+        // chLodar.CH_loader.openNth(0);
 
         connected = true;
 
@@ -789,6 +821,10 @@ function validate_program_inputs() {
   return "success";
 }
 
+function getClearFlashState() {
+
+}
+
 programButton.onclick = async () => {
   programButton.disabled = true;
   postFlashClick();
@@ -825,7 +861,14 @@ programButton.onclick = async () => {
   let chipSet = selectedChipset();
   try {
     if (utilities.usbPortOpenChipSets.includes(chipSet)) {
-      await loader.flashFirmware(fileArr[0].data);
+      const {
+        clearCodeFlash,
+        clearDataFlash
+      } = getClearFlashOptions()
+      await loader.flashFirmware(fileArr[0].data, {
+        clearCodeFlash,
+        clearDataFlash,
+      });
     } else {
       const flashOptions = {
         fileArray: fileArr,
@@ -839,7 +882,7 @@ programButton.onclick = async () => {
     }
     postFlashDone();
     terminalContainer.classList.remove("fade-in-down");
-  } catch (e) {}
+  } catch (e) { }
 };
 
 async function downloadAndFlash(fileURL) {
@@ -855,7 +898,14 @@ async function downloadAndFlash(fileURL) {
     if (data !== undefined) {
       $("#v-pills-console-tab").click();
       if (utilities.usbPortOpenChipSets.includes(chipSet)) {
-        await loader.flashFirmware(data);
+        const {
+          clearCodeFlash,
+          clearDataFlash
+        } = getClearFlashOptions()
+        await loader.flashFirmware(data, {
+          clearCodeFlash,
+          clearDataFlash,
+        });
       } else {
         const flashOptions = {
           fileArray: [{ data: data, address: 0x0000 }],
@@ -868,7 +918,7 @@ async function downloadAndFlash(fileURL) {
         await esploader.writeFlash(flashOptions);
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 }
 
 // Based on the configured App store links, show the respective download links.
@@ -893,8 +943,8 @@ function buildAppLinks() {
 
     $("#androidAppLogo").html(
       "<a href='" +
-        android_app_url +
-        "' target='_blank'><img src='./assets/gplay_download.png' height='50' width='130'></a>"
+      android_app_url +
+      "' target='_blank'><img src='./assets/gplay_download.png' height='50' width='130'></a>"
     );
 
     new QRCode(document.getElementById("qrcodeAndroidAppQS"), {
@@ -908,8 +958,8 @@ function buildAppLinks() {
 
     $("#androidAppLogoQS").html(
       "<a href='" +
-        android_app_url +
-        "' target='_blank'><img src='./assets/gplay_download.png' height='50' width='130'></a>"
+      android_app_url +
+      "' target='_blank'><img src='./assets/gplay_download.png' height='50' width='130'></a>"
     );
     appURLsHTML = defaultAppURLsHTML;
   }
@@ -926,8 +976,8 @@ function buildAppLinks() {
 
     $("#iosAppLogo").html(
       "<a href='" +
-        ios_app_url +
-        "' target='_blank'><img src='./assets/appstore_download.png' height='50' width='130'></a>"
+      ios_app_url +
+      "' target='_blank'><img src='./assets/appstore_download.png' height='50' width='130'></a>"
     );
 
     new QRCode(document.getElementById("qrcodeIOSAppQS"), {
@@ -941,8 +991,8 @@ function buildAppLinks() {
 
     $("#iosAppLogoQS").html(
       "<a href='" +
-        ios_app_url +
-        "' target='_blank'><img src='./assets/appstore_download.png' height='50' width='130'></a>"
+      ios_app_url +
+      "' target='_blank'><img src='./assets/appstore_download.png' height='50' width='130'></a>"
     );
     appURLsHTML = defaultAppURLsHTML;
   }
@@ -1036,7 +1086,7 @@ function clearAppInfoFlashHistory(triggeringAction = "") {
 flashButton.onclick = async () => {
   if (
     chipSetsRadioGroup.querySelectorAll("input[type=radio]:checked").length !==
-      0 &&
+    0 &&
     (developKitsContainer.style.display === "none" ||
       developKitsRadioGroup.querySelectorAll("input[type=radio]:checked")
         .length !== 0)

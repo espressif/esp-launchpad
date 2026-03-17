@@ -43,7 +43,7 @@
             "offset": "0x08",
             "name": "USER_CFG",
             "description": "User config register",
-            "reset": "0x4FFF0FD5",
+            "reset": "0x4FFF0F45",
             "type": "u32",
             "fields": [
                 {
