@@ -19,7 +19,7 @@ config_readme_url = "<APP_CONFIG_README_FILE_URL>"
 chipsets = ["ESP32H2"]
 image.esp32-h2 = "roboki/roboki.bin"
 image."" = "Roboki/RB1.0.4.0-dev.20251223-131600/Roboki-Standard-RB1.0.4.0-dev.20251223-131600.bin"
-image.esp32h2 = "Roboki/RB1.0.5.0-dev.20260317-144516/Roboki-Standard-RB1.0.5.0-dev.20260317-144516.bin"
+image.esp32h2 = "Roboki/RB1.0.5.0-dev.20260318-190004/Roboki-Standard-RB1.0.5.0-dev.20260318-190004.bin"
 
 
 [ZING0]
