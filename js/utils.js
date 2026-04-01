@@ -112,6 +112,70 @@ export function mdToHtmlConverter(markdownContent) {
     return converter.makeHtml(markdownContent);
 }
 
+// -----------------------------------------------------------------------------
+// Console command input (#commandInput): OS-aware hints, placeholder, text read.
+// -----------------------------------------------------------------------------
+
+export function isApplePlatform() {
+    if (typeof navigator === "undefined") return false;
+    const p = navigator.platform || "";
+    const ua = navigator.userAgent || "";
+    if (/Mac|iPhone|iPad|iPod/i.test(p)) return true;
+    if (/Mac OS X|iPhone|iPad|iPod/.test(ua)) return true;
+    if (navigator.userAgentData?.platform === "macOS") return true;
+    return false;
+}
+
+const COMMAND_HINT_ICON_SEND =
+    '<svg class="command-hint-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
+const COMMAND_HINT_ICON_NEWLINE =
+    '<svg class="command-hint-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="10 8 5 8 5 16"/><path d="M5 16h11"/><path d="m13 12 4 4 4-4"/></svg>';
+const COMMAND_HINT_ICON_HISTORY =
+    '<svg class="command-hint-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 15V9"/><path d="M17 15V9"/><path d="m7 9 5-5 5 5"/><path d="m7 15 5 5 5-5"/></svg>';
+
+function kbdHint(text, title) {
+    const t = title ? ` title="${title.replace(/"/g, "&quot;")}"` : "";
+    return `<kbd class="command-kbd"${t}>${text}</kbd>`;
+}
+
+export function renderCommandInputHints() {
+    const desc = document.getElementById("commandInputDescription");
+    if (!desc) return;
+    const apple = isApplePlatform();
+    const sendKeysApple = `<span class="command-input-hints__keys">${kbdHint("↩", "Return")}<span class="command-input-hints__sep">or</span>${kbdHint("⌘", "Command")}<span class="command-input-hints__sep">+</span>${kbdHint("↩", "Return")}</span>`;
+    const sendKeysWin = `<span class="command-input-hints__keys">${kbdHint("Enter", "Enter")}</span>`;
+    const newlineKeysApple = `<span class="command-input-hints__keys">${kbdHint("⇧", "Shift")}<span class="command-input-hints__sep">+</span>${kbdHint("↩", "Return")}</span>`;
+    const newlineKeysWin = `<span class="command-input-hints__keys">${kbdHint("Shift", "Shift")}<span class="command-input-hints__sep">+</span>${kbdHint("Enter", "Enter")}</span>`;
+    const historyKeys = `<span class="command-input-hints__keys">${kbdHint("↑", "Up arrow")}<span class="command-input-hints__sep">/</span>${kbdHint("↓", "Down arrow")}</span>`;
+    desc.innerHTML = apple
+        ? `<div class="command-input-hints__chip">${COMMAND_HINT_ICON_SEND}<span><strong>Send</strong> ${sendKeysApple}</span></div>
+           <div class="command-input-hints__chip">${COMMAND_HINT_ICON_NEWLINE}<span><strong>New line</strong> ${newlineKeysApple}</span></div>
+           <div class="command-input-hints__chip">${COMMAND_HINT_ICON_HISTORY}<span><strong>History</strong> ${historyKeys} <span class="text-muted">(this session)</span></span></div>`
+        : `<div class="command-input-hints__chip">${COMMAND_HINT_ICON_SEND}<span><strong>Send</strong> ${sendKeysWin}</span></div>
+           <div class="command-input-hints__chip">${COMMAND_HINT_ICON_NEWLINE}<span><strong>New line</strong> ${newlineKeysWin}</span></div>
+           <div class="command-input-hints__chip">${COMMAND_HINT_ICON_HISTORY}<span><strong>History</strong> ${historyKeys} <span class="text-muted">(this session)</span></span></div>`;
+}
+
+export function setCommandInputPlaceholder(textarea) {
+    if (!textarea) return;
+    textarea.placeholder = isApplePlatform()
+        ? "Type a command, then press Return or ⌘↩ to send"
+        : "Type a command, then press Enter to send";
+}
+
+export function getCommandTextFromInput(textarea) {
+    if (!textarea) return "";
+    const commandText = textarea.value;
+    const cursorPosition = textarea.selectionStart;
+    if (cursorPosition > 0) {
+        const ch = commandText.charAt(cursorPosition - 1);
+        if (ch === "\n" || ch === "\r") {
+            return (commandText.substring(0, cursorPosition - 1) + commandText.substring(cursorPosition)).trim();
+        }
+    }
+    return commandText.trim();
+}
+
 // unused functions
 function convertUint8ArrayToBinaryString(u8Array) {
     var i, len = u8Array.length, b_str = "";

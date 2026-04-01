@@ -342,6 +342,14 @@
                         </div>
                     </div>
                     <div id="terminal"></div>
+                    <div id="commandForm" style="display: none;">
+                        <textarea rows="1" class="form-control rounded-0 shadow-none" autocomplete="off" id="commandInput"
+                            aria-label="Console command input"
+                            aria-describedby="commandInputDescription"
+                            placeholder=""
+                            style="font-size: 14px; font-family: monospace;" disabled></textarea>
+                        <div id="commandInputDescription" class="command-input-hints form-text text-muted small mb-0 mt-2" role="note"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -353,48 +361,90 @@
             <div class="row">
                 <div class="col-xs-12 ">
                     <div class="form">
-                        <div id="baudRateSettings" class="lh-lg">
-                            <span><b>Configure the baudrate's for serial communication as per your application:</b></span>
-                        </div>
-                        <hr/>
-                        <div class="d-flex justify-content-around">
-                            <div class="field-container">
-                                <label>
-                                    Flashing Baudrate
-                                </label>
-                                <div class="field" id="flashingBaudrateSettings">
-                                    <select name="flashingBaudrateSelect" id="flashingBaudrateSelect">
-                                        <option value="921600">921600</option>
-                                        <option value="460800">460800</option>
-                                        <option value="230400">230400</option>
-                                        <option value="115200">115200</option>
-                                    </select>
+                        <div id="serialConnectionSettings" class="card border-0 shadow-sm bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title mb-2">Serial connection configurations:</h5>
+                                <details class="small border rounded px-3 py-2 mb-4 bg-white">
+                                    <summary class="text-secondary" style="cursor: pointer;">More information</summary>
+                                    <div class="mt-3">
+                                        <h6 class="fw-semibold text-body mb-2">Web Serial API references and terminologies</h6>
+                                        <ul class="mb-0 ps-3">
+                                            <li><a href="https://wicg.github.io/serial/#serialoptions-dictionary" target="_blank" rel="noopener"><code>SerialOptions</code></a> — <code>baudRate</code>, <code>dataBits</code>, <code>stopBits</code>, <code>parity</code>, <code>flowControl</code>, <code>bufferSize</code>.</li>
+                                        </ul>
+                                    </div>
+                                    <div class="mt-3 pt-2 border-top">
+                                        <h6 class="fw-semibold text-body mb-2">General guideline</h6>
+                                        <ul class="mb-0 ps-3">
+                                            <li class="mb-2 text-muted">
+                                                While connected, the flashing baud rate is locked. You can change the console baud rate and serial settings at any time; However, these changes will only take effect the next time you reset the device or start a new connection.
+                                            </li>
+                                            <li class="mb-0 mt-2 text-muted">
+                                                If the firmware TOML defines a <code>console_baudrate</code> for the app as mentioned <a href="https://github.com/espressif/esp-launchpad/blob/main/config/config.toml" target="_blank" rel="noopener">here</a>, that value will be used for the console baud rate when the device is reset, overriding the console baud rate value set in this global settings panel.
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </details>
+
+                                <div class="row g-3 g-md-4 align-items-end">
+                                    <div class="col-12 col-sm-6 col-xl-4">
+                                        <label class="form-label mb-1" for="flashingBaudrateSelect">Flashing baud rate</label>
+                                        <select name="flashingBaudrateSelect" id="flashingBaudrateSelect" class="form-select form-select-sm w-100"
+                                            title="Baud rate while flashing firmware">
+                                            <option value="921600">921600</option>
+                                            <option value="460800">460800</option>
+                                            <option value="230400">230400</option>
+                                            <option value="115200">115200</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-sm-6 col-xl-4">
+                                        <label class="form-label mb-1" for="consoleBaudrateSelect">Console baud rate</label>
+                                        <select name="consoleBaudrateSelect" id="consoleBaudrateSelect" class="form-select form-select-sm w-100"
+                                            title="Baud rate after reset for serial console">
+                                            <option value="115200">115200</option>
+                                            <option value="74880">74880</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-sm-6 col-xl-4">
+                                        <label class="form-label mb-1" for="serialDataBitsSelect">Data bits</label>
+                                        <select id="serialDataBitsSelect" class="form-select form-select-sm w-100"
+                                            title="Data bits per character: 7 or 8">
+                                            <option value="8" selected>8</option>
+                                            <option value="7">7</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-sm-6 col-xl-4">
+                                        <label class="form-label mb-1" for="serialStopBitsSelect">Stop bits</label>
+                                        <select id="serialStopBitsSelect" class="form-select form-select-sm w-100"
+                                            title="Stop bits: 1 or 2">
+                                            <option value="1" selected>1</option>
+                                            <option value="2">2</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-sm-6 col-xl-4">
+                                        <label class="form-label mb-1" for="serialParitySelect">Parity</label>
+                                        <select id="serialParitySelect" class="form-select form-select-sm w-100"
+                                            title="Parity: none, even, or odd">
+                                            <option value="none" selected>none</option>
+                                            <option value="even">even</option>
+                                            <option value="odd">odd</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-sm-6 col-xl-4">
+                                        <label class="form-label mb-1" for="serialFlowControlSelect">Flow control</label>
+                                        <select id="serialFlowControlSelect" class="form-select form-select-sm w-100"
+                                            title="none, or hardware (RTS/CTS)">
+                                            <option value="none" selected>none</option>
+                                            <option value="hardware">hardware</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-sm-6 col-xl-4">
+                                        <label class="form-label mb-1" for="serialBufferSizeInput">Buffer size (bytes)</label>
+                                        <input type="number" id="serialBufferSizeInput" class="form-control form-control-sm w-100"
+                                            min="1" max="16777216" value="255" step="1"
+                                            placeholder="255"
+                                            title="Read/write buffer size (1–16777216; typical default 255)"/>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="field-container">
-                                <label>
-                                    Console Baudrate
-                                </label>
-                                <div class="field" id="consoleBaudrateSettings">
-                                    <select name="consoleBaudrateSelect" id="consoleBaudrateSelect">
-                                        <option value="115200">115200</option>
-                                        <option value="74880">74880</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="settingsWarning" style="display:none" class="mt-3">
-                            <div class="mb-1">
-                                <i>
-                                    ** Flashing baudrate cannot be changed for a connected device. Please disconnect the device and then change the flashing baudrate.
-                                </i>
-                            </div>
-                            <div>
-                                <i>
-                                    ** If you haven't configured the console baudrate in the TOML file as mentioned
-                                    <a href="https://github.com/espressif/esp-launchpad/blob/main/config/config.toml" target="_blank">here</a>
-                                     or are using DIY mode, you can change it in between device resets.
-                                </i>
                             </div>
                         </div>
                     </div>
@@ -517,7 +567,7 @@
 
         <footer class="mt-auto py-3">
             <div class="container text-center">
-                <span class="text-muted">Copyright © 2025 Espressif Systems</span>
+                <span class="text-muted">Copyright © 2026 Espressif Systems</span>
             </div>
         </footer>
         <!-- Third party libraries-->
