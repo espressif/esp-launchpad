@@ -1,5 +1,10 @@
 const flashingBaudrateSelect = document.getElementById("flashingBaudrateSelect");
 const consoleBaudrateSelect = document.getElementById("consoleBaudrateSelect");
+const serialDataBitsSelect = document.getElementById("serialDataBitsSelect");
+const serialStopBitsSelect = document.getElementById("serialStopBitsSelect");
+const serialParitySelect = document.getElementById("serialParitySelect");
+const serialFlowControlSelect = document.getElementById("serialFlowControlSelect");
+const serialBufferSizeInput = document.getElementById("serialBufferSizeInput");
 const connectButton = document.getElementById("connectButton");
 const disconnectButton = document.getElementById("disconnectButton");
 const resetButton = document.getElementById("resetButton");
@@ -13,7 +18,6 @@ const ensureConnect = document.getElementById("ensureConnect");
 const lblConnTo = document.getElementById("lblConnTo");
 const table = document.getElementById('fileTable');
 const alertDiv = document.getElementById('alertDiv');
-const settingsWarning = document.getElementById("settingsWarning");
 const progressMsgQS = document.getElementById("progressMsgQS");
 const progressMsgDIY = document.getElementById("progressMsgDIY");
 const deviceTypeSelect = document.getElementById("device");
@@ -31,6 +35,8 @@ const appDescriptionContainer = document.getElementById("appDescriptionContainer
 const appDescription = document.getElementById("appDescription");
 const appInfoFlashContainer = document.getElementById("appInfoFlashContainer");
 const terminalContainer = document.getElementById("terminalContainer");
+const commandForm = document.getElementById("commandForm");
+const commandInput = document.getElementById("commandInput");
 const appInfo = document.getElementById("appInfo");
 const appInfoFlash = document.getElementById("appInfoFlash");
 const consolePageWrapper = document.getElementById("consolePageWrapper");
@@ -85,6 +91,62 @@ disconnectButton.style.display = "none";
 eraseButton.style.display = "none";
 var config = [];
 var isDefault = true;
+
+/** Command history for the CLI textarea. */
+const commandHistory = [];
+/** Index of the current command in the history. */
+let historyIndex = -1;
+/** Writer for sending commands from the CLI textarea to the device. */
+let writer = undefined;
+
+/**
+ * Builds Web Serial `SerialOptions` from the Settings controls (data/stop/parity/flow/buffer).
+ * Baud rates are separate: flashing baud for ESPLoader, console baud for reconnect after reset.
+ * @see https://wicg.github.io/serial/#serialoptions-dictionary
+ */
+function getSerialOptionsFromSettings() {
+    let bufferSize = parseInt(serialBufferSizeInput?.value, 10);
+    if (!Number.isFinite(bufferSize) || bufferSize < 1) bufferSize = 255;
+    if (bufferSize > 16777216) bufferSize = 16777216;
+    const dataBits = parseInt(serialDataBitsSelect?.value, 10);
+    const stopBits = parseInt(serialStopBitsSelect?.value, 10);
+    return {
+        dataBits: dataBits === 7 || dataBits === 8 ? dataBits : 8,
+        stopBits: stopBits === 1 || stopBits === 2 ? stopBits : 1,
+        parity: serialParitySelect?.value === "even" || serialParitySelect?.value === "odd" ? serialParitySelect.value : "none",
+        flowControl: serialFlowControlSelect?.value === "hardware" ? "hardware" : "none",
+        bufferSize,
+    };
+}
+
+/**
+ * Console baud for `transport.connect` after reset. Quick Start may use TOML `console_baudrate` when set.
+ */
+function getConsoleBaudrateForReconnect() {
+    if (isFlashByQuickTryMode || isFlashByDIYMode) {
+        return isFlashByQuickTryMode && consoleBaudrateFromToml
+            ? consoleBaudrateFromToml
+            : parseInt(consoleBaudrateSelect.value, 10);
+    }
+    return parseInt(consoleBaudrateSelect.value, 10);
+}
+
+/** Shows or hides #commandForm with the console terminal area. */
+function setCliCommandFormDisplayed(terminalShown) {
+    if (!commandForm) return;
+    commandForm.style.display = terminalShown ? "block" : "none";
+}
+
+/** Only called from resetButton.onclick after reconnect. #commandInput is disabled in HTML until this runs. */
+function enableCliInput() {
+    if (commandInput && connected && chipDesc !== "default") {
+        commandInput.disabled = false;
+    }
+}
+
+function disableCliInput() {
+    if (commandInput) commandInput.disabled = true;
+}
 
 // Build the Quick Try UI using the config toml file. If external path is not specified, pick up the default config
 async function buildQuickTryUI() {
@@ -412,7 +474,8 @@ async function connectToDevice() {
         const loaderOptions = {
             transport,
             baudrate: parseInt(flashingBaudrateSelect.value),
-            terminal: espLoaderTerminal
+            terminal: espLoaderTerminal,
+            serialOptions: getSerialOptionsFromSettings(),
         };
         esploader = new ESPLoader(loaderOptions);
         connected = true;
@@ -437,12 +500,13 @@ function postConnectControls() {
         $("#eraseButton").prop("disabled", false);
 
         ensureConnect.style.display = "none";
-        settingsWarning.style.display = "block";
         connectButton.style.display = "none";
         disconnectButton.style.display = "initial";
         eraseButton.style.display = "initial";
         filesDiv.style.display = "initial";
         terminalContainer.style.display = "block";
+        disableCliInput();
+        setCliCommandFormDisplayed(true);
     }
     else
         lblConnTo.innerHTML = "<b><span style='color:red'>Unable to detect device. Please ensure the device is not connected in another application</span></b>";
@@ -460,20 +524,15 @@ connectButton.onclick = async () => {
 }
 
 resetButton.onclick = async () => {
-    let consoleBaudrate;
-
     postFlashClick();
     consoleStartButton.disabled = false;
     $('#closeResetModal').click();
     if (transport) {
         await transport.disconnect();
     }
-    if (isFlashByQuickTryMode || isFlashByDIYMode) { // Handle the case of resetting the device after flashing through one of the two modes.
-        consoleBaudrate = isFlashByQuickTryMode && consoleBaudrateFromToml ? consoleBaudrateFromToml : parseInt(consoleBaudrateSelect.value);
-    } else {
-        consoleBaudrate = parseInt(consoleBaudrateSelect.value); // Handle the case of resetting the device without flashing through any mode.
-    }
-    await transport.connect(consoleBaudrate);
+    const consoleBaudrate = getConsoleBaudrateForReconnect();
+    await transport.connect(consoleBaudrate, getSerialOptionsFromSettings());
+    enableCliInput();
     await transport.setDTR(false);
     await new Promise(resolve => setTimeout(resolve, 100));
     await transport.setDTR(true);
@@ -487,7 +546,7 @@ resetButton.onclick = async () => {
             }
             term.write(value);   
         } catch (error) {
-            term.writeln(`Error: ${e.message}`);
+            term.writeln(`Error: ${error.message}`);
         }
       }
 }
@@ -553,6 +612,8 @@ disconnectButton.onclick = async () => {
         await transport.disconnect();
     }
     terminalContainer.style.display = "none";
+    setCliCommandFormDisplayed(false);
+    disableCliInput();
     term.clear();
     $("#flashingBaudrateSelect").prop("disabled", false);
     $("#flashButton").prop("disabled", true);
@@ -560,7 +621,6 @@ disconnectButton.onclick = async () => {
     $("#programwrapper").tooltip().attr("data-bs-original-title","Click on 'Connect' button in top Menu");
     $("#programButton").prop("disabled", true);
     $("#consoleStartButton").prop("disabled", true);
-    settingsWarning.style.display = "none";
     connectButton.style.display = "initial";
     disconnectButton.style.display = "none";
     eraseButton.style.display = "none";
@@ -617,7 +677,6 @@ function validate_program_inputs() {
 
 programButton.onclick = async () => {
     programButton.disabled = true;
-    postFlashClick();
     var err = validate_program_inputs();
     if (err != "success") {
         const alertMsg = document.getElementById("alertmsg");
@@ -627,9 +686,9 @@ programButton.onclick = async () => {
             alertDiv.style.display = "none";
         }, 3000);
         programButton.disabled = false;
-        postFlashDone();
         return;
     }
+    postFlashClick();
     progressMsgDIY.style.display = "inline";
     let fileArr = [];
     let offset = 0x1000;
@@ -660,7 +719,9 @@ programButton.onclick = async () => {
         await esploader.writeFlash(flashOptions);
         postFlashDone();
         terminalContainer.classList.remove("fade-in-down");
+        setCliCommandFormDisplayed(true);
     } catch (e) {
+        postFlashDone();
     }
 }
 
@@ -871,6 +932,7 @@ flashButton.onclick = async () => {
         esploader.status = "started";
         postFlashDone();
         terminalContainer.classList.remove("fade-in-down");
+        setCliCommandFormDisplayed(true);
     }else{
         let previousState = lblConnTo.innerHTML;
         let alertChipsetSelectMsg = `<b><span style="color:red">Unable to flash device. Please ensure that chipset type is selected before flashing.</span></b>`;
@@ -881,11 +943,13 @@ flashButton.onclick = async () => {
         }, 3000);
     }
 }
+  /** Locks primary actions and CLI typing during reset, erase, erase+flash prep, or firmware write. */
 let postFlashClick = () => {
     flashButton.disabled = true;
     consoleStartButton.disabled = true;
     programButton.disabled = true;
     eraseButton.disabled = true;
+    disableCliInput();
   };
   let postFlashDone = () => {
     flashButton.disabled = false;
@@ -917,6 +981,67 @@ flashCustom.onclick = async () => {
     }
     postConnectControls();
 }*/
+
+// -----------------------------------------------------------------------------
+// CLI textarea (#commandInput): Enter sends CRLF; ArrowUp/ArrowDown recall history.
+// Hints / placeholder / getCommandTextFromInput: js/utils.js
+// -----------------------------------------------------------------------------
+
+function recordCommandInHistory(commandText) {
+    commandHistory.unshift(commandText);
+    historyIndex = -1;
+}
+
+function clearCommandInput() {
+    commandInput.value = "";
+    commandInput.style.height = null;
+}
+
+async function writeCommandToDevice(commandText) {
+    const textEncoder = new TextEncoder();
+    if (!device.writable.locked) writer = device.writable.getWriter();
+    await writer.write(textEncoder.encode(commandText + "\r\n"));
+    writer.releaseLock();
+}
+
+async function sendCommand() {
+    if (!device?.writable || commandInput.disabled) return;
+    const commandText = utilities.getCommandTextFromInput(commandInput);
+    recordCommandInHistory(commandText);
+    clearCommandInput();
+    await writeCommandToDevice(commandText);
+}
+
+function getHistory(direction) {
+    historyIndex = Math.max(Math.min(historyIndex + direction, commandHistory.length - 1), -1);
+    if (historyIndex >= 0) {
+        commandInput.value = commandHistory[historyIndex];
+    } else {
+        commandInput.value = "";
+    }
+    autoResize();
+}
+
+function autoResize() {
+    if (!commandInput) return;
+    commandInput.style.height = "auto";
+    commandInput.style.height = commandInput.scrollHeight + "px";
+}
+
+if (commandInput) {
+    utilities.renderCommandInputHints();
+    utilities.setCommandInputPlaceholder(commandInput);
+    commandInput.addEventListener("keyup", async function (event) {
+        if (event.code === "Enter" && !event.shiftKey) {
+            await sendCommand();
+        } else if (event.code === "ArrowUp") {
+            getHistory(1);
+        } else if (event.code === "ArrowDown") {
+            getHistory(-1);
+        }
+    });
+    commandInput.addEventListener("input", autoResize);
+}
 
 $( window ).resize(function() {
     clearTimeout(resizeTimeout);
