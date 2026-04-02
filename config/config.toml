@@ -267,7 +267,7 @@ ch572 = "PIANO/PI1.0.1.0-dev.20251223-182631/PIANO-Standard-PI1.0.1.0-dev.202512
 chipsets = ["ESP32S3"]
 
 [AI_0_ACC.image]
-esp32s3 = "AI_0_ACC/AI0.0.0.1-dev.20260402-150626/AI_0_ACC-Standard-AI0.0.0.1-dev.20260402-150626.bin"
+esp32s3 = "AI_0_ACC/AI0.0.0.1-dev.20260402-155416/AI_0_ACC-Standard-AI0.0.0.1-dev.20260402-155416.bin"
 
 [SNAPPY_DONGLE]
 chipsets = ["ESP32S3"]
