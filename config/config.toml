@@ -279,7 +279,7 @@ esp32s3 = "snappy-dongle/SD1.0.1.0-dev.20260106-163453/snappy-dongle-Standard-SD
 chipsets = ["ESP32H2"]
 
 [AUTOKI_V1.image]
-esp32h2 = "AUTOKI_V1/AK1.0.1.0-dev.20260402-172835/AUTOKI_V1-standard-AK1.0.1.0-dev.20260402-172835.bin"
+esp32h2 = "AUTOKI_V1/AK1.0.1.0-dev.20260403-221033/AUTOKI_V1-standard-AK1.0.1.0-dev.20260403-221033.bin"
 
 [ZING2_2]
 chipsets = ["ESP32S3"]
