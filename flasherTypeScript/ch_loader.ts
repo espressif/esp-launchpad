@@ -280,7 +280,7 @@ export class CH_loader extends UsbTransport {
       this.espLoaderTerminal.writeLine(`Erased ${sectors} code flash sectors`);
   }
 
-  async resetConfig() {
+  async resetConfig(options: { enableResetPin?: boolean } = {}) {
     if (!this.chipData)
       throw new Error("Chip data not loaded, call findDevice first");
     // Read current config
@@ -323,6 +323,17 @@ export class CH_loader extends UsbTransport {
     //       .map((x) => x.toString(16).padStart(2, "0"))
     //       .join(""),
     // );
+    // Toggle CFG_RESET_EN (bit 3 of USER_CFG at offset 0x08)
+    const userCfgOffset = 0x08;
+    if (userCfgOffset + 4 <= configRaw.length) {
+      let userCfg = configView.getUint32(userCfgOffset, true);
+      if (options.enableResetPin) {
+        userCfg |= 1 << 3; // set bit 3
+      } else {
+        userCfg &= ~(1 << 3); // clear bit 3
+      }
+      configView.setUint32(userCfgOffset, userCfg, true);
+    }
     this.espLoaderTerminal.writeLine(
       "Reset config:   " +
         Array.from(configRaw)
@@ -537,7 +548,11 @@ export class CH_loader extends UsbTransport {
   }
   async flashFirmware(
     firmware: string,
-    options: { clearDataFlash?: boolean; clearCodeFlash?: boolean } = {},
+    options: {
+      clearDataFlash?: boolean;
+      clearCodeFlash?: boolean;
+      enableResetPin?: boolean;
+    } = {},
   ) {
     try {
       // const raw = this.intelHexToUint8Array(firmware);
@@ -553,7 +568,7 @@ export class CH_loader extends UsbTransport {
         );
       }
       // Reset config registers (clears CFG_DEBUG_EN — required for fresh chips)
-      await this.resetConfig();
+      await this.resetConfig({ enableResetPin: options.enableResetPin });
 
       // Erase data flash if requested
       if (options.clearDataFlash) {

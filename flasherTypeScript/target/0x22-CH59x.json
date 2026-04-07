@@ -17,7 +17,7 @@
     {
       "offset": "0x04",
       "name": "WPROTECT",
-      "reset": "0xFFFFFFFF",
+      "reset": "0xFFFFFFFD",
       "type": "u32",
       "fields": [
         {
@@ -43,7 +43,7 @@
       "offset": "0x08",
       "name": "USER_CFG",
       "description": "User config register",
-      "reset": "0x4FFF0F45",
+      "reset": "0x4FFF0F4D",
       "type": "u32",
       "fields": [
         {
