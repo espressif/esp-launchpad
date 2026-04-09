@@ -173,7 +173,7 @@ image.esp32-s3 = "masto/masto.bin"
 
 [POKI_TEST]
 chipsets = ["CH592"]
-image.ch592 = "poki_test/poki.bin"
+image.ch592 = "POKI_TEST/PK1.0.1.0-dev.20260409-190517/POKI_TEST-Standard-PK1.0.1.0-dev.20260409-190517.hex"
 
 [POKI]
 chipsets = ["CH592"]
