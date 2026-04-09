@@ -8,7 +8,7 @@ supported_apps = ["PLAYCOMPUTER","ROBOKI","ZING0", "ZING1","HEXAPOD", "CRAWLEE8"
 chipsets = ["ESP32S3"]
 image.esp32 = "playcomputer0.1/playcomputer0.1.bin"
 #image.esp32-s3 = "playcomputer/playcomputer.bin"
-image.esp32s3 = "PLAYCOMPUTER/PC1.0.11.0-dev.20260407-133802/PLAYCOMPUTER-GRB-PC1.0.11.0-dev.20260407-133802.bin"
+image.esp32s3 = "PLAYCOMPUTER/PC1.0.11.0-dev.20260409-160642/PLAYCOMPUTER-GRB-PC1.0.11.0-dev.20260409-160642.bin"
 
 # Optional: This should be a publicly accessible URL of the application configuration markdown file
 # The markdown file will display the application configuration.
