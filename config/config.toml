@@ -177,7 +177,7 @@ image.ch592 = "POKI_TEST/PK1.0.1.0-dev.20260409-195046/POKI_TEST-Standard-PK1.0.
 
 [POKI]
 chipsets = ["CH592"]
-image.ch592 = "POKI/PK1.0.1.0-dev.20260410-165351/POKI-Standard-PK1.0.1.0-dev.20260410-165351.hex"
+image.ch592 = "POKI/PK1.0.1.0-dev.20260410-175445/POKI-Standard-PK1.0.1.0-dev.20260410-175445.hex"
 image.ch572 = "POKI/PK1.0.1.0-dev.20251219-180330/firmware_info.json"
 
 [SNAPPY-DONGLE]
