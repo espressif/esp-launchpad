@@ -1,11 +1,11 @@
 {
-  "name": "CH59x Series",
+  "name": "CH591",
   "mcu_type": "0x12",
   "device_type": "0x22",
   "support_usb": true,
   "support_serial": true,
   "support_net": false,
-  "description": "CH59x (RISC-V4C BLE 5.4) Series",
+  "description": "CH591 (RISC-V4C BLE 5.4)",
   "config_registers": [
     {
       "offset": "0x00",
@@ -123,12 +123,6 @@
       "name": "CH591",
       "chip_id": 145,
       "flash_size": 196608,
-      "eeprom_size": 32768
-    },
-    {
-      "name": "CH592",
-      "chip_id": 146,
-      "flash_size": 458752,
       "eeprom_size": 32768
     }
   ]

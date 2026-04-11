@@ -3,7 +3,8 @@ import { Protocol } from "./protocol_handler";
 import { Command, EspTerminal } from "./types";
 import chipData_0x21 from "./target/0x21-CH32V00x.json";
 import chipData_0x23 from "./target/0x23-CH32X03x.json";
-import chipData_0x22 from "./target/0x22-CH59x.json";
+import chipData_0x22_CH591 from "./target/0x22-CH591.json";
+import chipData_0x22_CH592 from "./target/0x22-CH592.json";
 import chipData_0x24 from "./target/0x24-CH643.json";
 import chipData_0x13 from "./target/0x13-CH57x.json";
 // import { ChipData } from "./types";
@@ -120,7 +121,11 @@ export class CH_loader extends UsbTransport {
         chipData = normalizeChipData(chipData_0x21);
         break;
       case 0x22:
-        chipData = normalizeChipData(chipData_0x22);
+        if (this.chip_id === 146) {
+          chipData = normalizeChipData(chipData_0x22_CH592);
+        } else {
+          chipData = normalizeChipData(chipData_0x22_CH591);
+        }
         break;
       case 0x23:
         chipData = normalizeChipData(chipData_0x23);
