@@ -231,10 +231,11 @@ chipsets = ["ESP32S3"]
 esp32s3 = "ZING_AI_HEAD/ZAI1.0.1.0-dev.20260223-160723/ZING_AI_HEAD-Standard-ZAI1.0.1.0-dev.20260223-160723.bin"
 
 [JOYSTICK]
-chipsets = ["CH572"]
+chipsets = ["CH592"]
 
 [JOYSTICK.image]
 ch572 = "JOYSTICK/JY1.0.1.0-dev.20251223-133442/firmware_info.json"
+ch592 = "JOYSTICK/JY1.0.1.0-dev.20260415-183255/JOYSTICK-Standard-JY1.0.1.0-dev.20260415-183255.hex"
 
 [ZING3_0]
 chipsets = ["ESP32S3"]
