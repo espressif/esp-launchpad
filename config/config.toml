@@ -127,7 +127,7 @@ image.esp32-s3 = "2d-plotter/2d-plotter.bin"
 chipsets = ["CH591"]
 image.ch592 = "TOKI/TK1.0.1.0TK1.0.1.0-dev.20260213-191536/TOKI-Standard-TK1.0.1.0TK1.0.1.0-dev.20260213-191536.hex"
 image.ch572 = "TOKI/TK1.0.1.0TK1.0.1.0-dev.20251223-133819/firmware_info.json"
-image.ch591 = "toki/TK1.0.1.0-dev.20260422-165703/firmware_info.json"
+image.ch591 = "toki/TK1.0.1.0-dev.20260422-180859/TOKI-Standard-TK1.0.1.0-dev.20260422-180859.hex"
 
 [ATR_H2_TEST]
 chipsets = ["ESP32-H2"]
