@@ -63,7 +63,7 @@ image.esp32-h2 = "plicker/plicker.bin"
 chipsets = ["ESP32S3"]
 image.esp32-s3 = "klaw/klaw.bin"
 image."" = "Klaw/KW1.0.3.0-dev.20251223-131544/Klaw-Standard-KW1.0.3.0-dev.20251223-131544.bin"
-image.esp32s3 = "Klaw/KW1.0.3.0-dev.20251223-134624/Klaw-Standard-KW1.0.3.0-dev.20251223-134624.bin"
+image.esp32s3 = "klaw/KW1.0.3.0-dev.20260422-165647/Klaw-Standard-KW1.0.3.0-dev.20260422-165647.bin"
 
 
 [TOY_ROBOTIC_ARM]
