@@ -58,6 +58,9 @@ const offset1_flashAddress_input = document.getElementById("offset1");
 const addFile_button = document.getElementById("addFile");
 const clearFlashDiv = document.getElementById("clearFlashDiv");
 
+const diyWindowHelp = document.getElementById("diyWindowHelp");
+// const diyClearFlashDiv = document.getElementById("diyClearFlashDiv");
+
 //when load the js file initial windowHelp_Connect it is not display offset1
 windowHelp_Connect.style.display = "none";
 clearFlashDiv.style.display = "none"
@@ -268,8 +271,20 @@ disable the add file button and disable the flash address input
 
 //find the radio button selected input label, in label present the chipset
 //or find the selected chipset
+const isDiyTabActive = () => {
+  const activeTab = $(".navbar-nav .nav-item.active[data-role='nav-menu-tab']");
+  return activeTab.data("targetTabPanelId") === "diy";
+};
+
+const isDiyWchMode = () => {
+  return $("input[name='diyChipType']:checked").val() === "WCH";
+};
+
 const selectedChipset = () => {
   try {
+    if (isDiyTabActive()) {
+      return isDiyWchMode() ? "CH592" : "ESP32";
+    }
     const checkedRadio = $("input[type='radio'][name='chipType']:checked");
     const label = $(`label[for='${checkedRadio.attr("id")}']`);
     const labelText = label.text().trim();
@@ -282,7 +297,12 @@ const selectedChipset = () => {
 //find the clear flash state and return back Clear Code Flash and Clear Data Flash
 const getClearFlashOptions = () => {
   try {
-    // Get checkbox states
+    if (isDiyTabActive()) {
+      return {
+        clearCodeFlash: $("#diyClearCodeFlash").prop("checked"),
+        clearDataFlash: $("#diyClearDataFlash").prop("checked"),
+      };
+    }
     const clearCodeFlash = $("#clearCodeFlash").prop("checked");
     const clearDataFlash = $("#clearDataFlash").prop("checked");
 
@@ -431,6 +451,28 @@ $("#developKits").on(
     chipTypeButtons.val(selectedValue);
   }
 );
+
+function updateDiyChipUI() {
+  const isWch = isDiyWchMode();
+  diyWindowHelp.style.display = isWch ? "block" : "none";
+  // diyClearFlashDiv.style.display = isWch ? "block" : "none";
+  offset1_flashAddress_input.disabled = isWch;
+  offset1_flashAddress_input.value = isWch ? "0" : "0x1000";
+  addFile_button.disabled = isWch;
+}
+
+$("#diyChipTypeGroup").on("change", "input[name='diyChipType']", function () {
+  if (connected) {
+    const alertMsg = document.getElementById("alertmsg");
+    alertMsg.innerHTML = "<strong>Disconnect the current device before switching chip type.</strong>";
+    alertDiv.style.display = "block";
+    setTimeout(() => { alertDiv.style.display = "none"; }, 3000);
+    const prev = this.value === "WCH" ? "diyChipESP" : "diyChipWCH";
+    document.getElementById(prev).checked = true;
+    return;
+  }
+  updateDiyChipUI();
+});
 
 function setAppURLs(appConfig) {
   ios_app_url = appConfig.ios_app_url;
@@ -857,8 +899,8 @@ programButton.onclick = async () => {
   clearAppInfoFlashHistory();
   isFlashByDIYMode = true;
   isFlashByQuickTryMode = false;
-  $("#v-pills-console-tab").click();
   let chipSet = selectedChipset();
+  $("#v-pills-console-tab").click();
   try {
     if (utilities.usbPortOpenChipSets.includes(chipSet)) {
       const {

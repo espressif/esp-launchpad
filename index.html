@@ -283,6 +283,32 @@
         <!-- DIY tab content - start -->
         <div class="container tabs-section main-page-tab-panel" data-tab-panel-id="diy">
             <h5 class="pt-4 pb-2 lh-lg">Choose your own built firmware image from the local storage to flash and use.</h5>
+
+                <div class="field-container mb-3">
+                    <label><b>Chip Type</b></label>
+                    <div class="field" id="diyChipTypeGroup">
+                        <div class="form-check-inline">
+                            <label class="form-check-label" for="diyChipESP">ESP (Serial)&nbsp;
+                                <input type="radio" checked class="form-check-input" name="diyChipType" id="diyChipESP" value="ESP">
+                            </label>
+                        </div>
+                        <div class="form-check-inline">
+                            <label class="form-check-label" for="diyChipWCH">WCH (USB)&nbsp;
+                                <input type="radio" class="form-check-input" name="diyChipType" id="diyChipWCH" value="WCH">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <p id="diyWindowHelp" style="display:none">Note : If you are using Windows, you need to install the WinUSB driver for your device
+                    <a href="https://zadig.akeo.ie/">see Zadig</a>
+                </p>
+
+                <!-- <div id="diyClearFlashDiv" class="field-container" style="display:none">
+                    <label><input type="checkbox" id="diyClearCodeFlash" checked> Clear Code Flash</label>
+                    <label style="margin-left:12px"><input type="checkbox" id="diyClearDataFlash" checked> Clear Data Flash</label>
+                </div> -->
+
                 <br>
                 <input class="btn btn-danger btn-sm" type="button" id="eraseButton" value="Erase Flash" data-toggle="tooltip"
             data-placement="top" title="Erase firmware on your device"/>
