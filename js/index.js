@@ -1004,7 +1004,7 @@ function clearCommandInput() {
 async function writeCommandToDevice(commandText) {
     const textEncoder = new TextEncoder();
     if (!device.writable.locked) writer = device.writable.getWriter();
-    await writer.write(textEncoder.encode(commandText + "\r\n"));
+    await writer.write(textEncoder.encode(commandText + "\r"));
     writer.releaseLock();
 }
 

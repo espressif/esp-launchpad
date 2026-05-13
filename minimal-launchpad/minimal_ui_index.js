@@ -431,7 +431,7 @@ async function sendCommand() {
     historyIndex = -1;
     commandInput.value = "";
     commandInput.style.height = null;
-    commandToSend = commandToSend + "\r\n";
+    commandToSend = commandToSend + "\r";
     await writer.write(textEncoder.encode(commandToSend));
     writer.releaseLock();
 }
