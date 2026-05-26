@@ -38,11 +38,7 @@ import * as toml from '../node_modules/smol-toml/dist/index.js';
 const ESPLoader = esptooljs.ESPLoader;
 const Transport = esptooljs.Transport;
 
-if (utilities.isWebUSBSerialSupported()) {
-    document.getElementById("unsupportedBrowserErr").style.display = "inline";
-    document.getElementById("main").style.display = "none";
-    throw new Error('Unsupported Browser');
-}
+utilities.assertWebSerialSupported();
 
 let term = new Terminal({ cols: utilities.getTerminalColumns(), rows: 23, fontSize: 14, scrollback: 9999999 });
 let fitAddon = new FitAddon.FitAddon();

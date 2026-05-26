@@ -387,3 +387,9 @@ td img {
 		transform: translate3d(0, 0, 0);
 	}
 }
+
+/* Web Serial support errors (browser / insecure context); shares page with footer */
+#webSerialSupportErrorContainer .web-serial-support-error-message {
+    max-width: 42rem;
+    width: 100%;
+}

@@ -554,15 +554,21 @@
         <!-- About us tab content - end -->
     </div>
 
-    <!-- Safari & FireFox not supported error message-->
-    <div id="unsupportedBrowserErr" style="display:none"><p align="center" style="color:red">
-        This tool is not supported on Safari & Firefox browsers yet! Please try using another browser like Google Chrome.
-            <br> <br>
-            ESP Launchpad makes use of WebUSB to communicate with the device. Currently Safari & Firefox browsers don't support it yet.
-
-            We will add support for this browser as soon as Safari & Firefox starts supporting WebUSB.
-
-    </p>
+    <div id="webSerialSupportErrorContainer" class="d-none d-flex flex-grow-1 w-100 flex-column justify-content-center align-items-center px-3">
+        <div id="unsupportedBrowserErr" class="web-serial-support-error-message d-none">
+            <p class="text-danger text-center mb-0">
+                Your browser of choice doesn't support the WebSerial API. ESP Launchpad makes use of WebSerial to communicate with the device.
+                Please check the list of supported browsers
+                <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API#browser_compatibility" target="_blank" rel="noopener">here</a>.
+            </p>
+        </div>
+        <div id="unsupportedInsecureContextErr" class="web-serial-support-error-message d-none">
+            <p class="text-danger text-center mb-0">
+                ESP Launchpad makes use of WebSerial to communicate with the device. The WebSerial API only works in a secure context (HTTPS or localhost).
+                This page was loaded over an insecure connection (HTTP). Please open ESP Launchpad via HTTPS or localhost.
+                <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts" target="_blank" rel="noopener">Learn more about secure contexts</a>.
+            </p>
+        </div>
     </div>
 
         <footer class="mt-auto py-3">

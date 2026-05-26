@@ -56,11 +56,7 @@ import * as toml from '../node_modules/smol-toml/dist/index.js';
 const ESPLoader = esptooljs.ESPLoader;
 const Transport = esptooljs.Transport;
 
-if (utilities.isWebUSBSerialSupported()) {
-    document.getElementById("unsupportedBrowserErr").style.display = "inline";
-    document.getElementById("main").style.display = "none";
-    throw new Error('Unsupported Browser');
-}
+utilities.assertWebSerialSupported();
 
 const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
 

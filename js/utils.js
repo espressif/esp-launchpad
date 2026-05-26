@@ -91,19 +91,71 @@ export function handleFileSelect(evt) {
     reader.readAsBinaryString(file);
 }
 
-export function isWebUSBSerialSupported() {
-    let isSafari =
-        /constructor/i.test(window.HTMLElement) ||
-        (function (p) {
-            return p.toString() === "[object SafariRemoteNotification]";
-        })(
-            !window["safari"] ||
-            (typeof safari !== "undefined" && window["safari"].pushNotification)
-        );
+/** Whether `navigator.serial` is exposed */
+export function isWebSerialApiAvailable() {
+    return (
+        typeof navigator !== "undefined" &&
+        "serial" in navigator &&
+        typeof navigator.serial?.requestPort === "function"
+    );
+}
 
-    let isFirefox = typeof InstallTrigger !== "undefined";
+/** Whether the page is in a [secure context](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts) (HTTPS or localhost). */
+export function isWebSerialSecureContext() {
+    return typeof window !== "undefined" && window.isSecureContext;
+}
 
-    return (isSafari || isFirefox);
+/**
+ * @returns {"insecure-context" | "unsupported-browser" | null}
+ * Checks secure context first so HTTP deployments get the correct message when the API is hidden.
+ */
+export function getWebSerialSupportIssue() {
+    if (!isWebSerialSecureContext()) return "insecure-context";
+    if (!isWebSerialApiAvailable()) return "unsupported-browser";
+    return null;
+}
+
+/** Whether Web Serial can be used (secure context + API available). */
+export function isWebSerialSupported() {
+    return getWebSerialSupportIssue() === null;
+}
+
+const WEB_SERIAL_SUPPORT_ERROR_CONTAINER_ID = "webSerialSupportErrorContainer";
+
+const WEB_SERIAL_SUPPORT_ERRORS = {
+    "insecure-context": {
+        elementId: "unsupportedInsecureContextErr",
+        throwMessage: "Insecure Context",
+    },
+    "unsupported-browser": {
+        elementId: "unsupportedBrowserErr",
+        throwMessage: "Unsupported Browser",
+    },
+};
+
+function showWebSerialSupportErrorUI(issue) {
+    const { elementId } = WEB_SERIAL_SUPPORT_ERRORS[issue];
+    const container = document.getElementById(WEB_SERIAL_SUPPORT_ERROR_CONTAINER_ID);
+    const message = document.getElementById(elementId);
+
+    if (container) container.classList.remove("d-none");
+    if (message) message.classList.remove("d-none");
+
+    const main = document.getElementById("main");
+    if (main) main.style.display = "none";
+}
+
+function throwWebSerialSupportError(issue) {
+    throw new Error(WEB_SERIAL_SUPPORT_ERRORS[issue].throwMessage);
+}
+
+/** Hides main UI and shows the matching Web Serial support error. */
+export function assertWebSerialSupported() {
+    const issue = getWebSerialSupportIssue();
+    if (!issue) return;
+
+    showWebSerialSupportErrorUI(issue);
+    throwWebSerialSupportError(issue);
 }
 
 export function mdToHtmlConverter(markdownContent) {
