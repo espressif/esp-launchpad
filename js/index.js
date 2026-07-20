@@ -66,7 +66,6 @@ term.loadAddon(fitAddon);
 term.open(terminal);
 fitAddon.fit();
 
-let reader = undefined;
 let device = null;
 let transport = undefined;
 let chip = "default";
@@ -527,6 +526,7 @@ resetButton.onclick = async () => {
     postFlashClick();
     consoleStartButton.disabled = false;
     $('#closeResetModal').click();
+    await utilities.stopConsoleRead();
     if (transport) {
         await transport.disconnect();
     }
@@ -536,19 +536,7 @@ resetButton.onclick = async () => {
     await transport.setDTR(false);
     await new Promise(resolve => setTimeout(resolve, 100));
     await transport.setDTR(true);
-    while (true && connected) {
-        try {
-            const readLoop = transport.rawRead();
-            const { value, done } = await readLoop.next();
-            
-            if (done || !value) {
-                break;
-            }
-            term.write(value);   
-        } catch (error) {
-            term.writeln(`Error: ${error.message}`);
-        }
-      }
+    await utilities.startConsoleRead(device, term, () => connected);
 }
 
 eraseButton.onclick = async () => {
@@ -601,13 +589,15 @@ function cleanUp() {
     device = null;
     transport = undefined;
     chip = "default";
-    reader = undefined;
     isFlashByDIYMode = false;
     isFlashByQuickTryMode = false;
 }
 
 disconnectButton.onclick = async () => {
     connected = false;
+    // Must run before transport.disconnect(): it waits for the readable stream
+    // to unlock, which never happens while the console loop has a read() pending.
+    await utilities.stopConsoleRead();
     if(transport){
         await transport.disconnect();
     }
