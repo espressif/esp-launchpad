@@ -45,6 +45,8 @@ const appConfigInfo = document.getElementById("appConfigInfo");
 const progressMsgContainerQS = document.getElementById("progressMsgContainerQS");
 const developKitsContainer = document.getElementById("developKitsContainer");
 const appInfoTriggerContainer = document.getElementById("appInfoTriggerContainer");
+const firmwareDownloadTriggerContainer = document.getElementById("firmwareDownloadTriggerContainer");
+const firmwareDownloadButton = document.getElementById("firmwareDownloadButton");
 const rightOffCanvasContainer = document.getElementById("offcanvasRight");
 
 let resizeTimeout = false;
@@ -252,6 +254,7 @@ async function buildQuickTryUI_v1_0() {
     }
 
     setAppURLs(config[supported_apps[0]]);
+    updateFirmwareDownloadLink();
 }
 
 function addDeviceTypeOption(apps) {
@@ -385,12 +388,14 @@ $('#chipsets').on('change', 'input[type="radio"][name="chipType"]',function() {
         developKitsContainer.style.display = "none";
     }
 
+    updateFirmwareDownloadLink();
 });
 
 $('#developKits').on('change', 'input[type="radio"][name="developKitsType"]',function() {
     var selectedValue = $('input[type="radio"][name="developKitsType"]:checked').val();
     var chipTypeButtons = $('input[type="radio"][name="chipType"]:checked');
     chipTypeButtons.val(selectedValue);
+    updateFirmwareDownloadLink();
 });
 
 function setAppURLs(appConfig) {
@@ -400,10 +405,24 @@ function setAppURLs(appConfig) {
     setup_qrcode_payload = appConfig.setup_payload;
 }
 
+function updateFirmwareDownloadLink() {
+    const selectedFirmwareFile = $('input[type="radio"][name="chipType"]:checked').val();
+    if (selectedFirmwareFile && config.firmware_images_url) {
+        firmwareDownloadButton.href = /^https?:\/\//i.test(selectedFirmwareFile)
+            ? selectedFirmwareFile
+            : `${config.firmware_images_url.replace(/\/+$/, '')}/${selectedFirmwareFile.replace(/^\/+/, '')}`;
+        firmwareDownloadTriggerContainer.style.display = '';
+    } else {
+        firmwareDownloadButton.href = '#';
+        firmwareDownloadTriggerContainer.style.display = 'none';
+    }
+}
+
 $('#frameworkSel').on('change', function() {
     //populateDeviceTypes(config[frameworkSelect.value]);
     addDeviceTypeOption(config["supported_apps"], frameworkSelect.value);
     setAppURLs(frameworkSelect.value);
+    updateFirmwareDownloadLink();
 });
 
 $('#device').on('change', function() {
@@ -441,6 +460,7 @@ $('#device').on('change', function() {
     if (config[deviceTypeSelect.value].console_baudrate) {
         consoleBaudrateFromToml = config[deviceTypeSelect.value].console_baudrate;
     }
+    updateFirmwareDownloadLink();
 });
 
 $(function () {

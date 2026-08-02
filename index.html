@@ -245,6 +245,30 @@
                             <div id="appInfoTriggerContainer" class="field-container app-info-trigger-container" style="display: none;">
                                 <a href="#" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">Show Application Information</a>
                             </div>
+                            <div id="firmwareDownloadTriggerContainer" class="field-container firmware-download-trigger-container" style="display: none;">
+                                <a href="#" role="button" data-bs-toggle="modal" data-bs-target="#firmwareDownloadModal">Download Firmware File</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="firmwareDownloadModal" tabindex="-1" aria-labelledby="firmwareDownloadModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title" id="firmwareDownloadModalLabel"><span style="color: #17a2b8;">Download Firmware File</span></h4>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Download the firmware and flash it manually using the
+                                        <a href="https://docs.espressif.com/projects/esp-test-tools/en/latest/esp32/production_stage/tools/flash_download_tool.html" target="_blank" rel="noopener">Flash Download Tool</a>
+                                        or
+                                        <a href="https://docs.espressif.com/projects/esptool/en/latest/esp32/esptool/basic-commands.html#write-binary-data-to-flash-write-flash" target="_blank" rel="noopener">esptool</a>.
+                                        Refer to their documentation for detailed instructions.
+                                    </p>
+                                </div>
+                                <div class="modal-footer">
+                                    <a class="app-button btn btn-outline-dark" id="firmwareDownloadButton" href="#" target="_blank" rel="noopener" download>Download Firmware</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="offcanvas offcanvas-end w-50" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">

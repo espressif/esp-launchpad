@@ -332,6 +332,11 @@ td img {
     margin-left: 18px;
 }
 
+.firmware-download-trigger-container {
+    padding-top: 14px;
+    margin-left: 18px;
+}
+
 @media (min-width: 1400px) {
     .container-xxl, .container-xl, .container-lg, .container-md, .container-sm, .container {
       max-width: 1320px;
