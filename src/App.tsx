@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Button, IconTextActionCard } from "@espressif/dashboard-ui-components";
+import { Button, IconTextActionCard } from "@espressif/dashboard-ui-components";
 import { EspProvider, useEsp } from "./esp/EspContext";
 import { getWebSerialSupportIssue } from "./lib/serial";
 import { Navbar } from "./components/Navbar";
@@ -22,7 +22,7 @@ function Launchpad() {
   const [activeTab, setActiveTab] = useState<TabId>("home");
   const [flashModalOpen, setFlashModalOpen] = useState(false);
   const [flashLinks, setFlashLinks] = useState<AppFlashLinks>({});
-  const { fitTerminal, connected } = useEsp();
+  const { fitTerminal, connected, connect } = useEsp();
 
   // The terminal is rendered in a hidden panel; re-fit it when shown.
   useEffect(() => {
@@ -47,7 +47,7 @@ function Launchpad() {
             title={"ESP Launchpad"}
             description={"Helps you flash the selected firmware image onto your device. Ensure your device is connected to the serial USB port."} 
             color="secondary" size="lg" variant="solid" 
-            actions={<Button color="mist" fullWidth={false} variant="default">Connect</Button>} />
+            actions={<Button color="disabled" fullWidth={false} variant="default" onClick={() => void connect()}>Connect</Button>} />
           </div>
         )}
 

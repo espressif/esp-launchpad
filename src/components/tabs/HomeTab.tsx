@@ -44,7 +44,7 @@ export function HomeTab({ onTabChange }: { onTabChange: (tab: TabId) => void }) 
         </div>
 
         <div className="grid gap-8 sm:grid-cols-1">
-          {FEATURES.map(({ id, icon, title, description, cta }) => (
+          {FEATURES.map(({ id, icon, title, description }) => (
             <SimpleClickableCard 
             icon={<img src={icon} alt="" className="h-5 w-5" aria-hidden />}
             title={title}

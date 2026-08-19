@@ -39,6 +39,19 @@ function appLinksFromConfig(app: AppConfig): AppFlashLinks {
   };
 }
 
+function normalizeChipName(chipName: string): string {
+  return chipName.replace(/-/g, "").toLowerCase();
+}
+
+function findMatchingChipset(
+  chipsets: string[] | undefined,
+  chipName: string,
+): string | undefined {
+  if (!chipsets || chipName === "default") return undefined;
+  const normalized = normalizeChipName(chipName);
+  return chipsets.find((c) => normalizeChipName(c) === normalized);
+}
+
 export function QuickStartTab({
   goToConsole,
   onFlashStatus,
@@ -120,11 +133,13 @@ export function QuickStartTab({
     setSelectedDevKit(devKits?.[0] ?? "");
   }, [devKits]);
 
-  // ── Auto-select the detected chip ───────────────────────────────
+  // ── Auto-select the detected chip when connected ────────────────
   useEffect(() => {
-    if (!app || chipName === "default") return;
-    const match = app.chipsets?.find((c) => c.toLowerCase() === chipName.toLowerCase());
-    if (match) setSelectedChipset(match);
+    if (!app || chipName === "default") {
+      if (chipName === "default") setSelectedChipset("");
+      return;
+    }
+    setSelectedChipset(findMatchingChipset(app.chipsets, chipName) ?? "");
   }, [app, chipName]);
 
   const handleAppChange = useCallback(
@@ -132,14 +147,9 @@ export function QuickStartTab({
       setSelectedApp(newApp);
       if (config) {
         const appConfig = getApp(config, newApp);
-        const match = appConfig?.chipsets?.find((c) => c.toLowerCase() === normalizeChipName(chipName));
-        if (match) setSelectedChipset(match); else setSelectedChipset("");
+        setSelectedChipset(findMatchingChipset(appConfig?.chipsets, chipName) ?? "");
       }
     }, [config, chipName]);
-
-  function normalizeChipName (chipName: string){
-    return chipName.replace(/-/g, "").toLowerCase();
-  }
 
   const resolveFlashFile = useCallback((): string | undefined => {
     if (!app) return undefined;
@@ -255,7 +265,7 @@ export function QuickStartTab({
         color="secondary">
         {!selectedChipset && deviceReady && (
           <div>
-            <Alert type="error" title="Unsupported chipset type">Selected application is not supported on your connected device.
+            <Alert type="error" color="error" title="Unsupported chipset type" variant="gradient">Selected application is not supported on your connected device.
             </Alert>
           </div>
         )}
@@ -308,10 +318,8 @@ export function QuickStartTab({
       </div>
 
       {configReadmeHtml && (
-        <SimpleCard title="Application Configuration" variant="gradient" color="secondary" size="default"
-        children={<div className="markdown-body" dangerouslySetInnerHTML={{ __html: configReadmeHtml }} 
-        />} >
-
+        <SimpleCard title="Application Configuration">
+          <div className="markdown-body" dangerouslySetInnerHTML={{ __html: configReadmeHtml }} />
         </SimpleCard>
       )}
 
