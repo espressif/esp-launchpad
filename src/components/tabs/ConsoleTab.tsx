@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, SectionCard } from "@espressif/dashboard-ui-components";
+import { Button, SimpleCard, SectionCard, Separator, Textarea } from "@espressif/dashboard-ui-components";
 import { useEsp } from "../../esp/EspContext";
 import { TerminalView } from "../TerminalView";
 import { ResetDialog } from "../modals/ResetDialog";
@@ -13,7 +13,7 @@ function CliHints() {
     <kbd className="command-kbd">{children}</kbd>
   );
   return (
-    <div className="command-input-hints mt-2 text-xs text-muted-foreground">
+    <div className="command-input-hints mt-4 text-xs text-muted-foreground">
       <div className="command-input-hints__chip">
         <span>
           <strong>Send</strong>{" "}
@@ -133,6 +133,8 @@ export function ConsoleTab() {
          allowCollapse={false}
          defaultOpen={true}
          size="default"
+         variant="gradient"
+         color="secondary"
         >
         </SectionCard>
       )}
@@ -140,17 +142,23 @@ export function ConsoleTab() {
       <TerminalView />
 
       <div>
-        <textarea
+      <SimpleCard
+        title="Console Command Input"
+        variant="gradient"
+        color="secondary"
+        description="Reset the device for enabling CLI. Type a command, then press Return or ⌘↩ to send the command to the device.">
+        <Textarea
           ref={inputRef}
           rows={1}
           autoComplete="off"
           disabled={!cliEnabled}
           onKeyUp={onKeyUp}
           onInput={autoResize}
-          aria-label="Console command input"
-          className="w-full resize-none rounded-md border border-input bg-background p-2 font-mono text-sm shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+          placeholder="Type your command here..."
+          size="sm"
         />
         <CliHints />
+      </SimpleCard>
       </div>
 
       <ResetDialog open={resetOpen} onOpenChange={setResetOpen} onConfirm={() => void resetDevice()} />
