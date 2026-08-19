@@ -1,5 +1,9 @@
 import { useRef, useState } from "react";
-import { Alert, Button, Input, SectionCard } from "@espressif/dashboard-ui-components";
+import { Alert, Button, ConfirmationDialog, FileUpload, Input, SectionCard, Separator } from "@espressif/dashboard-ui-components";
+import {
+  Table, TableHeader, TableBody, TableRow,
+  TableHead, TableCell, TableCaption,
+} from '@espressif/dashboard-ui-components'
 import { useEsp } from "../../esp/EspContext";
 import { readFileAsBinaryString } from "../../lib/serial";
 import removeIcon from "../../../assets/icons/remove.png";
@@ -73,78 +77,86 @@ export function DiyTab({ goToConsole }: { goToConsole: () => void }) {
       {connected && (
         <SectionCard 
         icon={<Cpu />} 
+        variant="gradient"
+        color="secondary"
         primaryText="Connected to device" 
         secondaryText={chipDesc}
          actions={ 
-          <Button
-          size="sm"
-          color="error"
-          className="w-auto"
-          disabled={!deviceReady || busy}
-          onClick={() => void onErase()}
-        >
-          Erase Flash
-        </Button>}
+          <ConfirmationDialog
+            title="Are you sure you want to erase the flash?"
+            description="This action cannot be undone."
+            onConfirm={() => void onErase()}
+          >
+            <Button variant="default" color="error">Erase Flash</Button>
+          </ConfirmationDialog>
+          }
          allowCollapse={false}
          defaultOpen={true}
          size="default"
         >
         </SectionCard>
       )}
-      <h5 className="text-base" font-semibold>
+      <div className="space-y-1">
+        <Separator />
+
+      <h5 className="text-base font-semibold">
       <p>
         Choose your own built firmware image from local storage to flash and use.
         </p>
       </h5>
-
+      <Separator />
+      </div>
       {error && (
         <Alert type="error" title="Validation error">
           {error}
         </Alert>
       )}
 
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="text-left">
-            <th className="py-2 pr-4">Flash Address</th>
-            <th className="py-2 pr-4">Selected File</th>
-            <th className="py-2"> </th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Flash Address</TableHead>
+            <TableHead>Selected File</TableHead>
+            <TableHead> </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {rows.map((row) => (
-            <tr key={row.id}>
-              <td className="py-1 pr-4 align-middle">
+            <TableRow key={row.id}>
+              <TableCell>
                 <Input
-                  className="max-w-40"
-                  value={row.offset}
-                  onChange={(e) => updateRow(row.id, { offset: e.target.value })}
-                />
-              </td>
-              <td className="py-1 pr-4 align-middle">
-                <input
-                  type="file"
-                  className="text-sm"
+                    className="max-w-40"
+                    value={row.offset}
+                    onChange={(e) => updateRow(row.id, { offset: e.target.value })}
+                  />
+              </TableCell>
+              <TableCell>
+                <FileUpload
+                  hideDropzoneOnFileSelect
+                  id={`file-upload-${row.id}`}
                   onChange={(e) => updateRow(row.id, { file: e.target.files?.[0] ?? null })}
                 />
-              </td>
-              <td className="py-1 align-middle">
-                {rows.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeRow(row.id)}
-                    aria-label="Remove file row"
-                  >
-                    <img src={removeIcon} alt="" className="h-4 w-4" />
-                  </button>
-                )}
-              </td>
-            </tr>
+              </TableCell>
+            <TableCell>
+              {rows.length > 1 && (
+                <Button
+                  size="sm"
+                  color="secondary"
+                  className="w-auto"
+                  onClick={() => removeRow(row.id)}
+                >
+                  <img src={removeIcon} alt="" className="h-4 w-4" />
+                </Button>
+              )}
+            </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
 
-      <div className="flex justify-end gap-2">
+     
+
+      <div className="flex justify-end gap-2 w-90">
         <Button variant="outline" size="sm" onClick={addRow}>
           Add File
         </Button>
