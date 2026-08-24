@@ -38,14 +38,16 @@ export function OnboardingLayout({
     heading ?? appConfig.customAuth?.onboardingHeading ?? undefined;
 
   return (
-    <EntryLayout
-      appName={appConfig.projectName as AppName}
-      darkMode={darkMode}
-      heading={resolvedHeading}
-      backgroundImageUrl={backgroundImageUrl}
-      {...rest}
-    >
-      {children}
-    </EntryLayout>
+    <div className="[&>div>div:first-child>div:last-child]:hidden">
+      <EntryLayout
+        appName={appConfig.projectName as AppName}
+        darkMode={darkMode}
+        heading={resolvedHeading}
+        backgroundImageUrl={backgroundImageUrl}
+        {...rest}
+      >
+        {children}
+      </EntryLayout>
+    </div>
   );
 }

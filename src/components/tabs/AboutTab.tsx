@@ -1,5 +1,5 @@
 import type { TabId } from "../../types";
-import { Alert, Button, Link, PageContainer, ScrollableSections } from '@espressif/dashboard-ui-components'
+import { Alert, Button, ContentContainer, Link, PageContainer, ScrollableSections } from '@espressif/dashboard-ui-components'
 import tryWithLaunchpad from "../../../assets/try_with_launchpad.png";
 
 const EMBED_SNIPPET = `<a href="https://espressif.github.io/esp-launchpad/?flashConfigURL=URL_TO_YOUR_CONFIG_TOML">
@@ -9,7 +9,6 @@ const EMBED_SNIPPET = `<a href="https://espressif.github.io/esp-launchpad/?flash
 export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void }) {
   return (
     <PageContainer
-        heading="About ESP LaunchPad"
         className="p-4"
         noGutters
         elevateHeading
@@ -23,41 +22,47 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
       </ScrollableSections.Tabs>
       <ScrollableSections.Content id="intro">
         {
-          <div>
-            <p>
+          <section className="space-y-2">
+           <h4 className="text-xl font-bold">Intro</h4>
+          <div className="rounded-lg border p-6">
+            <p className="text-sm">
               ESP Launchpad is a web based tool, available for flashing firmware applications to the ESP32
               device connected via a USB serial port.
             </p>
-            <p><br />
+            <p className="text-sm"><br />
               There are two modes available for using this tool:
               <br /> 
               1. <Link to="#quickStart" color="secondary" size="lg" variant="gradient" color="secondary">Quick Start</Link> : 
               4 Easy Steps - <code style={{color:"#d63384"}}>Plug Device, Connect, Choose Built-In Firmware Image & Flash!</code>
             </p>
-            <p>
+            <p className="text-sm">
               2. <Link to="#diy" color="secondary" size="lg" variant="gradient" color="secondary">DIY</Link> : 
               For Advanced Users, use your own pre-built Firmware Image from local storage and Flash!
             </p>
-            <p>
+            <p className="text-sm">
             <br />
             You can even build and <Link to="#publishFirmwareApp" color="secondary" size="lg" variant="gradient" color="secondary">Publish your own Apps</Link> for ESP32 using ESP Launchpad.
             </p>
           </div>
+          </section>
         }
       </ScrollableSections.Content>
       <ScrollableSections.Content id="quickStart">
         {
            <section className="space-y-2">
            <h4 className="text-xl font-bold">Quick Start</h4>
-           <p>
+           <div className="rounded-lg border p-6">
+           <p className="text-sm">
              ESP currently provides a few built-in, ready-to-use examples that can be flashed on the
              ESP32 devices. Choose one of the built-in firmware applications, plug in your device, use
              the Connect option in the menu, choose the firmware, and click Flash!
            </p>
+           <br />
            <div className="flex items-center gap-4">
-             <Button color="secondary" onClick={() => onTabChange("quickstart")}>
+             <Button color="secondary" fullWidth={false} onClick={() => onTabChange("quickstart")}>
                Try Now!
              </Button>
+           </div>
            </div>
          </section>
         }
@@ -66,15 +71,18 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
         {
           <section className="space-y-2">
             <h4 className="text-xl font-bold">DIY</h4>
-            <p>
+            <div className="rounded-lg border p-6">
+            <p className="text-sm">
               You can build your own firmware binaries using the ESP-IDF tools and flash them from your
               local machine. Select the firmware files from local storage, choose the memory address for
               each, then click Flash!
             </p>
+            <br />
             <div className="flex items-center gap-4">
-              <Button color="secondary" onClick={() => onTabChange("diy")}>
+              <Button color="secondary" fullWidth={false} onClick={() => onTabChange("diy")}>
                 Try Now!
               </Button>
+            </div>
             </div>
           </section>
         }
@@ -83,7 +91,8 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
         {
           <section className="space-y-3">
             <h4 className="text-xl font-bold">Publish your own firmware apps</h4>
-            <p>
+            <div className="rounded-lg border p-6">
+            <p className="text-sm">
               The ESP Launchpad Quick Start page is rendered by referring to a TOML configuration file,
               where you configure where to pick the component images of your firmware and the supported
               hardware. A sample TOML config file can be viewed {""}
@@ -95,20 +104,21 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
               </a>
               .
             </p>
-            <p>
+            <p className="text-sm">
             Rest of the flashing procedure is same easy 4 step process as the <Link to="#quickStart" color="secondary" size="sm" variant="gradient" color="secondary">Quick Start</Link> one above.
             </p>
-            <p>
+            <p className="text-sm">
             Once ready, you can use the following image and add following html code on your website for supporting ESPaunchpad with your configuration. Edit the query parameter in the href, replacing URL_TO_YOUR_CONFIG_TOML value where your TOML config file is hosted.
             </p>
             <br />
-            <img src={tryWithLaunchpad} alt="Try it with ESP Launchpad" width={250} height={70} />
+            <img src={tryWithLaunchpad} alt="Try it with ESP Launchpad" width={250} height={70} /> <br />
             <textarea
               readOnly
               rows={4}
               className="w-full rounded border border-border bg-background p-2 font-mono text-xs"
               value={EMBED_SNIPPET}
             />
+            <br /> <br />
             <Alert color="warning" variant="soft" title="Note:" dismissible hideIcon={true}>
             When using an external TOML source, a message will be displayed: 
             You have chosen to try the firmware images from an external source'
@@ -116,7 +126,7 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
             </Alert>
             <br /> <br />
             <h6 className="text-xl font-bold">Using CORS Proxy for external TOML Files </h6>
-            <p>
+            <p className="text-sm">
               If your TOML configuration file is hosted on a server that doesn't support CORS (Cross-Origin Resource Sharing), 
               or if you want to load a file from your local PC or from a source other than espressif.github.io, simply add 
               <code style={{color:"#d63384"}}> &crossDomain=true</code> to your URL. The CORS proxy will be applied automatically.
@@ -125,29 +135,34 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
             </p>
             <textarea
               readOnly
-              rows={1}
+              rows={2}
               className="w-full rounded border border-border bg-background p-2 font-mono text-xs"
               value={"https://espressif.github.io/esp-launchpad/?flashConfigURL=YOUR_CONFIG_TOML_URL&crossDomain=true"}
             />
+            <br /> <br />
             <h2 className="text-lg font-bold">Loading from your local PC:</h2>
-            <p>
+            <p className="text-sm">
             To load a TOML file from your local machine, you need to expose it via a tunnel service (e.g., Cloudflare Tunnel, ngrok, or similar). 
             Once your local server is accessible via a public URL, use it with <code style={{color:"#d63384"}}> &crossDomain=true</code>
             </p>
+            <br />
             <textarea
               readOnly
               rows={2}
               className="w-full rounded border border-border bg-background p-2 font-mono text-xs"
               value={"https://espressif.github.io/esp-launchpad/?flashConfigURL=https://your-tunnel-url.trycloudflare.com/config.toml&crossDomain=true"}
             />
+            <br /> <br />
           <h2 className="text-lg font-bold">Loading from a custom server:</h2>
-          <p>If your TOML file is hosted on your own server (e.g., https://mycompany.com):</p>
+          <p className="text-sm">If your TOML file is hosted on your own server (e.g., https://mycompany.com):</p>
+          <br />
             <textarea
               readOnly
               rows={2}
               className="w-full rounded border border-border bg-background p-2 font-mono text-xs"
               value={"https://espressif.github.io/esp-launchpad/?flashConfigURL=https://mycompany.com/firmware/config.toml&crossDomain=true"}
             />
+            </div>
         </section>
         }
       </ScrollableSections.Content>
