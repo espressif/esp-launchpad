@@ -386,6 +386,7 @@ connectButton.onclick = async () => {
 }
 
 consoleStartButton.onclick = async () => {
+    await utilities.stopConsoleRead();
     if (transport) {
         await transport.disconnect();
     }
@@ -398,20 +399,7 @@ consoleStartButton.onclick = async () => {
     await transport.setDTR(false);
     await new Promise(resolve => setTimeout(resolve, 100));
     await transport.setDTR(true);
-
-    while (true && connected) {
-        try {
-            const readLoop = transport.rawRead();
-            const { value, done } = await readLoop.next();
-
-            if (done || !value) {
-                break;
-            }
-            term.write(value);
-        } catch (error) {
-            term.writeln(`Error: ${e.message}`);
-        }
-    }
+    await utilities.startConsoleRead(device, term, () => connected);
 }
 
 async function sendCommand() {

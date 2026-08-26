@@ -23,18 +23,12 @@ export function getImageData(fileURL) {
     return new Promise(resolve => {
         var xhr = new XMLHttpRequest();
         xhr.open('GET', fileURL, true);
-        xhr.responseType = "blob";
+        // esptool-js >= 0.6.0 expects Uint8Array image data in writeFlash
+        xhr.responseType = "arraybuffer";
         xhr.send();
         xhr.onload = function () {
             if (xhr.readyState === 4 && xhr.status === 200) {
-                var blob = new Blob([xhr.response], { type: "application/octet-stream" });
-                var reader = new FileReader();
-                reader.onload = (function (theFile) {
-                    return function (e) {
-                        resolve(e.target.result);
-                    };
-                })(blob);
-                reader.readAsBinaryString(blob);
+                resolve(new Uint8Array(xhr.response));
             } else {
                 resolve(undefined);
             }
@@ -43,6 +37,57 @@ export function getImageData(fileURL) {
             resolve(undefined);
         }
     });
+}
+
+// -----------------------------------------------------------------------------
+// Console read loop (shared by launchpad and minimal-launchpad).
+// Owns its reader (unlike esptool-js 0.6.0 transport.rawRead, which keeps the
+// reader private) so stopConsoleRead() can cancel a pending read. Without this,
+// transport.disconnect() blocks forever in waitForUnlock() while the console is
+// idle: it can only cancel its own internal reader (used during flashing).
+// -----------------------------------------------------------------------------
+
+/** Reader owned by the active console read loop; cancelled via stopConsoleRead(). */
+let consoleReader = undefined;
+
+/**
+ * Read from the device and write to the terminal until isActive() returns false,
+ * the stream ends, or stopConsoleRead() cancels the pending read.
+ * @param {SerialPort} device Serial port to read from (its readable stream must be unlocked)
+ * @param {Terminal} term xterm.js terminal to write device output to
+ * @param {() => boolean} isActive Keep reading while this returns true
+ */
+export async function startConsoleRead(device, term, isActive) {
+    try {
+        consoleReader = device.readable.getReader();
+        while (isActive()) {
+            const { value, done } = await consoleReader.read();
+            if (done || !value) {
+                break;
+            }
+            term.write(value);
+        }
+    } catch (error) {
+        term.writeln(`Error: ${error.message}`);
+    } finally {
+        consoleReader?.releaseLock();
+        consoleReader = undefined;
+    }
+}
+
+/**
+ * Cancel the active console reader (if any) so its pending read() resolves and
+ * the readable-stream lock is released. Call before transport.disconnect()
+ * whenever a console read loop may be running.
+ */
+export async function stopConsoleRead() {
+    if (consoleReader) {
+        try {
+            await consoleReader.cancel();
+        } catch (error) {
+            console.error(`[esp-launchpad] stopConsoleRead: cancel failed: ${error.message}`);
+        }
+    }
 }
 
 export const initializeTooltips = function () {
@@ -83,12 +128,13 @@ export function handleFileSelect(evt) {
 
     reader.onload = (function (theFile) {
         return function (e) {
-            file1 = e.target.result;
+            // esptool-js >= 0.6.0 expects Uint8Array image data in writeFlash
+            file1 = new Uint8Array(e.target.result);
             evt.target.data = file1;
         };
     })(file);
 
-    reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
 }
 
 /** Whether `navigator.serial` is exposed */
