@@ -1,5 +1,5 @@
 import type { TabId } from "../../types";
-import { Alert, Button, ContentContainer, Link, PageContainer, ScrollableSections } from '@espressif/dashboard-ui-components'
+import { Alert, Button, Link, PageContainer, ScrollableSections } from '@espressif/dashboard-ui-components'
 import tryWithLaunchpad from "../../../assets/try_with_launchpad.png";
 
 const EMBED_SNIPPET = `<a href="https://espressif.github.io/esp-launchpad/?flashConfigURL=URL_TO_YOUR_CONFIG_TOML">
@@ -32,16 +32,16 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
             <p className="text-sm"><br />
               There are two modes available for using this tool:
               <br /> 
-              1. <Link to="#quickStart" color="secondary" size="lg" variant="gradient" color="secondary">Quick Start</Link> : 
+              1. <Link to="#quickStart" color="secondary">Quick Start</Link> : 
               4 Easy Steps - <code style={{color:"#d63384"}}>Plug Device, Connect, Choose Built-In Firmware Image & Flash!</code>
             </p>
             <p className="text-sm">
-              2. <Link to="#diy" color="secondary" size="lg" variant="gradient" color="secondary">DIY</Link> : 
+              2. <Link to="#diy" color="secondary">DIY</Link> : 
               For Advanced Users, use your own pre-built Firmware Image from local storage and Flash!
             </p>
             <p className="text-sm">
             <br />
-            You can even build and <Link to="#publishFirmwareApp" color="secondary" size="lg" variant="gradient" color="secondary">Publish your own Apps</Link> for ESP32 using ESP Launchpad.
+            You can even build and <Link to="#publishFirmwareApp" color="secondary">Publish your own Apps</Link> for ESP32 using ESP Launchpad.
             </p>
           </div>
           </section>
@@ -105,7 +105,7 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
               .
             </p>
             <p className="text-sm">
-            Rest of the flashing procedure is same easy 4 step process as the <Link to="#quickStart" color="secondary" size="sm" variant="gradient" color="secondary">Quick Start</Link> one above.
+            Rest of the flashing procedure is same easy 4 step process as the <Link to="#quickStart" color="secondary">Quick Start</Link> one above.
             </p>
             <p className="text-sm">
             Once ready, you can use the following image and add following html code on your website for supporting ESPaunchpad with your configuration. Edit the query parameter in the href, replacing URL_TO_YOUR_CONFIG_TOML value where your TOML config file is hosted.

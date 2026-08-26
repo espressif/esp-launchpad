@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, SimpleCard, SectionCard, Separator, Textarea } from "@espressif/dashboard-ui-components";
+import { Button, SimpleCard, SectionCard, Textarea } from "@espressif/dashboard-ui-components";
 import { useEsp } from "../../esp/EspContext";
 import { TerminalView } from "../TerminalView";
 import { ResetDialog } from "../modals/ResetDialog";
@@ -144,8 +144,6 @@ export function ConsoleTab() {
       <div>
       <SimpleCard
         title="Console Command Input"
-        variant="gradient"
-        color="secondary"
         description="Reset the device for enabling CLI. Type a command, then press Return or ⌘↩ to send the command to the device.">
         <Textarea
           ref={inputRef}

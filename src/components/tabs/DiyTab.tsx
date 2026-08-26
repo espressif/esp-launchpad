@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Alert, Button, ConfirmationDialog, FileUpload, Input, SectionCard, Separator } from "@espressif/dashboard-ui-components";
 import {
   Table, TableHeader, TableBody, TableRow,
-  TableHead, TableCell, TableCaption,
+  TableHead, TableCell,
 } from '@espressif/dashboard-ui-components'
 import { useEsp } from "../../esp/EspContext";
 import { readFileAsBinaryString } from "../../lib/serial";
@@ -86,6 +86,7 @@ export function DiyTab({ goToConsole }: { goToConsole: () => void }) {
             title="Are you sure you want to erase the flash?"
             description="This action cannot be undone."
             onConfirm={() => void onErase()}
+            onCancel={() => undefined}
           >
             <Button variant="default" color="error">Erase Flash</Button>
           </ConfirmationDialog>
