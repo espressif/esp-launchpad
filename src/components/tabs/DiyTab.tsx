@@ -5,7 +5,7 @@ import {
   TableHead, TableCell,
 } from '@espressif/dashboard-ui-components'
 import { useEsp } from "../../esp/EspContext";
-import { readFileAsBinaryString } from "../../lib/serial";
+import { readFileAsBytes } from "../../lib/serial";
 import removeIcon from "../../../assets/icons/remove.png";
 import { Cpu } from "lucide-react";
 
@@ -60,7 +60,7 @@ export function DiyTab({ goToConsole }: { goToConsole: () => void }) {
     goToConsole();
     const fileArray = await Promise.all(
       result.map(async ({ file, address }) => ({
-        data: await readFileAsBinaryString(file),
+        data: await readFileAsBytes(file),
         address,
       })),
     );
