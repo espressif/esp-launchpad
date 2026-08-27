@@ -101,33 +101,18 @@ export function getCommandTextFromInput(textarea: HTMLTextAreaElement): string {
   return commandText.trim();
 }
 
-/** Fetches a firmware binary and returns it as a binary string (the format esptool-js expects). */
-export function getImageData(fileURL: string): Promise<string | undefined> {
-  return new Promise((resolve) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("GET", fileURL, true);
-    xhr.responseType = "blob";
-    xhr.send();
-    xhr.onload = function () {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        const blob = new Blob([xhr.response], { type: "application/octet-stream" });
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target?.result as string);
-        reader.readAsBinaryString(blob);
-      } else {
-        resolve(undefined);
-      }
-    };
-    xhr.onerror = () => resolve(undefined);
-  });
+/** Fetches a firmware binary in the byte-array format expected by esptool-js. */
+export async function getImageData(fileURL: string): Promise<Uint8Array | undefined> {
+  try {
+    const response = await fetch(fileURL);
+    if (!response.ok) return undefined;
+    return new Uint8Array(await response.arrayBuffer());
+  } catch {
+    return undefined;
+  }
 }
 
-/** Reads a local File as a binary string for DIY flashing. */
-export function readFileAsBinaryString(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => resolve(e.target?.result as string);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsBinaryString(file);
-  });
+/** Reads a local firmware file in the byte-array format expected by esptool-js. */
+export async function readFileAsBytes(file: File): Promise<Uint8Array> {
+  return new Uint8Array(await file.arrayBuffer());
 }

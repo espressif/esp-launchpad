@@ -21,7 +21,7 @@ import {
 } from "../lib/serial";
 
 export interface FlashFile {
-  data: string;
+  data: Uint8Array;
   address: number;
 }
 
@@ -158,7 +158,6 @@ export function EspProvider({ children }: { children: ReactNode }) {
       const loaderOptions: LoaderOptions = {
         transport: transportRef.current!,
         baudrate: settingsRef.current.flashingBaudrate,
-        romBaudrate: 115200,
         terminal: espLoaderTerminal,
         serialOptions: getSerialOptions(settingsRef.current),
       };
@@ -283,17 +282,11 @@ export function EspProvider({ children }: { children: ReactNode }) {
     await new Promise((resolve) => setTimeout(resolve, 100));
     await t.setDTR(true);
 
-    while (connectedRef.current) {
-      try {
-        const readLoop = t.rawRead();
-        const { value, done } = await readLoop.next();
-        if (done || !value) break;
-        termRef.current?.write(value);
-      } catch (error) {
-        termRef.current?.writeln(`Error: ${(error as Error).message}`);
-        break;
-      }
-    }
+    const decoder = new TextDecoder();
+    await t.rawRead(
+      (data) => termRef.current?.write(decoder.decode(data, { stream: true })),
+      () => !connectedRef.current,
+    );
   }, [ensureDevice, getConsoleBaudrateForReconnect]);
 
   const sendCommand = useCallback(async (text: string) => {
