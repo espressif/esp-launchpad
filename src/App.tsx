@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, FooterCard, IconTextActionCard } from "@espressif/dashboard-ui-components";
 import { EspProvider, useEsp } from "./esp/EspContext";
 import { getWebSerialSupportIssue } from "./lib/serial";
@@ -22,12 +22,26 @@ function Launchpad() {
   const [activeTab, setActiveTab] = useState<TabId>("home");
   const [flashModalOpen, setFlashModalOpen] = useState(false);
   const [flashLinks, setFlashLinks] = useState<AppFlashLinks>({});
-  const { fitTerminal, connected, connect } = useEsp();
+  const { fitTerminal, connected, chipDesc, connect } = useEsp();
+  const deviceReady = connected && chipDesc !== "default";
+  const wasDeviceReady = useRef(deviceReady);
 
   // The terminal is rendered in a hidden panel; re-fit it when shown.
   useEffect(() => {
     if (activeTab === "console") requestAnimationFrame(fitTerminal);
   }, [activeTab, fitTerminal]);
+
+  // Redirect only when a new connection successfully identifies the device.
+  useEffect(() => {
+    if (
+      !wasDeviceReady.current &&
+      deviceReady &&
+      (activeTab === "home" || activeTab === "settings" || activeTab === "about")
+    ) {
+      setActiveTab("console");
+    }
+    wasDeviceReady.current = deviceReady;
+  }, [activeTab, deviceReady]);
 
   const goToConsole = () => setActiveTab("console");
   const showFlashStatus = (links: AppFlashLinks) => {
