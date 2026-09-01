@@ -38,7 +38,7 @@ export function Navbar({
   const deviceReady = connected && chipDesc !== "default";
 
   return (
-    <nav className="flex items-center gap-4 border-b border-border px-4 py-2">
+    <nav className="sticky top-0 z-50 flex items-center gap-4 border-b border-border bg-background px-4 py-2">
       <button
         type="button"
         className="flex shrink-0 items-center"

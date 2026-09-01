@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
+  Badge,
   Button,
   RadioGroup,
   Select,
@@ -267,25 +268,29 @@ export function QuickStartTab({
           <div>
             <Alert type="error" color="error" title="Unsupported chipset type" variant="gradient">Selected application is not supported on your connected device.
             </Alert>
+            <br /> <br />
           </div>
         )}
 
         <div className="space-y-1">
-          <label className="text-sm font-medium">Application Supported Chipset Types</label>
+          <label className="text-sm font-bold">Application Supported Chipset Types</label>
+          <br />
+          <Separator /> <br />
           <p className="text-sm text-muted-foreground">
-            {app.chipsets.join(" | ")}
+            {app.chipsets.map((chipset, index) => (
+              <span key={chipset}>
+                {index > 0 && " | "}
+                {deviceReady && chipset === selectedChipset ? (
+                  <Badge color="secondary" variant="solid">{chipset}</Badge>
+                ) : (
+                  <Badge variant="outline">{chipset}</Badge>
+                )}
+              </span>
+            ))}
           </p> <br />
         </div>
         <Separator />
-        {deviceReady && (
-          <div className="space-y-2">
-            <br />
-          <label className="text-sm font-medium">Your Connected Device</label>
-          <p className="text-sm text-muted-foreground">
-            {normalizeChipName(chipName).toUpperCase()}
-          </p>
-          </div>
-          )}
+
         
       </SectionCard>
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, IconTextActionCard } from "@espressif/dashboard-ui-components";
+import { Button, FooterCard, IconTextActionCard } from "@espressif/dashboard-ui-components";
 import { EspProvider, useEsp } from "./esp/EspContext";
 import { getWebSerialSupportIssue } from "./lib/serial";
 import { Navbar } from "./components/Navbar";
@@ -72,9 +72,9 @@ function Launchpad() {
         </TabPanel>
       </main>
 
-      <footer className="mt-auto py-3 text-center text-sm text-muted-foreground">
-        Copyright © {new Date().getFullYear()} Espressif Systems
-      </footer>
+      <div className="mt-auto py-3 text-center text-muted-foreground">
+      <FooterCard />
+      </div>
 
       <FlashStatusDialog
         open={flashModalOpen}
