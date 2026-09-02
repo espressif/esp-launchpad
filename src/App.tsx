@@ -18,8 +18,13 @@ function TabPanel({ active, children }: { active: boolean; children: React.React
   return <div className={active ? "fade-in-down" : "hidden"}>{children}</div>;
 }
 
+function getInitialTab(): TabId {
+  const params = new URLSearchParams(window.location.search);
+  return params.has("solution") || params.has("flashConfigURL") ? "quickstart" : "home";
+}
+
 function Launchpad() {
-  const [activeTab, setActiveTab] = useState<TabId>("home");
+  const [activeTab, setActiveTab] = useState<TabId>(getInitialTab);
   const [flashModalOpen, setFlashModalOpen] = useState(false);
   const [flashLinks, setFlashLinks] = useState<AppFlashLinks>({});
   const { fitTerminal, connected, chipDesc, connect } = useEsp();
