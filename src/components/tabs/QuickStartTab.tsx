@@ -202,13 +202,13 @@ export function QuickStartTab({
     <div className="space-y-5">
       <h5 className="text-base font-semibold">
         {isDefault ? (<p>
-          Choose from some of ESP's pre-built, out-of-the-box examples to flash and play
+          Choose from some of ESP's pre-built, out-of-the-box examples to flash and play.
           </p>
         ) : (
-          <>
-            Choose from the firmware images listed below. You have chosen to try the firmware images
-            from an <b>external source</b> — <span className="break-all">{tomlFileURL}</span>
-          </>
+          <Alert type="warning" variant="soft">
+          <b>Note:</b> You have chosen to try the firmware images
+          from an <b>external source</b> — <span className="break-all">{tomlFileURL}</span>
+          </Alert>
         )}
       </h5>
       <Separator />
