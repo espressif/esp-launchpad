@@ -1,6 +1,9 @@
 import type { TabId } from "../../types";
-import { Alert, Button, Link, PageContainer, ScrollableSections } from '@espressif/dashboard-ui-components'
+import { Alert, Button, Link, PageContainer, SectionCard, ScrollableSections } from '@espressif/dashboard-ui-components'
 import tryWithLaunchpad from "../../../assets/try_with_launchpad.png";
+import quickstartIcon from "../../../assets/icons/quickstart.png";
+import diyIcon from "../../../assets/icons/diy.png";
+import { BookOpenIcon, HandshakeIcon } from 'lucide-react'
 
 const EMBED_SNIPPET = `<a href="https://espressif.github.io/esp-launchpad/?flashConfigURL=URL_TO_YOUR_CONFIG_TOML">
   <img alt="Try it with ESP Launchpad" src="https://espressif.github.io/esp-launchpad/assets/try_with_launchpad.png" width="250" height="70">
@@ -13,18 +16,24 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
         noGutters
         elevateHeading
     >
-    <ScrollableSections>
+    <ScrollableSections stickyTop="calc(3.25rem + 1rem)">
       <ScrollableSections.Tabs>
-        <ScrollableSections.Tab id="intro">Intro</ScrollableSections.Tab>
-        <ScrollableSections.Tab id="quickStart">Quick Start</ScrollableSections.Tab>
-        <ScrollableSections.Tab id="diy">DIY</ScrollableSections.Tab>
-        <ScrollableSections.Tab id="publishFirmwareApp">Publish Your Own Firmware Apps</ScrollableSections.Tab>
+        <ScrollableSections.Tab id="intro">{<HandshakeIcon className="h-12 w-12 text-muted-foreground" />} Introduction</ScrollableSections.Tab>
+        <ScrollableSections.Tab id="quickStart">{<img src={quickstartIcon} width={18} height={18} />} Quick Start</ScrollableSections.Tab>
+        <ScrollableSections.Tab id="diy">{<img src={diyIcon} width={18} height={18} />} DIY</ScrollableSections.Tab>
+        <ScrollableSections.Tab id="publishFirmwareApp">{<BookOpenIcon />} Publish Your Own Firmware Apps</ScrollableSections.Tab>
       </ScrollableSections.Tabs>
-      <ScrollableSections.Content id="intro">
+      <ScrollableSections.Content id="intro" className="md:-mt-[4.25rem] md:scroll-mt-0 md:pt-[4.25rem]">
         {
           <section className="space-y-2">
-           <h4 className="text-xl font-bold">Intro</h4>
-          <div className="rounded-lg border p-6">
+            <SectionCard
+              icon={<HandshakeIcon className="h-5 w-5 text-muted-foreground" />}
+              primaryText="Introduction"
+              allowCollapse={false}
+              defaultOpen={true}
+              size="lg"
+            >
+              <div className="rounded-lg border p-6">
             <p className="text-sm">
               ESP Launchpad is a web based tool, available for flashing firmware applications to the ESP32
               device connected via a USB serial port.
@@ -44,54 +53,63 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
             You can even build and <Link to="#publishFirmwareApp" color="secondary">Publish your own Apps</Link> for ESP32 using ESP Launchpad.
             </p>
           </div>
+            </SectionCard>
           </section>
         }
       </ScrollableSections.Content>
-      <ScrollableSections.Content id="quickStart">
+      <ScrollableSections.Content id="quickStart" className="md:-mt-[4.25rem] md:scroll-mt-0 md:pt-[4.25rem]">
         {
            <section className="space-y-2">
-           <h4 className="text-xl font-bold">Quick Start</h4>
-           <div className="rounded-lg border p-6">
-           <p className="text-sm">
-             ESP currently provides a few built-in, ready-to-use examples that can be flashed on the
-             ESP32 devices. Choose one of the built-in firmware applications, plug in your device, use
-             the Connect option in the menu, choose the firmware, and click Flash!
-           </p>
-           <br />
-           <div className="flex items-center gap-4">
-             <Button color="secondary" fullWidth={false} onClick={() => onTabChange("quickstart")}>
-               Try Now!
-             </Button>
-           </div>
-           </div>
+            <SectionCard
+              icon={<img src={quickstartIcon} alt="Quick Start" width={24} height={24} />}
+              primaryText="Quick Start"
+              actions={ <Button color="secondary" fullWidth={false} onClick={() => onTabChange("quickstart")}>
+              Try Now!</Button>}
+              allowCollapse={false}
+              defaultOpen={true}
+              size="lg"
+            >
+              <p className="text-sm">
+                ESP currently provides a few built-in, ready-to-use examples that can be flashed on the
+                ESP32 devices. Choose one of the built-in firmware applications, plug in your device, use
+                the Connect option in the menu, choose the firmware, and click Flash!
+              </p>
+            </SectionCard>
          </section>
         }
       </ScrollableSections.Content>
-      <ScrollableSections.Content id="diy">
+      <ScrollableSections.Content id="diy" className="md:-mt-[4.25rem] md:scroll-mt-0 md:pt-[4.25rem]">
         {
           <section className="space-y-2">
-            <h4 className="text-xl font-bold">DIY</h4>
-            <div className="rounded-lg border p-6">
-            <p className="text-sm">
-              You can build your own firmware binaries using the ESP-IDF tools and flash them from your
-              local machine. Select the firmware files from local storage, choose the memory address for
-              each, then click Flash!
-            </p>
-            <br />
-            <div className="flex items-center gap-4">
-              <Button color="secondary" fullWidth={false} onClick={() => onTabChange("diy")}>
-                Try Now!
-              </Button>
-            </div>
-            </div>
+            <SectionCard
+              icon={<img src={diyIcon} alt="DIY" width={24} height={24} />}
+              primaryText="DIY"
+              actions={ <Button color="secondary" fullWidth={false} onClick={() => onTabChange("diy")}>
+              Try Now!</Button>}
+              allowCollapse={false}
+              defaultOpen={true}
+              size="lg"
+            >
+              <p className="text-sm">
+                You can build your own firmware binaries using the ESP-IDF tools and flash them from your
+                local machine. Select the firmware files from local storage, choose the memory address for
+                each, then click Flash!
+              </p>
+            </SectionCard>
           </section>
         }
       </ScrollableSections.Content>
-      <ScrollableSections.Content id="publishFirmwareApp">
+      <ScrollableSections.Content id="publishFirmwareApp" className="md:-mt-[4.25rem] md:scroll-mt-0 md:pt-[4.25rem]">
         {
           <section className="space-y-3">
-            <h4 className="text-xl font-bold">Publish your own firmware apps</h4>
-            <div className="rounded-lg border p-6">
+            <SectionCard
+              icon={<BookOpenIcon className="h-5 w-5 text-muted-foreground" />}
+              primaryText="Publish your own firmware apps"
+              allowCollapse={false}
+              defaultOpen={true}
+              size="lg"
+            >
+              <div className="rounded-lg border p-6">
             <p className="text-sm">
               The ESP Launchpad Quick Start page is rendered by referring to a TOML configuration file,
               where you configure where to pick the component images of your firmware and the supported
@@ -163,6 +181,7 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
               value={"https://espressif.github.io/esp-launchpad/?flashConfigURL=https://mycompany.com/firmware/config.toml&crossDomain=true"}
             />
             </div>
+            </SectionCard>
         </section>
         }
       </ScrollableSections.Content>
