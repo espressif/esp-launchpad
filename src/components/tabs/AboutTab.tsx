@@ -3,7 +3,7 @@ import { Alert, Button, Link, PageContainer, SectionCard, ScrollableSections } f
 import tryWithLaunchpad from "../../../assets/try_with_launchpad.png";
 import quickstartIcon from "../../../assets/icons/quickstart.png";
 import diyIcon from "../../../assets/icons/diy.png";
-import { BookOpenIcon, HandshakeIcon } from 'lucide-react'
+import { BookOpenIcon, HandshakeIcon, Timer, ToolCase } from 'lucide-react'
 
 const EMBED_SNIPPET = `<a href="https://espressif.github.io/esp-launchpad/?flashConfigURL=URL_TO_YOUR_CONFIG_TOML">
   <img alt="Try it with ESP Launchpad" src="https://espressif.github.io/esp-launchpad/assets/try_with_launchpad.png" width="250" height="70">
@@ -19,8 +19,8 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
     <ScrollableSections stickyTop="calc(3.25rem + 1rem)">
       <ScrollableSections.Tabs>
         <ScrollableSections.Tab id="intro">{<HandshakeIcon className="h-12 w-12 text-muted-foreground" />} Introduction</ScrollableSections.Tab>
-        <ScrollableSections.Tab id="quickStart">{<img src={quickstartIcon} width={18} height={18} />} Quick Start</ScrollableSections.Tab>
-        <ScrollableSections.Tab id="diy">{<img src={diyIcon} width={18} height={18} />} DIY</ScrollableSections.Tab>
+        <ScrollableSections.Tab id="quickStart">{<Timer className="h-5 w-5" aria-hidden />} Quick Start</ScrollableSections.Tab>
+        <ScrollableSections.Tab id="diy">{<ToolCase className="h-5 w-5" aria-hidden />} DIY</ScrollableSections.Tab>
         <ScrollableSections.Tab id="publishFirmwareApp">{<BookOpenIcon />} Publish Your Own Firmware Apps</ScrollableSections.Tab>
       </ScrollableSections.Tabs>
       <ScrollableSections.Content id="intro" className="md:-mt-[4.25rem] md:scroll-mt-0 md:pt-[4.25rem]">
@@ -33,26 +33,26 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
               defaultOpen={true}
               size="lg"
             >
-              <div className="rounded-lg border p-6">
-            <p className="text-sm">
-              ESP Launchpad is a web based tool, available for flashing firmware applications to the ESP32
-              device connected via a USB serial port.
-            </p>
-            <p className="text-sm"><br />
-              There are two modes available for using this tool:
-              <br /> 
-              1. <Link to="#quickStart" color="secondary">Quick Start</Link> : 
-              4 Easy Steps - <code style={{color:"#d63384"}}>Plug Device, Connect, Choose Built-In Firmware Image & Flash!</code>
-            </p>
-            <p className="text-sm">
-              2. <Link to="#diy" color="secondary">DIY</Link> : 
-              For Advanced Users, use your own pre-built Firmware Image from local storage and Flash!
-            </p>
-            <p className="text-sm">
-            <br />
-            You can even build and <Link to="#publishFirmwareApp" color="secondary">Publish your own Apps</Link> for ESP32 using ESP Launchpad.
-            </p>
-          </div>
+            <div className="rounded-lg border p-6">
+              <p className="text-sm">
+                ESP Launchpad is a web based tool, available for flashing firmware applications to the ESP32
+                device connected via a USB serial port.
+              </p>
+              <p className="text-sm"><br />
+                There are two modes available for using this tool:
+                <br /> 
+                1. <Link to="#quickStart" color="secondary">Quick Start</Link> : 
+                4 Easy Steps - <code style={{color:"#d63384"}}>Plug Device, Connect, Choose Built-In Firmware Image & Flash!</code>
+              </p>
+              <p className="text-sm">
+                2. <Link to="#diy" color="secondary">DIY</Link> : 
+                For Advanced Users, use your own pre-built Firmware Image from local storage and Flash!
+              </p>
+              <p className="text-sm">
+              <br />
+              You can even build and <Link to="#publishFirmwareApp" color="secondary">Publish your own Apps</Link> for ESP32 using ESP Launchpad.
+              </p>
+            </div>
             </SectionCard>
           </section>
         }
@@ -61,7 +61,7 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
         {
            <section className="space-y-2">
             <SectionCard
-              icon={<img src={quickstartIcon} alt="Quick Start" width={24} height={24} />}
+              icon={<Timer className="h-5 w-5" aria-hidden />}
               primaryText="Quick Start"
               actions={ <Button color="secondary" fullWidth={false} onClick={() => onTabChange("quickstart")}>
               Try Now!</Button>}
@@ -82,7 +82,7 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
         {
           <section className="space-y-2">
             <SectionCard
-              icon={<img src={diyIcon} alt="DIY" width={24} height={24} />}
+              icon={<ToolCase className="h-5 w-5" aria-hidden />}
               primaryText="DIY"
               actions={ <Button color="secondary" fullWidth={false} onClick={() => onTabChange("diy")}>
               Try Now!</Button>}

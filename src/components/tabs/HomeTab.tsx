@@ -4,13 +4,13 @@ import { useEsp } from "../../esp/EspContext";
 import { Button, SimpleClickableCard } from "@espressif/dashboard-ui-components";
 import { appConfig } from "../../app-config";
 import type { TabId } from "../../types";
-import quickstartIcon from "../../../assets/icons/quickstart.png";
-import consoleIcon from "../../../assets/icons/console.png";
+import type { LucideIcon } from "lucide-react";
+import { Timer, SquareChevronRight } from "lucide-react";
 
-const FEATURES: { id: TabId; icon: string; title: string; description: string; cta: string }[] = [
+const FEATURES: { id: TabId; icon: LucideIcon; title: string; description: string; cta: string }[] = [
   {
     id: "quickstart",
-    icon: quickstartIcon,
+    icon: Timer,
     title: "Quick Start",
     description:
       "Four easy steps — Plug, Connect, Choose a built-in firmware image, Flash! Ideal for getting started quickly with Espressif hardware.",
@@ -18,7 +18,7 @@ const FEATURES: { id: TabId; icon: string; title: string; description: string; c
   },
   {
     id: "console",
-    icon: consoleIcon,
+    icon: SquareChevronRight,
     title: "Console",
     description:
       "For users to connect their ESP dev kits to the console and interact with them.",
@@ -44,9 +44,10 @@ export function HomeTab({ onTabChange }: { onTabChange: (tab: TabId) => void }) 
         </div>
 
         <div className="grid gap-8 sm:grid-cols-1">
-          {FEATURES.map(({ id, icon, title, description }) => (
-            <SimpleClickableCard 
-            icon={<img src={icon} alt="" className="h-5 w-5" aria-hidden />}
+          {FEATURES.map(({ id, icon: Icon, title, description }) => (
+            <SimpleClickableCard
+            key={id}
+            icon={<Icon className="h-5 w-5" aria-hidden />}
             title={title}
             description={description}
             color="secondary" size="sm" variant="soft"

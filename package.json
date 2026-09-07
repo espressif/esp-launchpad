@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@espressif/dashboard-ui-components": "^1.1.3",
+    "@espressif/dashboard-ui-components": "^1.2.2",
     "@tanstack/react-table": "^8.21.3",
     "build": "^0.1.4",
     "esptool-js": "^0.6.0",

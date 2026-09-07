@@ -1,30 +1,26 @@
 import { useEsp } from "../esp/EspContext";
 import type { TabId } from "../types";
+import type { LucideIcon } from "lucide-react";
 import logo from "../../assets/logo-v1.png";
-import quickstartIcon from "../../assets/icons/quickstart.png";
-import diyIcon from "../../assets/icons/diy.png";
 import connectIcon from "../../assets/icons/connect.png";
 import disconnectIcon from "../../assets/icons/disconnect.png";
-import consoleIcon from "../../assets/icons/console.png";
-import settingsIcon from "../../assets/icons/settings.png";
-import aboutIcon from "../../assets/icons/about-us.png";
-import homeIcon from "../../assets/icons/home.png";
+import { House, Info, Settings, SquareChevronRight, Timer, ToolCase } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@espressif/dashboard-ui-components";
 
 
 interface NavItem {
   id: TabId;
   label: string;
-  icon: string;
+  icon: LucideIcon;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: "home", label: "Home", icon: homeIcon },
-  { id: "quickstart", label: "Quick Start", icon: quickstartIcon },
-  { id: "diy", label: "DIY", icon: diyIcon },
-  { id: "console", label: "Console", icon: consoleIcon },
-  { id: "settings", label: "Settings", icon: settingsIcon },
-  { id: "about", label: "About", icon: aboutIcon }
+  { id: "home", label: "Home", icon: House },
+  { id: "quickstart", label: "Quick Start", icon: Timer },
+  { id: "diy", label: "DIY", icon: ToolCase },
+  { id: "console", label: "Console", icon: SquareChevronRight },
+  { id: "settings", label: "Settings", icon: Settings },
+  { id: "about", label: "About", icon: Info }
 ];
 
 export function Navbar({
@@ -50,9 +46,9 @@ export function Navbar({
       <div className="ml-auto flex w-[70%] items-center">
         <Tabs value={activeTab} className="w-full">
         <TabsList variant="rounded" className="w-full">
-          {NAV_ITEMS.map((item) => (
-            <TabsTrigger key={item.id} value={item.id} onClick={() => onTabChange(item.id)}>
-              <img src={item.icon} alt="" className="h-4 w-4" aria-hidden /> {item.label}
+          {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
+            <TabsTrigger key={id} value={id} onClick={() => onTabChange(id)}>
+              <Icon className="h-4 w-4" aria-hidden /> {label}
             </TabsTrigger>
           ))}
       {deviceReady ? (
