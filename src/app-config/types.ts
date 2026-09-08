@@ -34,9 +34,9 @@ export interface I18nConfig {
 }
 
 /**
- * Login and session UI configuration
+ * Landing page configuration
  */
-export interface CustomAuthConfig {
+export interface LandingPageConfig {
   /** Background image path for the onboarding layout right panel */
   onboardingLayoutBackgroundImage?: string;
   /** Heading text displayed over the onboarding layout right panel */
@@ -68,5 +68,5 @@ export interface AppConfig {
   hideFooter: boolean;
   /** Date format string for detailed date display (tokens: dd, MM, yyyy, HH, mm, ss) */
   dateFormat?: string;
-  customAuth?: CustomAuthConfig;
+  landingPage?: LandingPageConfig;
 }

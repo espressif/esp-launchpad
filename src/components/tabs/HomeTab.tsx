@@ -29,7 +29,7 @@ const FEATURES: { id: TabId; icon: LucideIcon; title: string; description: strin
 export function HomeTab({ onTabChange }: { onTabChange: (tab: TabId) => void }) {
   const { connect } = useEsp();
   const onboardingHeading =
-    appConfig.customAuth?.onboardingHeading ??
+    appConfig.landingPage?.onboardingHeading ??
     "Build smarter, build faster, build whatever with Espressif's open AIoT platforms";
 
   return (

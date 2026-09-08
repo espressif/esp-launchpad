@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
-  Badge,
   Button,
   RadioGroup,
   Select,
@@ -15,7 +14,8 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SimpleCard
+  SimpleCard,
+  Badge
 } from "@espressif/dashboard-ui-components";
 import { ConnectionStatus, useEsp } from "../../esp/EspContext";
 import { Box, Cpu } from 'lucide-react'
@@ -276,18 +276,26 @@ export function QuickStartTab({
           <label className="text-sm font-bold">Application Supported Chipset Types</label>
           <br />
           <Separator /> <br />
-          <p className="text-sm text-muted-foreground">
-            {app.chipsets.map((chipset, index) => (
-              <span key={chipset}>
-                {index > 0 && " | "}
+          
+          <div className="flex flex-wrap items-center gap-2">
+            {app.chipsets.map((chipset) => (
+              <div key={chipset}>
                 {deviceReady && chipset === selectedChipset ? (
-                  <Badge color="secondary" variant="solid">{chipset}</Badge>
+                  <Badge
+                    className="justify-center text-center font-normal"
+                    color="secondary"
+                    variant="solid"
+                  >{chipset}</Badge>
                 ) : (
-                  <Badge variant="outline">{chipset}</Badge>
+                  <Badge
+                    className="justify-center text-center font-normal"
+                    variant="gradient"
+                  >{chipset}</Badge>
                 )}
-              </span>
+              </div>
             ))}
-          </p> <br />
+          </div>
+          <br />
         </div>
         <Separator />
 

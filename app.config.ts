@@ -35,13 +35,13 @@ export default defineConfig({
       },
     },
   },
-  favicon: "assets/img/favicon/favicon.ico",
+  favicon: "assets/favicon.ico",
   i18n: {
     supportedLanguages: ["en", "zh"],
   },
   hideFooter: true,
   dateFormat: "dd/MM/yyyy HH:mm:ss",
-  customAuth: {
+  landingPage: {
     onboardingLayoutBackgroundImage: "assets/img/backgrounds/e22-home-banner.png",
     onboardingHeading: "Easily flash your ESP dev kits using <gradient-text>ESP Launchpad</gradient-text> Flashing Utility"
   },

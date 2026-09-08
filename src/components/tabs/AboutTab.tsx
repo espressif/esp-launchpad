@@ -1,9 +1,7 @@
 import type { TabId } from "../../types";
 import { Alert, Button, Link, PageContainer, SectionCard, ScrollableSections } from '@espressif/dashboard-ui-components'
 import tryWithLaunchpad from "../../../assets/try_with_launchpad.png";
-import quickstartIcon from "../../../assets/icons/quickstart.png";
-import diyIcon from "../../../assets/icons/diy.png";
-import { BookOpenIcon, HandshakeIcon, Timer, ToolCase } from 'lucide-react'
+import { BookOpenIcon, ChevronRight, HandshakeIcon, Timer, ToolCase } from 'lucide-react'
 
 const EMBED_SNIPPET = `<a href="https://espressif.github.io/esp-launchpad/?flashConfigURL=URL_TO_YOUR_CONFIG_TOML">
   <img alt="Try it with ESP Launchpad" src="https://espressif.github.io/esp-launchpad/assets/try_with_launchpad.png" width="250" height="70">
@@ -35,22 +33,19 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
             >
             <div className="rounded-lg border p-6">
               <p className="text-sm">
-                ESP Launchpad is a web based tool, available for flashing firmware applications to the ESP32
-                device connected via a USB serial port.
-              </p>
-              <p className="text-sm"><br />
-                There are two modes available for using this tool:
+                <b>ESP Launchpad</b> is a web-based tool that makes it easy to flash firmware applications to ESP32 devices over a USB serial connection.
+                <br /> <br />
+                The tool provides two modes of operation:
                 <br /> 
                 1. <Link to="#quickStart" color="secondary">Quick Start</Link> : 
-                4 Easy Steps - <code style={{color:"#d63384"}}>Plug Device, Connect, Choose Built-In Firmware Image & Flash!</code>
-              </p>
-              <p className="text-sm">
+                Get started in just four simple steps: <code style={{color:"#d63384"}}>Plug Device → Connect → Choose Built-In Firmware Image → Flash</code>
+                <br />
                 2. <Link to="#diy" color="secondary">DIY</Link> : 
-                For Advanced Users, use your own pre-built Firmware Image from local storage and Flash!
-              </p>
-              <p className="text-sm">
-              <br />
-              You can even build and <Link to="#publishFirmwareApp" color="secondary">Publish your own Apps</Link> for ESP32 using ESP Launchpad.
+                For advanced users who want to flash their own pre-built firmware images directly from local storage.
+              <br /> <br />
+
+              ESP Launchpad also allows you to build and <Link to="#publishFirmwareApp" color="secondary">Publish your own Apps</Link> or ESP32, 
+              making it easy to share custom firmware applications with others.
               </p>
             </div>
             </SectionCard>
@@ -64,15 +59,15 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
               icon={<Timer className="h-5 w-5" aria-hidden />}
               primaryText="Quick Start"
               actions={ <Button color="secondary" fullWidth={false} onClick={() => onTabChange("quickstart")}>
-              Try Now!</Button>}
+              Try Now <ChevronRight className="h-4 w-4" /></Button>}
               allowCollapse={false}
               defaultOpen={true}
               size="lg"
             >
               <p className="text-sm">
-                ESP currently provides a few built-in, ready-to-use examples that can be flashed on the
-                ESP32 devices. Choose one of the built-in firmware applications, plug in your device, use
-                the Connect option in the menu, choose the firmware, and click Flash!
+              Get started quickly with ESP Launchpad's built-in, ready-to-use firmware applications. Espressif provides several example applications for ESP RainMaker and ESP Matter that can be flashed directly onto supported ESP32 development kits.
+              <br /> <br />
+              Simply connect your device via USB, select Connect from the menu, choose a firmware image from the available options, and click Flash. That's it - your device is ready to go!
               </p>
             </SectionCard>
          </section>
@@ -85,15 +80,19 @@ export function AboutTab({ onTabChange }: { onTabChange: (tab: TabId) => void })
               icon={<ToolCase className="h-5 w-5" aria-hidden />}
               primaryText="DIY"
               actions={ <Button color="secondary" fullWidth={false} onClick={() => onTabChange("diy")}>
-              Try Now!</Button>}
+              Try Now <ChevronRight className="h-4 w-4" /></Button>}
               allowCollapse={false}
               defaultOpen={true}
               size="lg"
             >
               <p className="text-sm">
-                You can build your own firmware binaries using the ESP-IDF tools and flash them from your
-                local machine. Select the firmware files from local storage, choose the memory address for
-                each, then click Flash!
+              For advanced users who want greater control over the flashing process, DIY mode allows you to flash your own pre-built firmware images, 
+              including binaries downloaded from external sources, directly from your host machine's local storage.
+              <br /> <br />
+              This mode provides fine-grained control over the flashing process, 
+              allowing you to specify separate binary files and flash them to specific memory addresses on the device.
+              <br /> <br />
+              Users can erase the entire flash memory of the device as a cleanup step before flashing.
               </p>
             </SectionCard>
           </section>

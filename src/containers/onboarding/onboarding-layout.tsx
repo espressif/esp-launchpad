@@ -16,7 +16,7 @@ export type OnboardingLayoutProps = Omit<
 };
 
 function defaultBackgroundImageUrl(): string | undefined {
-  const path = appConfig.customAuth?.onboardingLayoutBackgroundImage;
+  const path = appConfig.landingPage?.onboardingLayoutBackgroundImage;
   if (!path) return undefined;
   return resolveAssetPath(path);
 }
@@ -35,7 +35,7 @@ export function OnboardingLayout({
     backgroundImageUrlProp ?? defaultBackgroundImageUrl();
 
   const resolvedHeading =
-    heading ?? appConfig.customAuth?.onboardingHeading ?? undefined;
+    heading ?? appConfig.landingPage?.onboardingHeading ?? undefined;
 
   return (
     <div className="w-full [&_.footer-card-wrapper]:hidden xl:[&_.main-content-wrapper]:px-10">
