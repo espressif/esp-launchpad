@@ -1,84 +1,52 @@
-.maincontainer {
+/* Minimal launchpad: layout and animations kept from the original page.
+   Everything else is Tailwind utilities and the shared component library. */
+
+/* ── Post-flash split: product info (left) and console (right) ───────── */
+.split {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  gap: 1rem;
+  align-items: flex-start;
 }
-
-.terminal {
-  padding-left: 5px;
+.split > .productinfocontainer,
+.split > .terminalcontainer {
+  width: 50%;
+  min-width: 0;
 }
-
+.split > .terminalcontainer.full {
+  width: 100%;
+}
 .productinfocontainer {
   max-height: 90vh;
   overflow-y: auto;
 }
 
-.navbar {
-  justify-content: space-between;
+@media only screen and (max-width: 780px) {
+  .split {
+    flex-direction: column-reverse;
+  }
+  .split > .productinfocontainer,
+  .split > .terminalcontainer {
+    width: 100%;
+    max-height: 590px;
+    overflow-y: auto;
+  }
 }
 
-.slide-right {
-  animation: 2.5s slide-right;
-}
-
-.slide-up {
-  animation: slide-up 1s 1s ease backwards;
-}
-
-.fade-in {
-  animation: fadeIn ease 2s;
-}
-
-.connectButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 0px;
-  font-weight: 500;
-  line-height: 28px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-  padding: 6px 16px;
-  border-radius: 4px;
-  background-color: rgb(0, 113, 225);
-  width: 350px;
-  color: var(--bs-white);
-}
-
-.connectButton:disabled {
- background: rgba(0, 0, 0, 0.2);
-}
-.span-svg {
-  display: inherit;
-  margin-right: -4px;
-  margin-left: 8px;
-}
-
-.svg {
-  width: 20px;
-}
-
+/* ── "Device Console" tab attached to the terminal's top edge ─────────── */
 .devicelog {
+  display: inline-block;
   margin: 0;
+  padding: 2px 8px 8px;
   font-size: 20px;
+  line-height: 1.2;
+  color: #fff;
+  background-color: var(--esp-terminal-bg, #1e1e1e);
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
-  background-color: rgb(var(--bs-black-rgb));
-  color: var(--bs-white);
-  display: inline;
-  padding-bottom: 8px;
-  padding-right: 8px;
-  padding-left: 8px;
+  vertical-align: bottom;
 }
 
-.btn-outline-dark:focus {
-  box-shadow: none;
-}
-
-.bounce {
-  animation: bounce 2s ease-in-out;
-}
-
+/* ── Troubleshoot dialog bits ─────────────────────────────────────────── */
 .errorMessage {
   font-size: 14px;
   background-color: #f1d2d2;
@@ -86,66 +54,58 @@
   color: #a35c5c;
   padding: 5px;
 }
-
 .command-snippet {
   padding: 10px;
-  background-color: #eee;
+  background-color: var(--color-surface-container, #eee);
   margin: 5px 5px 5px 0;
 }
 
-@keyframes bounce {
+/* ── Animations ───────────────────────────────────────────────────────── */
+.slide-right {
+  animation: 2.5s slide-right;
+}
+.slide-up {
+  animation: slide-up 1s 1s ease backwards;
+}
+.fade-in {
+  animation: fadeIn ease 2s;
+}
+.bounce {
+  animation: bounce 2s ease-in-out;
+}
 
+@keyframes bounce {
   0%,
   100% {
     transform: translateY(0);
   }
-
   50% {
     transform: translateY(-25px);
   }
 }
-
 @keyframes slide-right {
   from {
     margin-left: -50%;
   }
-
   to {
     margin-left: 0%;
   }
 }
-
 @keyframes slide-up {
   0% {
     transform: translate(0px, 100px);
     opacity: 0;
   }
-
   100% {
     transform: translate(0px, 0);
     opacity: 1;
   }
 }
-
 @keyframes fadeIn {
   0% {
     opacity: 0;
   }
-
   100% {
     opacity: 1;
-  }
-}
-
-@media only screen and (max-width: 780px) {
-  .split {
-    flex-direction: column-reverse;
-  }
-
-  .productinfocontainer,
-  .terminalcontainer {
-    width: 100%;
-    max-height: 590px;
-    overflow-y: auto;
   }
 }

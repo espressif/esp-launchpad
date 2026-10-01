@@ -21,5 +21,5 @@
 
     "types": ["node", "w3c-web-serial", "vite/client"]
   },
-  "include": ["src", "minimal-launchpad/**/*.tsx", "vite.config.ts"]
+  "include": ["src", "minimal-launchpad/**/*.ts", "minimal-launchpad/**/*.tsx", "vite.config.ts"]
 }
