@@ -1,1 +1,0 @@
-var FILE_SERVER_HOST = "local"
