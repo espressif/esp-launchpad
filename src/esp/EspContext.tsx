@@ -28,6 +28,51 @@ export interface FlashFile {
 
 export type FlashMode = "quickstart" | "diy" | null;
 
+/** Optional overrides for `connect()`. Every field falls back to the Settings tab values. */
+export interface ConnectOptions {
+  /** Flashing baud rate. Defaults to `settings.flashingBaudrate`. */
+  baudrate?: number;
+  /** Web Serial options. Defaults to the ones derived from `settings`. */
+  serialOptions?: SerialOptions;
+  /** Called once a port has been chosen, before the esptool handshake starts. */
+  onPortSelected?: () => void;
+}
+
+export interface ConnectResult {
+  ok: boolean;
+  /** Chip name reported by esptool (e.g. "ESP32-C3") when `ok` is true. */
+  chipName?: string;
+  /** True when the user dismissed the port picker without choosing a port. */
+  cancelled?: boolean;
+  /** Error message when `ok` is false. */
+  error?: string;
+}
+
+export interface FlashOverrides {
+  /** Erase the whole flash before writing. Defaults to false. */
+  eraseAll?: boolean;
+}
+
+export interface FlashResult {
+  ok: boolean;
+  /** Error message when `ok` is false. */
+  error?: string;
+}
+
+/** A firmware part to download and flash at a given address (minimal launchpad). */
+export interface FlashPart {
+  url: string;
+  address: number;
+}
+
+/** Optional overrides for `resetDevice()`. */
+export interface ResetOptions {
+  /** Console baud rate. Defaults to the TOML override (Quick Start) or `settings.consoleBaudrate`. */
+  consoleBaudrate?: number;
+  /** Web Serial options. Defaults to the ones derived from `settings`. */
+  serialOptions?: SerialOptions;
+}
+
 interface EspContextValue {
   settings: SerialSettings;
   updateSettings: (patch: Partial<SerialSettings>) => void;
@@ -47,21 +92,38 @@ interface EspContextValue {
 
   registerTerminal: (term: Terminal, fitAddon: FitAddon) => void;
   fitTerminal: () => void;
+  /** Writes a line to the registered terminal (no-op when none is mounted). */
+  terminalWriteLine: (text: string) => void;
 
-  connect: () => Promise<void>;
+  /**
+   * Opens the port picker (first call) and runs the esptool handshake.
+   * Never throws; failures are reported in the result and, as before, via the
+   * "default" chip state.
+   */
+  connect: (options?: ConnectOptions) => Promise<ConnectResult>;
   disconnect: () => Promise<void>;
   eraseFlash: () => Promise<void>;
-  resetDevice: () => Promise<void>;
+  resetDevice: (options?: ResetOptions) => Promise<void>;
 
   /** Downloads firmware from a URL and flashes it at the given offset (Quick Start). */
   downloadAndFlash: (fileURL: string, offset: number) => Promise<boolean>;
   /** Flashes a set of already-loaded files (DIY). */
-  flashFiles: (files: FlashFile[]) => Promise<boolean>;
+  flashFiles: (files: FlashFile[], overrides?: FlashOverrides) => Promise<boolean>;
+  /**
+   * Downloads several firmware parts and flashes them in one `writeFlash` call
+   * (minimal launchpad). Returns the error message on failure.
+   */
+  downloadAndFlashParts: (parts: FlashPart[], overrides?: FlashOverrides) => Promise<FlashResult>;
 
   sendCommand: (text: string) => Promise<void>;
 }
 
 const EspContext = createContext<EspContextValue | null>(null);
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return typeof error === "string" ? error : String(error);
+}
 
 export function useEsp(): EspContextValue {
   const ctx = useContext(EspContext);
@@ -130,6 +192,10 @@ export function EspProvider({ children }: { children: ReactNode }) {
 
   const fitTerminal = useCallback(() => {
     if (termRef.current && fitRef.current) fitTerminalColumns(termRef.current, fitRef.current);
+  }, []);
+
+  const terminalWriteLine = useCallback((text: string) => {
+    termRef.current?.writeln(text);
   }, []);
 
   const startConsoleRead = useCallback(
@@ -203,27 +269,39 @@ export function EspProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const connect = useCallback(async () => {
-    await ensureDevice();
-    try {
-      const loaderOptions: LoaderOptions = {
-        transport: transportRef.current!,
-        baudrate: settingsRef.current.flashingBaudrate,
-        terminal: espLoaderTerminal,
-        serialOptions: getSerialOptions(settingsRef.current),
-      };
-      const esploader = new ESPLoader(loaderOptions);
-      esploaderRef.current = esploader;
-      connectedRef.current = true;
-      setConnected(true);
-      const desc = await esploader.main();
-      setChipDesc(desc);
-      setChipName(esploader.chip.CHIP_NAME);
-      await esploader.flashId();
-    } catch {
-      // Mirror original behaviour: surface failure via the "default" chip state.
-    }
-  }, [ensureDevice, espLoaderTerminal]);
+  const connect = useCallback(
+    async (options: ConnectOptions = {}): Promise<ConnectResult> => {
+      try {
+        await ensureDevice();
+      } catch (error) {
+        // The user dismissed the port picker (NotFoundError) or the port could not be opened.
+        const err = error as Error;
+        return { ok: false, cancelled: err?.name === "NotFoundError", error: errorMessage(err) };
+      }
+      options.onPortSelected?.();
+      try {
+        const loaderOptions: LoaderOptions = {
+          transport: transportRef.current!,
+          baudrate: options.baudrate ?? settingsRef.current.flashingBaudrate,
+          terminal: espLoaderTerminal,
+          serialOptions: options.serialOptions ?? getSerialOptions(settingsRef.current),
+        };
+        const esploader = new ESPLoader(loaderOptions);
+        esploaderRef.current = esploader;
+        connectedRef.current = true;
+        setConnected(true);
+        const desc = await esploader.main();
+        setChipDesc(desc);
+        setChipName(esploader.chip.CHIP_NAME);
+        await esploader.flashId();
+        return { ok: true, chipName: esploader.chip.CHIP_NAME };
+      } catch (error) {
+        // Mirror original behaviour: surface failure via the "default" chip state.
+        return { ok: false, error: errorMessage(error) };
+      }
+    },
+    [ensureDevice, espLoaderTerminal],
+  );
 
   const cleanUp = useCallback(() => {
     deviceRef.current = null;
@@ -262,26 +340,29 @@ export function EspProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const writeFlash = useCallback(async (files: FlashFile[]): Promise<boolean> => {
-    if (!esploaderRef.current) return false;
-    setBusy(true);
-    try {
-      const flashOptions: FlashOptions = {
-        fileArray: files,
-        flashSize: "keep",
-        flashMode: "keep",
-        flashFreq: "keep",
-        eraseAll: false,
-        compress: true,
-      };
-      await esploaderRef.current.writeFlash(flashOptions);
-      return true;
-    } catch {
-      return false;
-    } finally {
-      setBusy(false);
-    }
-  }, []);
+  const writeFlash = useCallback(
+    async (files: FlashFile[], eraseAll = false): Promise<FlashResult> => {
+      if (!esploaderRef.current) return { ok: false, error: "Device is not connected" };
+      setBusy(true);
+      try {
+        const flashOptions: FlashOptions = {
+          fileArray: files,
+          flashSize: "keep",
+          flashMode: "keep",
+          flashFreq: "keep",
+          eraseAll,
+          compress: true,
+        };
+        await esploaderRef.current.writeFlash(flashOptions);
+        return { ok: true };
+      } catch (error) {
+        return { ok: false, error: errorMessage(error) };
+      } finally {
+        setBusy(false);
+      }
+    },
+    [],
+  );
 
   const downloadAndFlash = useCallback(
     async (fileURL: string, offset: number): Promise<boolean> => {
@@ -291,15 +372,32 @@ export function EspProvider({ children }: { children: ReactNode }) {
         termRef.current?.writeln("Image file not found");
         return false;
       }
-      return writeFlash([{ data, address: offset }]);
+      return (await writeFlash([{ data, address: offset }])).ok;
     },
     [writeFlash],
   );
 
   const flashFiles = useCallback(
-    async (files: FlashFile[]): Promise<boolean> => {
+    async (files: FlashFile[], overrides: FlashOverrides = {}): Promise<boolean> => {
       flashModeRef.current = "diy";
-      return writeFlash(files);
+      return (await writeFlash(files, overrides.eraseAll ?? false)).ok;
+    },
+    [writeFlash],
+  );
+
+  const downloadAndFlashParts = useCallback(
+    async (parts: FlashPart[], overrides: FlashOverrides = {}): Promise<FlashResult> => {
+      flashModeRef.current = "quickstart";
+      const files: FlashFile[] = [];
+      for (const part of parts) {
+        const data = await getImageData(part.url);
+        if (data === undefined) {
+          termRef.current?.writeln(`Image file not found: ${part.url}`);
+          return { ok: false, error: `Unable to download firmware image: ${part.url}` };
+        }
+        files.push({ data, address: part.address });
+      }
+      return writeFlash(files, overrides.eraseAll ?? false);
     },
     [writeFlash],
   );
@@ -311,7 +409,7 @@ export function EspProvider({ children }: { children: ReactNode }) {
     return settingsRef.current.consoleBaudrate;
   }, []);
 
-  const resetDevice = useCallback(async () => {
+  const resetDevice = useCallback(async (options: ResetOptions = {}) => {
     const transport = transportRef.current;
     if (!transport) {
       // Allow opening a console on a fresh port without flashing first.
@@ -327,8 +425,8 @@ export function EspProvider({ children }: { children: ReactNode }) {
     } catch {
       /* ignore */
     }
-    const consoleBaudrate = getConsoleBaudrateForReconnect();
-    await t.connect(consoleBaudrate, getSerialOptions(settingsRef.current));
+    const consoleBaudrate = options.consoleBaudrate ?? getConsoleBaudrateForReconnect();
+    await t.connect(consoleBaudrate, options.serialOptions ?? getSerialOptions(settingsRef.current));
     setCliEnabled(true);
     setBusy(false);
 
@@ -368,12 +466,14 @@ export function EspProvider({ children }: { children: ReactNode }) {
       setConsoleBaudrateOverride,
       registerTerminal,
       fitTerminal,
+      terminalWriteLine,
       connect,
       disconnect,
       eraseFlash,
       resetDevice,
       downloadAndFlash,
       flashFiles,
+      downloadAndFlashParts,
       sendCommand,
     }),
     [
@@ -387,12 +487,14 @@ export function EspProvider({ children }: { children: ReactNode }) {
       setConsoleBaudrateOverride,
       registerTerminal,
       fitTerminal,
+      terminalWriteLine,
       connect,
       disconnect,
       eraseFlash,
       resetDevice,
       downloadAndFlash,
       flashFiles,
+      downloadAndFlashParts,
       sendCommand,
     ],
   );
