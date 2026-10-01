@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Terminal as XTerminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { useEsp } from "../esp/EspContext";
+import { TERMINAL_ROWS, fitTerminalColumns } from "../lib/terminal";
 
 /**
  * Hosts the xterm.js terminal and registers it with the device context so that
@@ -18,27 +19,17 @@ export function TerminalView() {
 
     const term = new XTerminal({
       cols: 120,
-      rows: 23,
+      rows: TERMINAL_ROWS,
       fontSize: 14,
       scrollback: 9999999,
     });
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
     term.open(host);
-    try {
-      fitAddon.fit();
-    } catch {
-      /* container may not be laid out yet */
-    }
+    fitTerminalColumns(term, fitAddon);
     registerTerminal(term, fitAddon);
 
-    const onResize = () => {
-      try {
-        fitAddon.fit();
-      } catch {
-        /* ignore */
-      }
-    };
+    const onResize = () => fitTerminalColumns(term, fitAddon);
     window.addEventListener("resize", onResize);
 
     return () => {

@@ -6,6 +6,9 @@
 
 /* ── xterm terminal ─────────────────────────────────────────────── */
 .terminal-host {
+  /* content-box so xterm-addon-fit measures the terminal, not the padding;
+     with border-box every fit() saw 24px extra and added a row. */
+  box-sizing: content-box;
   background: var(--esp-terminal-bg);
   padding: 12px;
   border-radius: var(--radius-md, 6px);

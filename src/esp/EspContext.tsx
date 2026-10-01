@@ -12,6 +12,7 @@ import type { Terminal } from "xterm";
 import type { FitAddon } from "xterm-addon-fit";
 import { IconTextActionCard } from "@espressif/dashboard-ui-components";
 import { Cpu } from "lucide-react";
+import { fitTerminalColumns } from "../lib/terminal";
 import {
   defaultSerialSettings,
   getImageData,
@@ -128,7 +129,7 @@ export function EspProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const fitTerminal = useCallback(() => {
-    fitRef.current?.fit();
+    if (termRef.current && fitRef.current) fitTerminalColumns(termRef.current, fitRef.current);
   }, []);
 
   const startConsoleRead = useCallback(
