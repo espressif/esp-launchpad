@@ -1,0 +1,9 @@
+/*
+ * Pulls in Tailwind v4, the Espressif design tokens (colors), fonts, and the
+ * @source directive that scans the component library's built output.
+ * See the library README "Setup" section.
+ */
+@import "@espressif/dashboard-ui-components/styles";
+
+/* Scan this app's own source for Tailwind class names. */
+@source "../";
