@@ -28,6 +28,13 @@ export interface FlashFile {
 
 export type FlashMode = "quickstart" | "diy" | null;
 
+/**
+ * What the serial port is currently used for. Flash commands need "bootloader";
+ * after `resetDevice()` the chip runs the application ("console") and the
+ * esptool session must be re-established first.
+ */
+type Session = "none" | "bootloader" | "console";
+
 /** Optional overrides for `connect()`. Every field falls back to the Settings tab values. */
 export interface ConnectOptions {
   /** Flashing baud rate. Defaults to `settings.flashingBaudrate`. */
@@ -36,6 +43,8 @@ export interface ConnectOptions {
   serialOptions?: SerialOptions;
   /** Called once a port has been chosen, before the esptool handshake starts. */
   onPortSelected?: () => void;
+  /** Clear the terminal before the handshake. Defaults to true; a reconnect passes false to keep the history. */
+  clearTerminal?: boolean;
 }
 
 export interface ConnectResult {
@@ -172,6 +181,9 @@ export function EspProvider({ children }: { children: ReactNode }) {
   const writerRef = useRef<WritableStreamDefaultWriter<Uint8Array> | undefined>(undefined);
   const consoleReaderRef = useRef<ReadableStreamDefaultReader<Uint8Array> | undefined>(undefined);
   const connectedRef = useRef(false);
+  const sessionRef = useRef<Session>("none");
+  /** esptool-js clears the terminal in the `ESPLoader` constructor; a reconnect opts out. */
+  const clearTerminalOnConnectRef = useRef(true);
   const consoleBaudOverrideRef = useRef<number | undefined>(undefined);
   const flashModeRef = useRef<FlashMode>(null);
   const settingsRef = useRef(settings);
@@ -247,10 +259,20 @@ export function EspProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  /** Stops the console reader (it holds the stream lock `disconnect()` waits on), then closes the port. */
+  const closePort = useCallback(async () => {
+    await stopConsoleRead();
+    try {
+      await transportRef.current?.disconnect();
+    } catch {
+      /* the port may already be closed */
+    }
+  }, [stopConsoleRead]);
+
   const espLoaderTerminal = useMemo(
     () => ({
       clean() {
-        termRef.current?.clear();
+        if (clearTerminalOnConnectRef.current) termRef.current?.clear();
       },
       writeLine(data: string) {
         termRef.current?.writeln(data);
@@ -279,6 +301,7 @@ export function EspProvider({ children }: { children: ReactNode }) {
         return { ok: false, cancelled: err?.name === "NotFoundError", error: errorMessage(err) };
       }
       options.onPortSelected?.();
+      clearTerminalOnConnectRef.current = options.clearTerminal ?? true;
       try {
         const loaderOptions: LoaderOptions = {
           transport: transportRef.current!,
@@ -294,9 +317,11 @@ export function EspProvider({ children }: { children: ReactNode }) {
         setChipDesc(desc);
         setChipName(esploader.chip.CHIP_NAME);
         await esploader.flashId();
+        sessionRef.current = "bootloader";
         return { ok: true, chipName: esploader.chip.CHIP_NAME };
       } catch (error) {
         // Mirror original behaviour: surface failure via the "default" chip state.
+        sessionRef.current = "none";
         return { ok: false, error: errorMessage(error) };
       }
     },
@@ -309,6 +334,7 @@ export function EspProvider({ children }: { children: ReactNode }) {
     esploaderRef.current = undefined;
     writerRef.current = undefined;
     consoleReaderRef.current = undefined;
+    sessionRef.current = "none";
     flashModeRef.current = null;
     setChipName("default");
     setChipDesc("default");
@@ -318,42 +344,32 @@ export function EspProvider({ children }: { children: ReactNode }) {
     connectedRef.current = false;
     setConnected(false);
     setCliEnabled(false);
-    await stopConsoleRead();
-    try {
-      if (transportRef.current) await transportRef.current.disconnect();
-    } catch {
-      /* ignore */
-    }
+    await closePort();
     termRef.current?.clear();
     cleanUp();
-  }, [cleanUp, stopConsoleRead]);
+  }, [cleanUp, closePort]);
 
-  const eraseFlash = useCallback(async () => {
-    if (!esploaderRef.current) return;
-    setBusy(true);
-    try {
-      await esploaderRef.current.eraseFlash();
-    } catch {
-      /* errors are streamed to the terminal */
-    } finally {
-      setBusy(false);
-    }
-  }, []);
+  /** Leaves the console and re-runs the esptool handshake so flash commands work again. Throws on failure. */
+  const enterBootloaderFromConsole = useCallback(async () => {
+    if (sessionRef.current !== "console") return;
 
-  const writeFlash = useCallback(
-    async (files: FlashFile[], eraseAll = false): Promise<FlashResult> => {
-      if (!esploaderRef.current) return { ok: false, error: "Device is not connected" };
+    termRef.current?.writeln("Console is active, reconnecting to the bootloader...");
+    await closePort();
+    setCliEnabled(false);
+    const result = await connect({ clearTerminal: false });
+    if (!result.ok) throw new Error(result.error ?? "Failed to reconnect to the device");
+  }, [closePort, connect]);
+
+  /** Runs one esptool command in a bootloader session while `busy` is set; failures become a `FlashResult`. */
+  const runFlashOperation = useCallback(
+    async (operation: (loader: ESPLoader) => Promise<unknown>): Promise<FlashResult> => {
+      if (sessionRef.current === "none") return { ok: false, error: "Device is not connected" };
       setBusy(true);
       try {
-        const flashOptions: FlashOptions = {
-          fileArray: files,
-          flashSize: "keep",
-          flashMode: "keep",
-          flashFreq: "keep",
-          eraseAll,
-          compress: true,
-        };
-        await esploaderRef.current.writeFlash(flashOptions);
+        await enterBootloaderFromConsole();
+        const loader = esploaderRef.current;
+        if (!loader) throw new Error("Device is not connected");
+        await operation(loader);
         return { ok: true };
       } catch (error) {
         return { ok: false, error: errorMessage(error) };
@@ -361,7 +377,32 @@ export function EspProvider({ children }: { children: ReactNode }) {
         setBusy(false);
       }
     },
-    [],
+    [enterBootloaderFromConsole],
+  );
+
+  /** Shows a failed result in the terminal, for callers that only hand a boolean back to the UI. */
+  const reportToTerminal = useCallback((result: FlashResult): boolean => {
+    if (!result.ok) termRef.current?.writeln(`Error: ${result.error}`);
+    return result.ok;
+  }, []);
+
+  const eraseFlash = useCallback(async () => {
+    reportToTerminal(await runFlashOperation((loader) => loader.eraseFlash()));
+  }, [reportToTerminal, runFlashOperation]);
+
+  const writeFlash = useCallback(
+    (files: FlashFile[], eraseAll = false): Promise<FlashResult> => {
+      const flashOptions: FlashOptions = {
+        fileArray: files,
+        flashSize: "keep",
+        flashMode: "keep",
+        flashFreq: "keep",
+        eraseAll,
+        compress: true,
+      };
+      return runFlashOperation((loader) => loader.writeFlash(flashOptions));
+    },
+    [runFlashOperation],
   );
 
   const downloadAndFlash = useCallback(
@@ -372,17 +413,17 @@ export function EspProvider({ children }: { children: ReactNode }) {
         termRef.current?.writeln("Image file not found");
         return false;
       }
-      return (await writeFlash([{ data, address: offset }])).ok;
+      return reportToTerminal(await writeFlash([{ data, address: offset }]));
     },
-    [writeFlash],
+    [reportToTerminal, writeFlash],
   );
 
   const flashFiles = useCallback(
     async (files: FlashFile[], overrides: FlashOverrides = {}): Promise<boolean> => {
       flashModeRef.current = "diy";
-      return (await writeFlash(files, overrides.eraseAll ?? false)).ok;
+      return reportToTerminal(await writeFlash(files, overrides.eraseAll ?? false));
     },
-    [writeFlash],
+    [reportToTerminal, writeFlash],
   );
 
   const downloadAndFlashParts = useCallback(
@@ -419,14 +460,10 @@ export function EspProvider({ children }: { children: ReactNode }) {
     if (!t) return;
 
     setBusy(true);
-    await stopConsoleRead();
-    try {
-      await t.disconnect();
-    } catch {
-      /* ignore */
-    }
+    await closePort();
     const consoleBaudrate = options.consoleBaudrate ?? getConsoleBaudrateForReconnect();
     await t.connect(consoleBaudrate, options.serialOptions ?? getSerialOptions(settingsRef.current));
+    sessionRef.current = "console";
     setCliEnabled(true);
     setBusy(false);
 
@@ -439,7 +476,7 @@ export function EspProvider({ children }: { children: ReactNode }) {
     if (device && term) {
       await startConsoleRead(device, term, () => connectedRef.current);
     }
-  }, [ensureDevice, getConsoleBaudrateForReconnect, startConsoleRead, stopConsoleRead]);
+  }, [closePort, ensureDevice, getConsoleBaudrateForReconnect, startConsoleRead]);
 
   const sendCommand = useCallback(async (text: string) => {
     const device = deviceRef.current;

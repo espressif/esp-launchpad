@@ -87,7 +87,7 @@ export function DiyTab({ goToConsole }: { goToConsole: () => void }) {
             onConfirm={() => void onErase()}
             onCancel={() => undefined}
           >
-            <Button variant="default" color="error"><ZapOff className="h-5 w-5" aria-hidden /> Erase Flash</Button>
+            <Button variant="default" color="error" disabled={!deviceReady || busy}><ZapOff className="h-5 w-5" aria-hidden /> Erase Flash</Button>
           </ConfirmationDialog>
           }
          allowCollapse={false}
