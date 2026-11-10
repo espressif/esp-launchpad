@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { ESPLoader, Transport, type FlashOptions, type LoaderOptions } from "esptool-js";
+import { IDFMonitor } from "@espressif/esp-idf-monitor-js";
 import type { Terminal } from "xterm";
 import type { FitAddon } from "xterm-addon-fit";
 import { IconTextActionCard } from "@espressif/dashboard-ui-components";
@@ -18,6 +19,7 @@ import {
   getImageData,
   getSerialOptions,
   usbPortFilters,
+  withSerialOptions,
   type SerialSettings,
 } from "../lib/serial";
 
@@ -178,9 +180,7 @@ export function EspProvider({ children }: { children: ReactNode }) {
   const esploaderRef = useRef<ESPLoader | undefined>(undefined);
   const termRef = useRef<Terminal | null>(null);
   const fitRef = useRef<FitAddon | null>(null);
-  const writerRef = useRef<WritableStreamDefaultWriter<Uint8Array> | undefined>(undefined);
-  const consoleReaderRef = useRef<ReadableStreamDefaultReader<Uint8Array> | undefined>(undefined);
-  const connectedRef = useRef(false);
+  const monitorRef = useRef<IDFMonitor | null>(null);
   const sessionRef = useRef<Session>("none");
   /** esptool-js clears the terminal in the `ESPLoader` constructor; a reconnect opts out. */
   const clearTerminalOnConnectRef = useRef(true);
@@ -210,64 +210,21 @@ export function EspProvider({ children }: { children: ReactNode }) {
     termRef.current?.writeln(text);
   }, []);
 
-  const startConsoleRead = useCallback(
-    async (device: SerialPort, term: Terminal, isActive: () => boolean) => {
-      const readable = device.readable;
-      if (!readable) return;
-
-      const reader = readable.getReader();
-      consoleReaderRef.current = reader;
-
-      try {
-        while (isActive() && consoleReaderRef.current === reader) {
-          const { value, done } = await reader.read();
-          if (done || !value) break;
-          term.write(value);
-        }
-      } catch (error) {
-        if (consoleReaderRef.current === reader) {
-          term.writeln(`Error: ${(error as Error).message}`);
-        }
-      } finally {
-        try {
-          reader.releaseLock();
-        } catch {
-          /* the reader may already have been released by stopConsoleRead */
-        }
-        if (consoleReaderRef.current === reader) {
-          consoleReaderRef.current = undefined;
-        }
-      }
-    },
-    [],
-  );
-
-  const stopConsoleRead = useCallback(async () => {
-    const reader = consoleReaderRef.current;
-    if (!reader) return;
-
-    consoleReaderRef.current = undefined;
-    try {
-      await reader.cancel();
-    } catch (error) {
-      console.error(`[esp-launchpad] stopConsoleRead: cancel failed: ${(error as Error).message}`);
-    }
-    try {
-      reader.releaseLock();
-    } catch {
-      /* the read loop may already have released it */
-    }
+  const stopMonitor = useCallback(async () => {
+    const monitor = monitorRef.current;
+    monitorRef.current = null;
+    await monitor?.stop();
   }, []);
 
-  /** Stops the console reader (it holds the stream lock `disconnect()` waits on), then closes the port. */
+  /** Stops the console monitor (it holds the port), then closes the port. */
   const closePort = useCallback(async () => {
-    await stopConsoleRead();
+    await stopMonitor();
     try {
       await transportRef.current?.disconnect();
     } catch {
       /* the port may already be closed */
     }
-  }, [stopConsoleRead]);
+  }, [stopMonitor]);
 
   const espLoaderTerminal = useMemo(
     () => ({
@@ -311,7 +268,6 @@ export function EspProvider({ children }: { children: ReactNode }) {
         };
         const esploader = new ESPLoader(loaderOptions);
         esploaderRef.current = esploader;
-        connectedRef.current = true;
         setConnected(true);
         const desc = await esploader.main();
         setChipDesc(desc);
@@ -332,8 +288,7 @@ export function EspProvider({ children }: { children: ReactNode }) {
     deviceRef.current = null;
     transportRef.current = undefined;
     esploaderRef.current = undefined;
-    writerRef.current = undefined;
-    consoleReaderRef.current = undefined;
+    monitorRef.current = null;
     sessionRef.current = "none";
     flashModeRef.current = null;
     setChipName("default");
@@ -341,7 +296,6 @@ export function EspProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const disconnect = useCallback(async () => {
-    connectedRef.current = false;
     setConnected(false);
     setCliEnabled(false);
     await closePort();
@@ -451,44 +405,44 @@ export function EspProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resetDevice = useCallback(async (options: ResetOptions = {}) => {
-    const transport = transportRef.current;
-    if (!transport) {
+    if (!transportRef.current) {
       // Allow opening a console on a fresh port without flashing first.
       await ensureDevice();
     }
-    const t = transportRef.current;
-    if (!t) return;
-
-    setBusy(true);
-    await closePort();
-    const consoleBaudrate = options.consoleBaudrate ?? getConsoleBaudrateForReconnect();
-    await t.connect(consoleBaudrate, options.serialOptions ?? getSerialOptions(settingsRef.current));
-    sessionRef.current = "console";
-    setCliEnabled(true);
-    setBusy(false);
-
-    await t.setDTR(false);
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    await t.setDTR(true);
-
     const device = deviceRef.current;
     const term = termRef.current;
-    if (device && term) {
-      await startConsoleRead(device, term, () => connectedRef.current);
+    if (!device || !term) return;
+
+    setBusy(true);
+    try {
+      await closePort();
+      sessionRef.current = "console";
+      const monitor = new IDFMonitor({
+        port: withSerialOptions(device, options.serialOptions ?? getSerialOptions(settingsRef.current)),
+        terminal: term,
+        baudRate: options.consoleBaudrate ?? getConsoleBaudrateForReconnect(),
+        target: chipName === "default" ? undefined : chipName.replace(/-/g, "").toLowerCase(),
+        decodeCoredumps: "disable",
+      });
+      // Ctrl+] in the terminal stops the monitor and closes the port.
+      monitor.on("exit", () => {
+        if (monitorRef.current !== monitor) return;
+        monitorRef.current = null;
+        setCliEnabled(false);
+      });
+      monitorRef.current = monitor;
+      await monitor.start();
+      setCliEnabled(true);
+    } catch (error) {
+      monitorRef.current = null;
+      term.writeln(`Error: ${errorMessage(error)}`);
+    } finally {
+      setBusy(false);
     }
-  }, [closePort, ensureDevice, getConsoleBaudrateForReconnect, startConsoleRead]);
+  }, [chipName, closePort, ensureDevice, getConsoleBaudrateForReconnect]);
 
   const sendCommand = useCallback(async (text: string) => {
-    const device = deviceRef.current;
-    if (!device?.writable) return;
-    const encoder = new TextEncoder();
-    if (!device.writable.locked) {
-      writerRef.current = device.writable.getWriter();
-    }
-    const writer = writerRef.current;
-    if (!writer) return;
-    await writer.write(encoder.encode(text + "\r"));
-    writer.releaseLock();
+    await monitorRef.current?.send(text);
   }, []);
 
   const value = useMemo<EspContextValue>(

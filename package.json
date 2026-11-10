@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@espressif/dashboard-ui-components": "^1.11.2",
+    "@espressif/esp-idf-monitor-js": "^0.1.0",
     "@tanstack/react-table": "^8.21.3",
     "build": "^0.1.4",
     "esptool-js": "^0.7.0",
