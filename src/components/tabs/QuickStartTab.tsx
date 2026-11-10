@@ -72,7 +72,7 @@ export function QuickStartTab({
   goToConsole: () => void;
   onFlashStatus: (links: AppFlashLinks) => void;
 }) {
-  const { connected, chipDesc, chipName, busy, downloadAndFlash, setConsoleBaudrateOverride } =
+  const { connected, chipDesc, chipName, busy, flashFirmware, setConsoleBaudrateOverride } =
     useEsp();
   const deviceReady = connected && chipDesc !== "default";
 
@@ -206,6 +206,12 @@ export function QuickStartTab({
     return app.image[selectedChipset.toLowerCase()];
   }, [app, devKits, selectedChipset, selectedDevKit]);
 
+  const resolveElfFile = useCallback((): string | undefined => {
+    const elfFiles = app?.["elf-gz"];
+    if (!elfFiles) return undefined;
+    return (selectedDevKit && elfFiles[selectedDevKit]) || elfFiles[selectedChipset.toLowerCase()];
+  }, [app, selectedChipset, selectedDevKit]);
+
   const onFlash = async () => {
     if (!app || !config) return;
     const flashFile = resolveFlashFile();
@@ -218,7 +224,12 @@ export function QuickStartTab({
     setPostFlashLinks(null);
     goToConsole();
     const offset = parseInt(app.offset ?? "0x0000");
-    const ok = await downloadAndFlash(config.firmware_images_url + flashFile, offset);
+    const elfFile = resolveElfFile();
+    const ok = await flashFirmware({
+      imageURL: config.firmware_images_url + flashFile,
+      offset,
+      elfURL: elfFile && config.firmware_images_url + elfFile,
+    });
     if (ok) {
       const links = appLinksFromConfig(app);
       onFlashStatus(links);

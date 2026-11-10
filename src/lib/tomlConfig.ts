@@ -6,6 +6,8 @@ export interface AppConfig {
   chipsets: string[];
   /** Maps a lowercased chipset name (or dev-kit name) to a firmware image filename. */
   image: Record<string, string>;
+  /** Same keys as `image`; each value names a gzipped ELF file that the console uses to decode addresses. */
+  "elf-gz"?: Record<string, string>;
   /** Maps a lowercased chipset name to the list of supported dev-kit names. */
   developKits?: Record<string, string[]>;
   readme?: { text?: string };

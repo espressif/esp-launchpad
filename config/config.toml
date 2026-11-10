@@ -25,6 +25,13 @@ image.esp32-c3 = "SINGLE_BIN_FOR_ESP32-C3.bin"
 # Optinal: Configure the name of the image file for development board. Under this configuration, image.esp32-s3 will become invalid..
 image.esp32-s3-box = "SINGLE_BIN_FOR_ESP32-S3-BOX.bin"
 image.esp32-s3-box3 = "SINGLE_BIN_FOR_ESP32-S3-BOX3.bin"
+# Optional: Configure the name of the gzipped ELF file for each image, with the same keys as image.
+# The console uses the ELF file to decode code addresses (for example, a panic backtrace) into function, file and line.
+elf-gz.esp32 = "ELF_FOR_ESP32.elf.gz"
+elf-gz.esp32-s2 = "ELF_FOR_ESP32-S2.elf.gz"
+elf-gz.esp32-c3 = "ELF_FOR_ESP32-C3.elf.gz"
+elf-gz.esp32-s3-box = "ELF_FOR_ESP32-S3-BOX.elf.gz"
+elf-gz.esp32-s3-box3 = "ELF_FOR_ESP32-S3-BOX3.elf.gz"
 # Optional: A brief introduction to this app.
 description = "Description of the firmware app"
 # Optional: Phone APP URLs if any for Playstores

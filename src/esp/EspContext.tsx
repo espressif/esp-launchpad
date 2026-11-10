@@ -8,12 +8,13 @@ import {
   type ReactNode,
 } from "react";
 import { ESPLoader, Transport, type FlashOptions, type LoaderOptions } from "esptool-js";
-import { IDFMonitor } from "@espressif/esp-idf-monitor-js";
+import { IDFMonitor, type ElfFile } from "@espressif/esp-idf-monitor-js";
 import type { Terminal } from "xterm";
 import type { FitAddon } from "xterm-addon-fit";
 import { IconTextActionCard } from "@espressif/dashboard-ui-components";
 import { Cpu } from "lucide-react";
 import { fitTerminalColumns } from "../lib/terminal";
+import { fetchElf } from "../lib/elf";
 import {
   defaultSerialSettings,
   getImageData,
@@ -36,6 +37,12 @@ export type FlashMode = "quickstart" | "diy" | null;
  * esptool session must be re-established first.
  */
 type Session = "none" | "bootloader" | "console";
+
+/** ELF file of the flashed firmware, used to decode code addresses in the console. */
+interface ConsoleElf {
+  name: string;
+  data: Promise<Uint8Array>;
+}
 
 /** Optional overrides for `connect()`. Every field falls back to the Settings tab values. */
 export interface ConnectOptions {
@@ -68,6 +75,14 @@ export interface FlashResult {
   ok: boolean;
   /** Error message when `ok` is false. */
   error?: string;
+}
+
+/** A firmware image to download and flash (Quick Start). */
+export interface FirmwareSource {
+  imageURL: string;
+  offset: number;
+  /** ELF file (gzip or plain) of the image, for address decoding in the console. */
+  elfURL?: string;
 }
 
 /** A firmware part to download and flash at a given address (minimal launchpad). */
@@ -116,8 +131,11 @@ interface EspContextValue {
   eraseFlash: () => Promise<void>;
   resetDevice: (options?: ResetOptions) => Promise<void>;
 
-  /** Downloads firmware from a URL and flashes it at the given offset (Quick Start). */
-  downloadAndFlash: (fileURL: string, offset: number) => Promise<boolean>;
+  /**
+   * Downloads a firmware image and flashes it (Quick Start).
+   * @note After a successful flash, the console decodes addresses with `elfURL`.
+   */
+  flashFirmware: (firmware: FirmwareSource) => Promise<boolean>;
   /** Flashes a set of already-loaded files (DIY). */
   flashFiles: (files: FlashFile[], overrides?: FlashOverrides) => Promise<boolean>;
   /**
@@ -186,6 +204,8 @@ export function EspProvider({ children }: { children: ReactNode }) {
   const clearTerminalOnConnectRef = useRef(true);
   const consoleBaudOverrideRef = useRef<number | undefined>(undefined);
   const flashModeRef = useRef<FlashMode>(null);
+  /** ELF file of the firmware on the device; any flash operation clears it. */
+  const elfRef = useRef<ConsoleElf | null>(null);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
@@ -291,6 +311,7 @@ export function EspProvider({ children }: { children: ReactNode }) {
     monitorRef.current = null;
     sessionRef.current = "none";
     flashModeRef.current = null;
+    elfRef.current = null;
     setChipName("default");
     setChipDesc("default");
   }, []);
@@ -323,6 +344,7 @@ export function EspProvider({ children }: { children: ReactNode }) {
         await enterBootloaderFromConsole();
         const loader = esploaderRef.current;
         if (!loader) throw new Error("Device is not connected");
+        elfRef.current = null;
         await operation(loader);
         return { ok: true };
       } catch (error) {
@@ -359,15 +381,23 @@ export function EspProvider({ children }: { children: ReactNode }) {
     [runFlashOperation],
   );
 
-  const downloadAndFlash = useCallback(
-    async (fileURL: string, offset: number): Promise<boolean> => {
+  const flashFirmware = useCallback(
+    async ({ imageURL, offset, elfURL }: FirmwareSource): Promise<boolean> => {
       flashModeRef.current = "quickstart";
-      const data = await getImageData(fileURL);
+      // The ELF file downloads while the image flashes.
+      let elf: ConsoleElf | null = null;
+      if (elfURL) {
+        elf = { name: elfURL.split("/").pop()!.replace(/\.gz$/, ""), data: fetchElf(elfURL) };
+        elf.data.catch(() => undefined);
+      }
+      const data = await getImageData(imageURL);
       if (data === undefined) {
         termRef.current?.writeln("Image file not found");
         return false;
       }
-      return reportToTerminal(await writeFlash([{ data, address: offset }]));
+      const result = await writeFlash([{ data, address: offset }]);
+      if (result.ok) elfRef.current = elf;
+      return reportToTerminal(result);
     },
     [reportToTerminal, writeFlash],
   );
@@ -404,6 +434,18 @@ export function EspProvider({ children }: { children: ReactNode }) {
     return settingsRef.current.consoleBaudrate;
   }, []);
 
+  /** Waits for the ELF file of the flashed firmware; a failed download only disables address decoding. */
+  const getConsoleElfFiles = useCallback(async (): Promise<ElfFile[]> => {
+    const elf = elfRef.current;
+    if (!elf) return [];
+    try {
+      return [{ name: elf.name, data: await elf.data }];
+    } catch (error) {
+      termRef.current?.writeln(`--- Unable to load ELF file ${elf.name}: ${errorMessage(error)}`);
+      return [];
+    }
+  }, []);
+
   const resetDevice = useCallback(async (options: ResetOptions = {}) => {
     if (!transportRef.current) {
       // Allow opening a console on a fresh port without flashing first.
@@ -422,6 +464,7 @@ export function EspProvider({ children }: { children: ReactNode }) {
         terminal: term,
         baudRate: options.consoleBaudrate ?? getConsoleBaudrateForReconnect(),
         target: chipName === "default" ? undefined : chipName.replace(/-/g, "").toLowerCase(),
+        elfFiles: await getConsoleElfFiles(),
         decodeCoredumps: "disable",
       });
       // Ctrl+] in the terminal stops the monitor and closes the port.
@@ -439,7 +482,7 @@ export function EspProvider({ children }: { children: ReactNode }) {
     } finally {
       setBusy(false);
     }
-  }, [chipName, closePort, ensureDevice, getConsoleBaudrateForReconnect]);
+  }, [chipName, closePort, ensureDevice, getConsoleBaudrateForReconnect, getConsoleElfFiles]);
 
   const sendCommand = useCallback(async (text: string) => {
     await monitorRef.current?.send(text);
@@ -462,7 +505,7 @@ export function EspProvider({ children }: { children: ReactNode }) {
       disconnect,
       eraseFlash,
       resetDevice,
-      downloadAndFlash,
+      flashFirmware,
       flashFiles,
       downloadAndFlashParts,
       sendCommand,
@@ -483,7 +526,7 @@ export function EspProvider({ children }: { children: ReactNode }) {
       disconnect,
       eraseFlash,
       resetDevice,
-      downloadAndFlash,
+      flashFirmware,
       flashFiles,
       downloadAndFlashParts,
       sendCommand,
