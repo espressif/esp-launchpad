@@ -15,6 +15,8 @@ export interface AppFlashLinks {
   iosUrl?: string;
   setupPayload?: string;
   setupPayloadLogo?: string;
+  /** Rendered app readme (e.g. Matter commissioning QR code), shown after flashing. */
+  readmeHtml?: string;
 }
 
 export function FlashStatusDialog({
@@ -31,7 +33,7 @@ export function FlashStatusDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-info">ESP Firmware Flashing Status</DialogTitle>
         </DialogHeader>
@@ -83,6 +85,16 @@ export function FlashStatusDialog({
                 </div>
               )}
             </div>
+          </>
+        )}
+
+        {links.readmeHtml && (
+          <>
+            <hr className="border-border" />
+            <div
+              className="markdown-body"
+              dangerouslySetInnerHTML={{ __html: links.readmeHtml }}
+            />
           </>
         )}
 
