@@ -34,12 +34,13 @@ import type { AppFlashLinks } from "../modals/FlashStatusDialog";
 import gplayBadge from "../../../assets/gplay_download.png";
 import appstoreBadge from "../../../assets/appstore_download.png";
 
-function appLinksFromConfig(app: AppConfig): AppFlashLinks {
+function appLinksFromConfig(app: AppConfig, readmeHtml: string): AppFlashLinks {
   return {
     androidUrl: app.android_app_url,
     iosUrl: app.ios_app_url,
     setupPayload: app.setup_payload,
     setupPayloadLogo: app.setup_payload_logo,
+    readmeHtml,
   };
 }
 
@@ -220,7 +221,7 @@ export function QuickStartTab({
     const offset = parseInt(app.offset ?? "0x0000");
     const ok = await downloadAndFlash(config.firmware_images_url + flashFile, offset);
     if (ok) {
-      const links = appLinksFromConfig(app);
+      const links = appLinksFromConfig(app, appReadmeHtml);
       onFlashStatus(links);
       setPostFlashLinks(links);
     }
