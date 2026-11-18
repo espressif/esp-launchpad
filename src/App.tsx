@@ -11,6 +11,7 @@ import { ConsoleTab } from "./components/tabs/ConsoleTab";
 import { SettingsTab } from "./components/tabs/SettingsTab";
 import { AboutTab } from "./components/tabs/AboutTab";
 import { FlashStatusDialog, type AppFlashLinks } from "./components/modals/FlashStatusDialog";
+import { AppInfoSheet } from "./components/AppInfoSheet";
 import type { TabId } from "./types";
 import { Cpu, Plug } from "lucide-react";
 
@@ -27,6 +28,8 @@ function Launchpad() {
   const [activeTab, setActiveTab] = useState<TabId>(getInitialTab);
   const [flashModalOpen, setFlashModalOpen] = useState(false);
   const [flashLinks, setFlashLinks] = useState<AppFlashLinks>({});
+  const [appInfoHtml, setAppInfoHtml] = useState("");
+  const [appInfoOpen, setAppInfoOpen] = useState(false);
   const { fitTerminal, connected, chipDesc, connect } = useEsp();
   const deviceReady = connected && chipDesc !== "default";
   const wasDeviceReady = useRef(deviceReady);
@@ -48,10 +51,20 @@ function Launchpad() {
     wasDeviceReady.current = deviceReady;
   }, [activeTab, deviceReady]);
 
-  const goToConsole = () => setActiveTab("console");
-  const showFlashStatus = (links: AppFlashLinks) => {
+  // Callers switch to the console to start a flash/erase, so drop the previous app info.
+  const goToConsole = () => {
+    setAppInfoHtml("");
+    setActiveTab("console");
+  };
+  const showFlashStatus = (links: AppFlashLinks, readmeHtml: string) => {
     setFlashLinks(links);
+    setAppInfoHtml(readmeHtml);
     setFlashModalOpen(true);
+  };
+  // Show the app info once the flash status dialog is dismissed, so the two never stack.
+  const onFlashModalOpenChange = (open: boolean) => {
+    setFlashModalOpen(open);
+    if (!open && appInfoHtml) setAppInfoOpen(true);
   };
 
   return (
@@ -81,7 +94,7 @@ function Launchpad() {
           <DiyTab goToConsole={goToConsole} />
         </TabPanel>
         <TabPanel active={activeTab === "console"}>
-          <ConsoleTab />
+          <ConsoleTab onShowAppInfo={appInfoHtml ? () => setAppInfoOpen(true) : undefined} />
         </TabPanel>
         <TabPanel active={activeTab === "settings"}>
           <SettingsTab />
@@ -97,9 +110,10 @@ function Launchpad() {
 
       <FlashStatusDialog
         open={flashModalOpen}
-        onOpenChange={setFlashModalOpen}
+        onOpenChange={onFlashModalOpenChange}
         links={flashLinks}
       />
+      <AppInfoSheet html={appInfoHtml} open={appInfoOpen} onOpenChange={setAppInfoOpen} />
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { CliInput } from "../CliInput";
 import { ResetDialog } from "../modals/ResetDialog";
 import { Cpu, RotateCcw } from "lucide-react";
 
-export function ConsoleTab() {
+export function ConsoleTab({ onShowAppInfo }: { onShowAppInfo?: () => void }) {
   const { connected, chipDesc, busy, cliEnabled, resetDevice, sendCommand } = useEsp();
   const deviceReady = connected && chipDesc !== "default";
 
@@ -35,6 +35,12 @@ export function ConsoleTab() {
          color="secondary"
         >
         </SectionCard>
+      )}
+
+      {onShowAppInfo && (
+        <Button variant="link" onClick={onShowAppInfo}>
+          Show Application Information
+        </Button>
       )}
 
       <TerminalView />
