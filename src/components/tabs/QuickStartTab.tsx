@@ -10,10 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
   Separator,
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
   SimpleCard,
   Badge,
   Tabs,
@@ -30,6 +26,7 @@ import {
 } from "../../lib/tomlConfig";
 import { fetchMarkdownAsHtml } from "../../lib/markdown";
 import { QrImage } from "../QrImage";
+import { AppInfoSheet } from "../AppInfoSheet";
 import type { AppFlashLinks } from "../modals/FlashStatusDialog";
 import gplayBadge from "../../../assets/gplay_download.png";
 import appstoreBadge from "../../../assets/appstore_download.png";
@@ -70,7 +67,7 @@ export function QuickStartTab({
   onFlashStatus,
 }: {
   goToConsole: () => void;
-  onFlashStatus: (links: AppFlashLinks) => void;
+  onFlashStatus: (links: AppFlashLinks, readmeHtml: string) => void;
 }) {
   const { connected, chipDesc, chipName, busy, downloadAndFlash, setConsoleBaudrateOverride } =
     useEsp();
@@ -221,7 +218,7 @@ export function QuickStartTab({
     const ok = await downloadAndFlash(config.firmware_images_url + flashFile, offset);
     if (ok) {
       const links = appLinksFromConfig(app);
-      onFlashStatus(links);
+      onFlashStatus(links, appReadmeHtml);
       setPostFlashLinks(links);
     }
   };
@@ -421,17 +418,7 @@ export function QuickStartTab({
         </div>
       )}
 
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-xl">
-          <SheetHeader>
-            <SheetTitle>Application Information</SheetTitle>
-          </SheetHeader>
-          <div
-            className="markdown-body p-4"
-            dangerouslySetInnerHTML={{ __html: appReadmeHtml }}
-          />
-        </SheetContent>
-      </Sheet>
+      <AppInfoSheet html={appReadmeHtml} open={sheetOpen} onOpenChange={setSheetOpen} />
     </div>
     </div>
   );
