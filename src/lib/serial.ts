@@ -1,3 +1,5 @@
+import type { MonitorPort } from "@espressif/esp-idf-monitor-js";
+
 /** USB vendor/product filters for the Web Serial port picker (Espressif + common USB-UART bridges). */
 export const usbPortFilters: SerialPortFilter[] = [
   { usbVendorId: 0x10c4, usbProductId: 0xea60 } /* CP2102/CP2102N */,
@@ -73,6 +75,22 @@ export function getSerialOptions(settings: SerialSettings): SerialOptions {
     parity: settings.parity === "even" || settings.parity === "odd" ? settings.parity : "none",
     flowControl: settings.flowControl === "hardware" ? "hardware" : "none",
     bufferSize,
+  };
+}
+
+/** Wraps a port so that the monitor opens it with all the given serial options, not only the baud rate. */
+export function withSerialOptions(port: SerialPort, options: SerialOptions): MonitorPort {
+  return {
+    get readable() {
+      return port.readable;
+    },
+    get writable() {
+      return port.writable;
+    },
+    open: ({ baudRate }) => port.open({ ...options, baudRate }),
+    close: () => port.close(),
+    getInfo: () => port.getInfo(),
+    setSignals: (signals) => port.setSignals(signals),
   };
 }
 
