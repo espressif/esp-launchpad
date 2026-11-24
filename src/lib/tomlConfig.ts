@@ -1,11 +1,17 @@
 import { parse as parseToml } from "smol-toml";
 
+/** Image entry used when the root config sets `multipart = true`. */
+export interface MultipartImage {
+  parts: string[];
+  addresses: (string | number)[];
+}
+
 /** Per-application section of a Launchpad TOML config (v1.0). */
 export interface AppConfig {
   description?: string;
   chipsets: string[];
   /** Maps a lowercased chipset name (or dev-kit name) to a firmware image filename. */
-  image: Record<string, string>;
+  image: Record<string, string | MultipartImage>;
   /** Maps a lowercased chipset name to the list of supported dev-kit names. */
   developKits?: Record<string, string[]>;
   readme?: { text?: string };
@@ -15,6 +21,8 @@ export interface AppConfig {
   setup_payload_logo?: string;
   setup_payload?: string;
   offset?: string;
+  /** Overrides the root `multipart` for this app. */
+  multipart?: boolean;
 }
 
 /** Root Launchpad TOML config (v1.0). Known fields plus dynamic per-app sections. */
@@ -22,6 +30,8 @@ export interface LaunchpadConfig {
   esp_toml_version: number | string;
   firmware_images_url: string;
   config_readme_url?: string;
+  /** Opt-in default for all apps (false if missing); an app's own `multipart` overrides it. When true, `image.<chipset>` is `{ parts, addresses }` instead of a filename. */
+  multipart?: boolean;
   supported_apps: string[];
   [appName: string]: unknown;
 }
@@ -94,6 +104,56 @@ export async function loadLaunchpadConfig(
 /** Type-safe accessor for a per-app config section. */
 export function getApp(config: LaunchpadConfig, appName: string): AppConfig | undefined {
   return config[appName] as AppConfig | undefined;
+}
+
+export interface StandardFlashPart {
+  url: string;
+  address: number;
+}
+
+const isAbsoluteUrl = (value: string) => /^[a-z][a-z0-9+.-]*:\/\//i.test(value);
+
+/**
+ * Resolves what to flash for the selected image key. A missing `multipart` (app, then root) means
+ * false (single file at `offset`); only an explicit `multipart = true` reads the
+ * `parts` / `addresses` arrays. Part names are relative to `firmware_images_url`
+ * unless they are absolute URLs.
+ */
+export function resolveStandardFlash(
+  config: LaunchpadConfig,
+  app: AppConfig,
+  imageKey: string | undefined,
+): { parts: StandardFlashPart[] } | { error: string } | undefined {
+  const image = imageKey ? app.image?.[imageKey] : undefined;
+  if (image === undefined) return undefined;
+  const base = config.firmware_images_url ?? "";
+
+  // App-level value wins over the root one; missing everywhere means false.
+  const multipart = (app.multipart ?? config.multipart) === true;
+
+  if (!multipart) {
+    if (typeof image !== "string") {
+      return { error: `Unsupported config. Reason: image.${imageKey} must be a filename unless multipart = true.` };
+    }
+    return { parts: [{ url: base + image, address: parseInt(app.offset ?? "0x0000") }] };
+  }
+
+  if (
+    typeof image !== "object" ||
+    !Array.isArray(image.parts) ||
+    !Array.isArray(image.addresses) ||
+    image.parts.length === 0 ||
+    image.parts.length !== image.addresses.length
+  ) {
+    return { error: `Unsupported config. Reason: image.${imageKey} must define parts and addresses arrays of the same length.` };
+  }
+  const parts = image.parts.map((name, index) => ({
+    url: isAbsoluteUrl(name) ? name : base + name,
+    address: parseInt(String(image.addresses[index])),
+  }));
+  const invalid = parts.find((part) => Number.isNaN(part.address));
+  if (invalid) return { error: `Unsupported config. Reason: Invalid flash address for ${invalid.url}.` };
+  return { parts };
 }
 
 // ── Minimal launchpad ──────────────────────────────────────────────
@@ -202,7 +262,7 @@ export async function loadMinimalConfig(
       status: "invalid",
       tomlFileURL,
       error:
-        "The TOML file must list an app in supported_apps and define a matching [app] section.",
+        "Unsupported config. Reason : The TOML file must list an app in supported_apps and define a matching [app] section.",
     };
   }
   return { status: "ok", tomlFileURL, config, appName, app };
@@ -225,7 +285,7 @@ export function getMinimalFlashParts(
   if (!config.multipart || !config.chip) {
     return {
       error:
-        'This TOML is not a minimal launchpad config: it must set multipart = true and chip = "<target>".',
+        'Unsupported config. Reason : This TOML is not a minimal launchpad config. It must set multipart = true and chip = "<target>".',
     };
   }
   const chipKey = config.chip.toLowerCase();
@@ -244,7 +304,7 @@ export function getMinimalFlashParts(
     address: parseInt(String(image.addresses[index])),
   }));
   const invalid = parts.find((part) => Number.isNaN(part.address));
-  if (invalid) return { error: `Invalid flash address for ${invalid.url}.` };
+  if (invalid) return { error: `Unsupported config. Reason : Invalid flash address for ${invalid.url}.` };
   return { parts };
 }
 

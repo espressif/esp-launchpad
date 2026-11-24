@@ -433,7 +433,7 @@ export function EspProvider({ children }: { children: ReactNode }) {
       for (const part of parts) {
         const data = await getImageData(part.url);
         if (data === undefined) {
-          termRef.current?.writeln(`Image file not found: ${part.url}`);
+          // Callers report `error` to the terminal, so don't also write it here.
           return { ok: false, error: `Unable to download firmware image: ${part.url}` };
         }
         files.push({ data, address: part.address });

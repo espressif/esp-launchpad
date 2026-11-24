@@ -23,6 +23,7 @@ import {
   loadLaunchpadConfig,
   type AppConfig,
   type LaunchpadConfig,
+  resolveStandardFlash,
 } from "../../lib/tomlConfig";
 import { fetchMarkdownAsHtml } from "../../lib/markdown";
 import { QrImage } from "../QrImage";
@@ -69,7 +70,7 @@ export function QuickStartTab({
   goToConsole: () => void;
   onFlashStatus: (links: AppFlashLinks, readmeHtml: string) => void;
 }) {
-  const { connected, chipDesc, chipName, busy, downloadAndFlash, setConsoleBaudrateOverride } =
+  const { connected, chipDesc, chipName, busy, downloadAndFlashParts, terminalWriteLine, setConsoleBaudrateOverride } =
     useEsp();
   const deviceReady = connected && chipDesc !== "default";
 
@@ -168,6 +169,7 @@ export function QuickStartTab({
   const handleAppChange = useCallback(
     (newApp: string) => {
       setSelectedApp(newApp);
+      setFlashError(null);
       if (config) {
         const appConfig = getApp(config, newApp);
         setSelectedChipset(findMatchingChipset(appConfig?.chipsets, chipName) ?? "");
@@ -195,32 +197,35 @@ export function QuickStartTab({
     [loadConfig, selectedSolution],
   );
 
-  const resolveFlashFile = useCallback((): string | undefined => {
+  const resolveImageKey = useCallback((): string | undefined => {
     if (!app) return undefined;
-    if (devKits && devKits.length > 0) {
-      return selectedDevKit ? app.image[selectedDevKit] : undefined;
-    }
-    return app.image[selectedChipset.toLowerCase()];
+    if (devKits && devKits.length > 0) return selectedDevKit || undefined;
+    return selectedChipset.toLowerCase();
   }, [app, devKits, selectedChipset, selectedDevKit]);
 
   const onFlash = async () => {
     if (!app || !config) return;
-    const flashFile = resolveFlashFile();
-    if (!flashFile) {
+    const resolved = resolveStandardFlash(config, app, resolveImageKey());
+    if (!resolved) {
       setFlashError("Please ensure that a chipset type is selected before flashing.");
       setTimeout(() => setFlashError(null), 3000);
+      return;
+    }
+    if ("error" in resolved) {
+      setFlashError(resolved.error);
       return;
     }
     setFlashError(null);
     setPostFlashLinks(null);
     goToConsole();
-    const offset = parseInt(app.offset ?? "0x0000");
-    const ok = await downloadAndFlash(config.firmware_images_url + flashFile, offset);
-    if (ok) {
-      const links = appLinksFromConfig(app);
-      onFlashStatus(links, appReadmeHtml);
-      setPostFlashLinks(links);
+    const result = await downloadAndFlashParts(resolved.parts);
+    if (!result.ok) {
+      terminalWriteLine(`Error: ${result.error}`);
+      return;
     }
+    const links = appLinksFromConfig(app);
+    onFlashStatus(links, appReadmeHtml);
+    setPostFlashLinks(links);
   };
 
   if (loadError) {
@@ -265,6 +270,11 @@ export function QuickStartTab({
         </nav>
       )}
       <Separator />
+      {flashError && (
+        <Alert type="error" title="Unable to flash device">
+          {flashError}
+        </Alert>
+      )}
       {missingApp && (
         <Alert type="warning" title="Application not found">
           No applications found for {missingApp}
@@ -375,12 +385,6 @@ export function QuickStartTab({
           </Button>
           
         </div>
-
-        {flashError && (
-          <Alert type="error" title="Unable to flash device">
-            {flashError}
-          </Alert>
-        )}
       </div>
 
       {configReadmeHtml && (
