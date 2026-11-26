@@ -3,6 +3,9 @@ esp_toml_version = 1.0
 # This should be a publicly accessible URL of the file server where your firmware binaries are available for download
 firmware_images_url = "<URL to your firmware images directory>"
 
+#Optional, (can also be omitted, default value is false. This setting can be used as a global level for all apps, if they support multi part images which can be flashed at different addresses. However you can override this setting at app level as well, as per the app image config)
+#multipart = false
+
 # Apps that you support and for which the binaries are available to publish. You can have multiple apps as a comma separated list
 # The launch pad UI will automatically show these Apps in the available apps dropdown
 # There should be a config section per listed App
@@ -16,15 +19,23 @@ config_readme_url = "<APP_CONFIG_README_FILE_URL>"
 [YOUR_FIRMWARE_APP_NAME]
 # ESP32 Chipsets for which you have a supported Firmware App. Define a property for each supported chipset in the given format.
 chipsets = ["ESP32", "ESP32-S2", "ESP32-C3", "ESP32-S3"]
-# Optional: Set development board for chip model.
-developKits.esp32-s3 = ["esp32-s3-box", "esp32-s3-box3"]
 # Configure the name of the binary file
 image.esp32 = "SINGLE_BIN_FOR_ESP32.bin"
 image.esp32-s2 = "SINGLE_BIN_FOR_ESP32-S2.bin"
 image.esp32-c3 = "SINGLE_BIN_FOR_ESP32-C3.bin"
-# Optinal: Configure the name of the image file for development board. Under this configuration, image.esp32-s3 will become invalid..
-image.esp32-s3-box = "SINGLE_BIN_FOR_ESP32-S3-BOX.bin"
-image.esp32-s3-box3 = "SINGLE_BIN_FOR_ESP32-S3-BOX3.bin"
+
+# Optional: If your firmware image is split into multiple files, each to be flashed at different address locations. First set the flag multipart = true. Then define an array for the names of the image parts and also an array for corresponding matching hex addresses where the part is to be flashed at. Also note that if using multipart = true, comment / remove the above SINGLE_BIN configs, otherwise the parser will flag error.
+
+#multipart = true     # only this app uses parts/addresses
+#image.esp32-s2.parts = ["bootloader.bin", "partition-table.bin", "app.bin"]
+#image.esp32-s2.addresses = ["0x0","0x8000", "0x30000"]
+
+# Optional: Set development board for chip model.
+#developKits.esp32-s3 = ["esp32-s3-box", "esp32-s3-box3"]
+
+# Optional: Configure the name of the image file for development board. Under this configuration, image.esp32-s3 will become invalid..
+#image.esp32-s3-box = "SINGLE_BIN_FOR_ESP32-S3-BOX.bin"
+#image.esp32-s3-box3 = "SINGLE_BIN_FOR_ESP32-S3-BOX3.bin"
 # Optional: A brief introduction to this app.
 description = "Description of the firmware app"
 # Optional: Phone APP URLs if any for Playstores

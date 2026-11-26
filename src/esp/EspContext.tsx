@@ -114,8 +114,6 @@ interface EspContextValue {
   eraseFlash: () => Promise<void>;
   resetDevice: (options?: ResetOptions) => Promise<void>;
 
-  /** Downloads firmware from a URL and flashes it at the given offset (Quick Start). */
-  downloadAndFlash: (fileURL: string, offset: number) => Promise<boolean>;
   /** Flashes a set of already-loaded files (DIY). */
   flashFiles: (files: FlashFile[], overrides?: FlashOverrides) => Promise<boolean>;
   /**
@@ -405,19 +403,6 @@ export function EspProvider({ children }: { children: ReactNode }) {
     [runFlashOperation],
   );
 
-  const downloadAndFlash = useCallback(
-    async (fileURL: string, offset: number): Promise<boolean> => {
-      flashModeRef.current = "quickstart";
-      const data = await getImageData(fileURL);
-      if (data === undefined) {
-        termRef.current?.writeln("Image file not found");
-        return false;
-      }
-      return reportToTerminal(await writeFlash([{ data, address: offset }]));
-    },
-    [reportToTerminal, writeFlash],
-  );
-
   const flashFiles = useCallback(
     async (files: FlashFile[], overrides: FlashOverrides = {}): Promise<boolean> => {
       flashModeRef.current = "diy";
@@ -433,7 +418,7 @@ export function EspProvider({ children }: { children: ReactNode }) {
       for (const part of parts) {
         const data = await getImageData(part.url);
         if (data === undefined) {
-          termRef.current?.writeln(`Image file not found: ${part.url}`);
+          // Callers report `error` to the terminal, so don't also write it here.
           return { ok: false, error: `Unable to download firmware image: ${part.url}` };
         }
         files.push({ data, address: part.address });
@@ -508,7 +493,6 @@ export function EspProvider({ children }: { children: ReactNode }) {
       disconnect,
       eraseFlash,
       resetDevice,
-      downloadAndFlash,
       flashFiles,
       downloadAndFlashParts,
       sendCommand,
@@ -529,7 +513,6 @@ export function EspProvider({ children }: { children: ReactNode }) {
       disconnect,
       eraseFlash,
       resetDevice,
-      downloadAndFlash,
       flashFiles,
       downloadAndFlashParts,
       sendCommand,
