@@ -23,13 +23,16 @@ chipsets = ["ESP32", "ESP32-S2", "ESP32-C3", "ESP32-S3"]
 image.esp32 = "SINGLE_BIN_FOR_ESP32.bin"
 image.esp32-s2 = "SINGLE_BIN_FOR_ESP32-S2.bin"
 image.esp32-c3 = "SINGLE_BIN_FOR_ESP32-C3.bin"
-# Optional: If your firmware image is split into multiple files, each to be flashed at different address locations. First set the flag multipart = true. Then define an array for the names of the image parts and also an array for corresponding matching hex addresses where the part is to be flashed at.
+
+# Optional: If your firmware image is split into multiple files, each to be flashed at different address locations. First set the flag multipart = true. Then define an array for the names of the image parts and also an array for corresponding matching hex addresses where the part is to be flashed at. Also note that if using multipart = true, comment / remove the above SINGLE_BIN configs, otherwise the parser will flag error.
+
 #multipart = true     # only this app uses parts/addresses
 #image.esp32-s2.parts = ["bootloader.bin", "partition-table.bin", "app.bin"]
 #image.esp32-s2.addresses = ["0x0","0x8000", "0x30000"]
 
 # Optional: Set development board for chip model.
 #developKits.esp32-s3 = ["esp32-s3-box", "esp32-s3-box3"]
+
 # Optional: Configure the name of the image file for development board. Under this configuration, image.esp32-s3 will become invalid..
 #image.esp32-s3-box = "SINGLE_BIN_FOR_ESP32-S3-BOX.bin"
 #image.esp32-s3-box3 = "SINGLE_BIN_FOR_ESP32-S3-BOX3.bin"
